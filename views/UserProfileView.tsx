@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, Phone, MapPin, Briefcase, Save, Lock, Shield, CheckCircle, RefreshCw, Check } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Briefcase, Save, Lock, Shield, CheckCircle, RefreshCw, Check, AlertCircle } from 'lucide-react';
 import { db } from '../utils/db';
 import { UserProfile } from '../types';
 import { useUI } from '../components/GlobalUI';
@@ -11,6 +11,7 @@ export const UserProfileView: React.FC = () => {
   
   // Password state
   const [passwordForm, setPasswordForm] = useState({ current: '', new: '', confirm: '' });
+  const [passwordError, setPasswordError] = useState<string>('');
 
   useEffect(() => {
     if (saveStatus === 'saved') {
@@ -32,15 +33,22 @@ export const UserProfileView: React.FC = () => {
   };
 
   const handleChangePassword = () => {
+    // Reset previous error
+    setPasswordError('');
+
     if (!passwordForm.current || !passwordForm.new || !passwordForm.confirm) {
-        ui.showToast('warning', 'Vui lòng điền đầy đủ thông tin mật khẩu');
+        setPasswordError('Vui lòng điền đầy đủ thông tin mật khẩu');
         return;
     }
     if (passwordForm.new !== passwordForm.confirm) {
-        ui.showToast('error', 'Mật khẩu xác nhận không khớp');
+        setPasswordError('Mật khẩu xác nhận không khớp');
         return;
     }
+    
+    // Simulate API call success
+    ui.showToast('success', 'Đổi mật khẩu thành công');
     setPasswordForm({ current: '', new: '', confirm: '' });
+    setPasswordError('');
   };
 
   return (
@@ -134,14 +142,25 @@ export const UserProfileView: React.FC = () => {
                 </div>
                 <div className="p-6 space-y-4">
                     <div className="space-y-4 max-w-md">
+                        {/* Error Message Display */}
+                        {passwordError && (
+                            <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm flex items-start gap-2 border border-red-100 dark:border-red-900/50 animate-in fade-in slide-in-from-top-1">
+                                <AlertCircle size={18} className="shrink-0 mt-0.5" />
+                                <span>{passwordError}</span>
+                            </div>
+                        )}
+
                         <div>
                             <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Mật khẩu hiện tại</label>
                             <div className="relative">
                                 <input 
                                     type="password" 
                                     value={passwordForm.current}
-                                    onChange={e => setPasswordForm({...passwordForm, current: e.target.value})}
-                                    className="w-full border border-slate-200 dark:border-slate-600 rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                                    onChange={e => {
+                                        setPasswordForm({...passwordForm, current: e.target.value});
+                                        if(passwordError) setPasswordError('');
+                                    }}
+                                    className={`w-full border rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white ${passwordError ? 'border-red-300 dark:border-red-800' : 'border-slate-200 dark:border-slate-600'}`}
                                     placeholder="••••••••"
                                 />
                                 <Lock className="absolute left-3 top-2.5 text-slate-400" size={16} />
@@ -153,8 +172,11 @@ export const UserProfileView: React.FC = () => {
                                 <input 
                                     type="password" 
                                     value={passwordForm.new}
-                                    onChange={e => setPasswordForm({...passwordForm, new: e.target.value})}
-                                    className="w-full border border-slate-200 dark:border-slate-600 rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                                    onChange={e => {
+                                        setPasswordForm({...passwordForm, new: e.target.value});
+                                        if(passwordError) setPasswordError('');
+                                    }}
+                                    className={`w-full border rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white ${passwordError ? 'border-red-300 dark:border-red-800' : 'border-slate-200 dark:border-slate-600'}`}
                                     placeholder="••••••••"
                                 />
                                 <Lock className="absolute left-3 top-2.5 text-slate-400" size={16} />
@@ -166,8 +188,11 @@ export const UserProfileView: React.FC = () => {
                                 <input 
                                     type="password" 
                                     value={passwordForm.confirm}
-                                    onChange={e => setPasswordForm({...passwordForm, confirm: e.target.value})}
-                                    className="w-full border border-slate-200 dark:border-slate-600 rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                                    onChange={e => {
+                                        setPasswordForm({...passwordForm, confirm: e.target.value});
+                                        if(passwordError) setPasswordError('');
+                                    }}
+                                    className={`w-full border rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white ${passwordError ? 'border-red-300 dark:border-red-800' : 'border-slate-200 dark:border-slate-600'}`}
                                     placeholder="••••••••"
                                 />
                                 <Lock className="absolute left-3 top-2.5 text-slate-400" size={16} />
