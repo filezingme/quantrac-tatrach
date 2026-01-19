@@ -424,11 +424,19 @@ export const FloodForecastView: React.FC = () => {
             </div>
          </div>
       ) : (
-        <div className="flex-1 flex gap-6 overflow-hidden relative">
+        // === CHANGES HERE: Tablet Layout Refactoring ===
+        // On LG (Desktop): flex-row (Sidebar Left, Detail Right)
+        // On MD/SM (Tablet/Mobile): flex-col (Sidebar Top, Detail Bottom)
+        <div className="flex-1 flex flex-col lg:flex-row gap-6 overflow-hidden relative">
           
-          {/* LEFT: Scenario List - Persistent on Tablet/Desktop */}
+          {/* LIST PANE:
+              - Width: Full on mobile/tablet, Fixed (w-80) on desktop
+              - Height: Fixed (h-60) on tablet to prevent taking all space, Auto on desktop
+           */}
           <div className={`
-             w-full md:w-64 lg:w-80 min-w-[250px] bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col 
+             w-full lg:w-80 min-w-[250px] 
+             h-64 lg:h-auto
+             bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col flex-none
              ${selectedScenarioId && !isEditing ? 'hidden md:flex' : 'flex'} 
              ${isEditing ? 'hidden md:flex' : ''}
           `}>
@@ -481,7 +489,7 @@ export const FloodForecastView: React.FC = () => {
             </div>
           </div>
 
-          {/* RIGHT: Detail / Edit View */}
+          {/* RIGHT/BOTTOM: Detail / Edit View */}
           <div className={`
              flex-1 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col
              ${selectedScenarioId || isEditing ? 'flex' : 'hidden md:flex'}
@@ -511,8 +519,12 @@ export const FloodForecastView: React.FC = () => {
                     </div>
                     
                     <h4 className="font-bold text-slate-800 dark:text-white mb-4 border-b dark:border-slate-700 pb-2">Thông số đầu vào</h4>
-                    {/* TABLET RESPONSIVE: Stacks on MD, 3 columns on XL */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {/* INPUT GRID: 
+                        - Mobile: 1 col
+                        - Tablet: 2 cols
+                        - Desktop: 3 cols
+                    */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                        <div>
                          <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Tổng lượng mưa (mm)</label>
                          <input type="number" value={editForm.inputs?.rainfallTotal} onChange={e => setEditForm({...editForm, inputs: {...editForm.inputs!, rainfallTotal: Number(e.target.value)}})} className="w-full border border-slate-300 dark:border-slate-600 p-2 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"/>
@@ -601,8 +613,10 @@ export const FloodForecastView: React.FC = () => {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 bg-slate-50/30 dark:bg-slate-900/30">
-                  {/* Input Summary Grid: TABLET OPTIMIZED (2 cols on MD, 4 cols on XL) */}
-                  <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+                  {/* SUMMARY CARDS: 
+                      - Now 4 cols on Tablet/Desktop because we have full width
+                  */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                      <SummaryCard icon={<Droplets size={18}/>} label="Tổng lượng mưa" value={`${selectedScenario.inputs.rainfallTotal} mm`} />
                      <SummaryCard icon={<Clock size={18}/>} label="Thời gian mưa" value={`${selectedScenario.inputs.rainDuration} giờ`} />
                      <SummaryCard icon={<ArrowDownToLine size={18}/>} label="MN ban đầu" value={`${selectedScenario.inputs.initialWaterLevel} m`} />
@@ -612,8 +626,10 @@ export const FloodForecastView: React.FC = () => {
                   {/* Results Section */}
                   {selectedScenario.results ? (
                     <>
-                      {/* Key Metrics: TABLET OPTIMIZED (1 col on MD/SM, 3 cols on XL) */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                      {/* Key Metrics:
+                          - 3 cols on Tablet/Desktop because we have full width
+                      */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm text-center">
                           <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold mb-1">Đỉnh lũ (Qmax)</p>
                           <p className="text-2xl font-bold text-amber-600 dark:text-amber-500">{selectedScenario.results.maxInflow} <span className="text-sm text-slate-400">m³/s</span></p>
@@ -624,7 +640,7 @@ export const FloodForecastView: React.FC = () => {
                             {selectedScenario.results.maxLevel} <span className="text-sm text-slate-400">m</span>
                           </p>
                         </div>
-                        <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm text-center sm:col-span-2 xl:col-span-1">
+                        <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm text-center">
                           <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold mb-1">Thời gian đạt đỉnh</p>
                           <p className="text-2xl font-bold text-slate-700 dark:text-slate-200">T + {selectedScenario.results.peakTime} <span className="text-sm text-slate-400">giờ</span></p>
                         </div>
