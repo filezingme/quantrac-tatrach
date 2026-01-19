@@ -1,18 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { db } from '../utils/db';
 import { GeneralInfo } from '../types';
-import { Save, MapPin, Building, Activity, CheckCircle } from 'lucide-react';
+import { Save, MapPin, Building, Activity } from 'lucide-react';
+import { useUI } from '../components/GlobalUI';
 
 export const GeneralInfoView: React.FC = () => {
   const [info, setInfo] = useState<GeneralInfo>(db.generalInfo.get());
-  const [isSaved, setIsSaved] = useState(false);
-
-  useEffect(() => {
-    if (isSaved) {
-      const timer = setTimeout(() => setIsSaved(false), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [isSaved]);
+  const ui = useUI();
 
   const handleChange = (field: keyof GeneralInfo, value: string) => {
     setInfo(prev => ({ ...prev, [field]: value }));
@@ -20,22 +14,15 @@ export const GeneralInfoView: React.FC = () => {
 
   const handleSave = () => {
     db.generalInfo.set(info);
-    setIsSaved(true);
+    ui.showToast('success', 'Thông tin chung đã được cập nhật.');
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-10 animate-fade-in">
+    <div className="max-w-5xl mx-auto space-y-6 pb-10">
       <div className="flex items-center justify-between">
          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Thông tin chung công trình</h2>
-         <button 
-           onClick={handleSave} 
-           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-all duration-200 ${
-             isSaved 
-               ? 'bg-green-600 text-white shadow-green-200 dark:shadow-none scale-105' 
-               : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md'
-           }`}
-         >
-           {isSaved ? <><CheckCircle size={16} /> Đã lưu thông tin</> : <><Save size={16} /> Lưu thông tin</>}
+         <button onClick={handleSave} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 shadow-sm">
+           <Save size={16} /> Lưu thông tin
          </button>
       </div>
 

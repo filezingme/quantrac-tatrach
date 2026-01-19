@@ -11,11 +11,13 @@ import {
 } from 'recharts';
 import { db } from '../utils/db';
 import { FloodScenario, SimulationStep } from '../types';
+import { useUI } from '../components/GlobalUI';
 
 export const FloodForecastView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'realtime' | 'scenario'>('scenario');
   const [scenarios, setScenarios] = useState<FloodScenario[]>([]);
   const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null);
+  const ui = useUI();
   
   // Edit/Create Mode State
   const [isEditing, setIsEditing] = useState(false);
@@ -127,26 +129,31 @@ export const FloodForecastView: React.FC = () => {
     e.preventDefault();
     e.stopPropagation();
     
-    if(window.confirm('Bạn chắc chắn muốn xóa kịch bản này?')) {
-      // 1. Delete from DB
-      db.scenarios.delete(id);
-      
-      // 2. Immediately read back from DB to update state
-      const updatedList = db.scenarios.get();
-      setScenarios(updatedList);
-      
-      // 3. Handle selection state cleanup
-      if (selectedScenarioId === id || (isEditing && editForm.id === id)) {
-        setSelectedScenarioId(null);
-        setIsEditing(false);
-        setEditForm({});
-      }
-    }
+    ui.confirm({
+        message: 'Bạn chắc chắn muốn xóa kịch bản này?',
+        type: 'danger',
+        onConfirm: () => {
+             // 1. Delete from DB
+            db.scenarios.delete(id);
+            
+            // 2. Immediately read back from DB to update state
+            const updatedList = db.scenarios.get();
+            setScenarios(updatedList);
+            
+            // 3. Handle selection state cleanup
+            if (selectedScenarioId === id || (isEditing && editForm.id === id)) {
+                setSelectedScenarioId(null);
+                setIsEditing(false);
+                setEditForm({});
+            }
+            ui.showToast('success', 'Đã xóa kịch bản');
+        }
+    });
   };
 
   const handleSaveForm = () => {
-    if (!editForm.name) return alert('Vui lòng nhập tên kịch bản');
-    if (!editForm.id) return alert('Lỗi: Thiếu ID kịch bản');
+    if (!editForm.name) return ui.showToast('error', 'Vui lòng nhập tên kịch bản');
+    if (!editForm.id) return ui.showToast('error', 'Lỗi: Thiếu ID kịch bản');
 
     // 1. Check if it's an update or create
     const currentList = db.scenarios.get();
@@ -165,11 +172,13 @@ export const FloodForecastView: React.FC = () => {
     // 3. Reset view mode
     setIsEditing(false);
     setSelectedScenarioId(editForm.id);
+    ui.showToast('success', 'Đã lưu kịch bản thành công');
   };
 
   const handleRunSimulation = () => {
     if (!selectedScenario) return;
     setIsRunning(true);
+    ui.showToast('info', 'Đang chạy mô phỏng...');
 
     // SIMULATION ENGINE LOGIC
     setTimeout(() => {
@@ -242,6 +251,7 @@ export const FloodForecastView: React.FC = () => {
       db.scenarios.update(updatedScenario);
       setScenarios(db.scenarios.get());
       setIsRunning(false);
+      ui.showToast('success', 'Mô phỏng hoàn tất');
     }, 1500); 
   };
 

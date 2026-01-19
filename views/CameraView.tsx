@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { Camera, Plus, Trash2, Radio, ExternalLink } from 'lucide-react';
 import { db } from '../utils/db';
 import { CameraInfo } from '../types';
+import { useUI } from '../components/GlobalUI';
 
 export const CameraView: React.FC = () => {
   const [cameras, setCameras] = useState<CameraInfo[]>(db.cameras.get());
+  const ui = useUI();
 
   const handleAddCamera = () => {
     const name = prompt('Tên Camera:');
@@ -23,14 +25,20 @@ export const CameraView: React.FC = () => {
     const updated = [...cameras, newCam];
     setCameras(updated);
     db.cameras.set(updated);
+    ui.showToast('success', 'Đã thêm camera mới');
   };
 
   const handleDelete = (id: string) => {
-    if(confirm('Xóa camera này?')) {
-      const updated = cameras.filter(c => c.id !== id);
-      setCameras(updated);
-      db.cameras.set(updated);
-    }
+    ui.confirm({
+        message: 'Bạn có chắc chắn muốn xóa camera này?',
+        type: 'danger',
+        onConfirm: () => {
+            const updated = cameras.filter(c => c.id !== id);
+            setCameras(updated);
+            db.cameras.set(updated);
+            ui.showToast('success', 'Đã xóa camera');
+        }
+    });
   };
 
   const renderCameraContent = (cam: CameraInfo) => {

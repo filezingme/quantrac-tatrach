@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { User, Mail, Phone, MapPin, Briefcase, Save, Lock, Shield, CheckCircle } from 'lucide-react';
 import { db } from '../utils/db';
 import { UserProfile } from '../types';
+import { useUI } from '../components/GlobalUI';
 
 export const UserProfileView: React.FC = () => {
   const [user, setUser] = useState<UserProfile>(db.user.get());
   const [isSaved, setIsSaved] = useState(false);
+  const ui = useUI();
   
   // Password state
   const [passwordForm, setPasswordForm] = useState({ current: '', new: '', confirm: '' });
@@ -18,18 +20,19 @@ export const UserProfileView: React.FC = () => {
     db.user.set(user);
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 3000);
+    ui.showToast('success', 'Thông tin hồ sơ đã được lưu');
   };
 
   const handleChangePassword = () => {
     if (!passwordForm.current || !passwordForm.new || !passwordForm.confirm) {
-        alert('Vui lòng điền đầy đủ thông tin mật khẩu');
+        ui.showToast('warning', 'Vui lòng điền đầy đủ thông tin mật khẩu');
         return;
     }
     if (passwordForm.new !== passwordForm.confirm) {
-        alert('Mật khẩu xác nhận không khớp');
+        ui.showToast('error', 'Mật khẩu xác nhận không khớp');
         return;
     }
-    alert('Đổi mật khẩu thành công (Mô phỏng)');
+    ui.showToast('success', 'Đổi mật khẩu thành công (Mô phỏng)');
     setPasswordForm({ current: '', new: '', confirm: '' });
   };
 

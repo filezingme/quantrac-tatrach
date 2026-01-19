@@ -1,19 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { OperationTable } from '../types';
 import { db } from '../utils/db';
-import { Save, Calendar, Search, CheckCircle } from 'lucide-react';
+import { Save, Calendar, Search } from 'lucide-react';
+import { useUI } from '../components/GlobalUI';
 
 export const OperationView: React.FC = () => {
   const [tables, setTables] = useState<OperationTable[]>(db.operationTables.get());
   const [activeTabId, setActiveTabId] = useState<string>('supply_limit');
-  const [isSaved, setIsSaved] = useState(false);
-
-  useEffect(() => {
-    if (isSaved) {
-      const timer = setTimeout(() => setIsSaved(false), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [isSaved]);
+  const ui = useUI();
 
   const activeTable = tables.find(t => t.id === activeTabId);
 
@@ -29,23 +23,14 @@ export const OperationView: React.FC = () => {
 
   const saveAll = () => {
     db.operationTables.set(tables);
-    setIsSaved(true);
+    ui.showToast('success', 'Đã lưu quy trình vận hành');
   };
 
   return (
     <div className="space-y-6 pb-10">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Quy trình vận hành</h2>
-        <button 
-          onClick={saveAll} 
-          className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-md transition-all duration-200 ${
-            isSaved 
-              ? 'bg-green-600 text-white shadow-green-200 dark:shadow-none scale-105' 
-              : 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200 dark:shadow-none'
-          }`}
-        >
-          {isSaved ? <><CheckCircle size={16}/> Đã lưu thay đổi</> : <><Save size={16}/> Lưu thay đổi</>}
-        </button>
+        <button onClick={saveAll} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-2 shadow-md shadow-blue-200 dark:shadow-none"><Save size={16}/> Lưu thay đổi</button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

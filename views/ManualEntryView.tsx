@@ -1,19 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Upload, FileSpreadsheet, Save, CheckCircle, AlertCircle } from 'lucide-react';
 import { db } from '../utils/db';
 import { ObservationData } from '../types';
+import { useUI } from '../components/GlobalUI';
 
 export const ManualEntryView: React.FC = () => {
   const [formData, setFormData] = useState<ObservationData>(db.observation.get());
-  const [notification, setNotification] = useState<{type: 'success' | 'error', message: string} | null>(null);
-
-  useEffect(() => {
-    // Reset notification after 3s
-    if (notification) {
-      const timer = setTimeout(() => setNotification(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [notification]);
+  const ui = useUI();
 
   const handleChange = (field: keyof ObservationData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -47,9 +40,9 @@ export const ManualEntryView: React.FC = () => {
         lastUpdated: new Date().toISOString()
       };
       db.observation.set(updatedData);
-      setNotification({ type: 'success', message: 'Dữ liệu đã được cập nhật thành công!' });
+      ui.showToast('success', 'Dữ liệu đã được cập nhật thành công!');
     } catch (error) {
-      setNotification({ type: 'error', message: 'Có lỗi xảy ra khi lưu dữ liệu.' });
+      ui.showToast('error', 'Có lỗi xảy ra khi lưu dữ liệu.');
     }
   };
 
@@ -57,14 +50,6 @@ export const ManualEntryView: React.FC = () => {
     <div className="space-y-6 max-w-4xl mx-auto pb-10">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Nhập liệu thủ công</h2>
-        {notification && (
-          <div className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 animate-bounce ${
-            notification.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-          }`}>
-            {notification.type === 'success' ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
-            {notification.message}
-          </div>
-        )}
       </div>
       
       {/* File Upload Section */}

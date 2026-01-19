@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Bell, Database, Shield, Globe, Monitor, Save, RefreshCw, CheckCircle } from 'lucide-react';
+import { Settings, Bell, Database, Shield, Globe, Monitor, Save, RefreshCw } from 'lucide-react';
+import { useUI } from '../components/GlobalUI';
 
 export const SystemSettingsView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'general' | 'notification' | 'data'>('general');
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const [isSaved, setIsSaved] = useState(false);
   const [settings, setSettings] = useState({
       appName: 'Hệ thống Quản lý Hồ Tả Trạch',
       maintenanceMode: false,
@@ -14,6 +14,7 @@ export const SystemSettingsView: React.FC = () => {
       alertThresholdLevel: 44.5,
       backupFrequency: 'daily'
   });
+  const ui = useUI();
 
   useEffect(() => {
     // Sync state with local storage on mount
@@ -25,13 +26,6 @@ export const SystemSettingsView: React.FC = () => {
     }
   }, []);
 
-  useEffect(() => {
-    if (isSaved) {
-        const timer = setTimeout(() => setIsSaved(false), 2000);
-        return () => clearTimeout(timer);
-    }
-  }, [isSaved]);
-
   const handleThemeChange = (newTheme: 'light' | 'dark') => {
       setTheme(newTheme);
       if (newTheme === 'dark') {
@@ -41,6 +35,7 @@ export const SystemSettingsView: React.FC = () => {
           document.documentElement.classList.remove('dark');
           localStorage.setItem('theme', 'light');
       }
+      ui.showToast('info', `Đã chuyển sang giao diện ${newTheme === 'dark' ? 'tối' : 'sáng'}`);
   };
 
   const toggle = (key: keyof typeof settings) => {
@@ -52,7 +47,7 @@ export const SystemSettingsView: React.FC = () => {
   };
 
   const handleSave = () => {
-      setIsSaved(true);
+      ui.showToast('success', 'Đã lưu cấu hình hệ thống');
   };
 
   return (
@@ -225,13 +220,9 @@ export const SystemSettingsView: React.FC = () => {
         <div className="flex justify-end pt-4">
             <button 
                 onClick={handleSave}
-                className={`px-6 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 shadow-lg transition-all duration-200 ${
-                    isSaved 
-                    ? 'bg-green-600 text-white shadow-green-200 dark:shadow-none scale-105' 
-                    : 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200 dark:shadow-blue-900'
-                }`}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 shadow-lg shadow-blue-200 dark:shadow-blue-900 transition-all"
             >
-                {isSaved ? <><CheckCircle size={18}/> Đã lưu cấu hình</> : <><Save size={18}/> Lưu thay đổi</>}
+                <Save size={18}/> Lưu thay đổi
             </button>
         </div>
     </div>

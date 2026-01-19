@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { SpecGroup, SpecItem } from '../types';
 import { ChevronDown, Plus, Trash2, Save, FolderPlus, Check } from 'lucide-react';
 import { db } from '../utils/db';
+import { useUI } from '../components/GlobalUI';
 
 export const TechnicalSpecsView: React.FC = () => {
   // Load initial state from LocalStorage via db util
   const [specs, setSpecs] = useState<SpecGroup[]>(() => db.specs.get());
   const [hasChanges, setHasChanges] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const ui = useUI();
   
   // Manage expanded state for groups
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -29,6 +31,7 @@ export const TechnicalSpecsView: React.FC = () => {
       db.specs.set(specs);
       setHasChanges(false);
       setSaveStatus('saved');
+      ui.showToast('success', 'Đã lưu thông số kỹ thuật thành công');
     }, 500);
   };
 
@@ -67,6 +70,7 @@ export const TechnicalSpecsView: React.FC = () => {
     
     // Auto expand the group if needed
     setExpanded(prev => ({ ...prev, [parentId]: true }));
+    ui.showToast('info', 'Đã thêm dòng thông số mới');
   };
 
   const addSubGroup = (parentId: string) => {
@@ -94,15 +98,20 @@ export const TechnicalSpecsView: React.FC = () => {
   };
 
   const deleteItem = (itemId: string) => {
-    if (!confirm('Bạn có chắc muốn xóa thông số này?')) return;
-    
-    const removeFromList = (items: SpecItem[]): SpecItem[] => items.filter(i => i.id !== itemId);
-    
-    updateSpecs(list => list.map(g => ({
-      ...g,
-      items: removeFromList(g.items),
-      subGroups: g.subGroups ? g.subGroups.map(sg => ({ ...sg, items: removeFromList(sg.items) })) : undefined
-    })));
+    ui.confirm({
+        message: 'Bạn có chắc chắn muốn xóa thông số này?',
+        type: 'danger',
+        onConfirm: () => {
+            const removeFromList = (items: SpecItem[]): SpecItem[] => items.filter(i => i.id !== itemId);
+            
+            updateSpecs(list => list.map(g => ({
+            ...g,
+            items: removeFromList(g.items),
+            subGroups: g.subGroups ? g.subGroups.map(sg => ({ ...sg, items: removeFromList(sg.items) })) : undefined
+            })));
+            ui.showToast('success', 'Đã xóa thông số');
+        }
+    });
   };
 
   const renderItems = (items: SpecItem[]) => (
@@ -168,8 +177,8 @@ export const TechnicalSpecsView: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-20 max-w-5xl mx-auto animate-fade-in">
-      {/* Header - Removed sticky, top-0, z-10 to allow scrolling */}
-      <div className="bg-slate-50/50 dark:bg-slate-900/50 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center mb-6">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-10 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center mb-6">
         <div>
           <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Thông số kỹ thuật</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">Quản lý các thông số thiết kế và hiện trạng công trình</p>

@@ -16,25 +16,28 @@ import { WaterLevelView } from './views/WaterLevelView';
 import { DemoChartsView } from './views/DemoChartsView';
 import { UserProfileView } from './views/UserProfileView';
 import { SystemSettingsView } from './views/SystemSettingsView';
+import { LoginView } from './views/LoginView';
+import { UIProvider, useUI } from './components/GlobalUI';
 import { ViewMode, AppNotification, UserProfile } from './types';
 import { Menu, Bell, Check, LogOut, User, Settings as SettingsIcon, X } from 'lucide-react';
 import { db } from './utils/db';
 
-const App: React.FC = () => {
+// Extract the main layout to a separate component to use the UI Context
+const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const [currentView, setCurrentView] = useState<ViewMode>(ViewMode.DASHBOARD);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  
-  // Header States
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [user, setUser] = useState<UserProfile>(db.user.get());
 
+  // Global UI hook
+  const ui = useUI();
+
   // Refs for click outside
   const notifRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
 
-  // --- THEME INITIALIZATION ---
   useEffect(() => {
     // Check local storage for theme preference
     const savedTheme = localStorage.getItem('theme');
@@ -79,11 +82,18 @@ const App: React.FC = () => {
     db.notifications.markAllRead();
   };
 
-  const handleLogout = () => {
-    if(confirm('Bạn có chắc chắn muốn đăng xuất?')) {
-      alert('Đã đăng xuất thành công (Mô phỏng)');
-      setIsUserMenuOpen(false);
-    }
+  const handleLogoutClick = () => {
+    setIsUserMenuOpen(false);
+    ui.confirm({
+      title: 'Đăng xuất',
+      message: 'Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?',
+      confirmText: 'Đăng xuất',
+      type: 'danger',
+      onConfirm: () => {
+        onLogout();
+        ui.showToast('info', 'Đã đăng xuất thành công');
+      }
+    });
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -241,7 +251,7 @@ const App: React.FC = () => {
                     </div>
                     <div className="p-2 border-t border-slate-100 dark:border-slate-700">
                       <button 
-                        onClick={handleLogout}
+                        onClick={handleLogoutClick}
                         className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg flex items-center gap-2 transition-colors font-medium"
                       >
                         <LogOut size={16} /> Đăng xuất
@@ -259,6 +269,34 @@ const App: React.FC = () => {
         </main>
       </div>
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  // --- AUTHENTICATION STATE ---
+  // Initialize from localStorage to persist login across reloads
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return localStorage.getItem('isAuthenticated') === 'true';
+  });
+
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+    localStorage.setItem('isAuthenticated', 'true');
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem('isAuthenticated');
+  };
+
+  return (
+    <UIProvider>
+      {isAuthenticated ? (
+        <MainLayout onLogout={handleLogout} />
+      ) : (
+        <LoginView onLogin={handleLogin} />
+      )}
+    </UIProvider>
   );
 };
 
