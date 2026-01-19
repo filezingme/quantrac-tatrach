@@ -168,8 +168,8 @@ export const TechnicalSpecsView: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-20 max-w-5xl mx-auto animate-fade-in">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-10 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center mb-6">
+      {/* Header - Removed sticky, top-0, z-10 to allow scrolling */}
+      <div className="bg-slate-50/50 dark:bg-slate-900/50 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center mb-6">
         <div>
           <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Thông số kỹ thuật</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">Quản lý các thông số thiết kế và hiện trạng công trình</p>

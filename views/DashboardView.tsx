@@ -51,7 +51,7 @@ export const DashboardView: React.FC = () => {
   // Modal State
   const [selectedMetric, setSelectedMetric] = useState<MetricDetail | null>(null);
   const [modalTab, setModalTab] = useState<'chart' | 'table'>('chart');
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(true);
   
   // Filter State
   const [filterFrom, setFilterFrom] = useState(new Date(new Date().setHours(0,0,0,0)).toISOString().slice(0, 16));
@@ -173,7 +173,7 @@ export const DashboardView: React.FC = () => {
     generateComparisonData(metric, initialYears);
     setSelectedMetric(metric);
     setModalTab('chart');
-    setIsFullscreen(false);
+    setIsFullscreen(true); // Open in fullscreen by default as requested
     // Reset filters
     setFilterFrom(new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().slice(0, 16));
     setFilterTo(new Date().toISOString().slice(0, 16));
@@ -488,8 +488,8 @@ export const DashboardView: React.FC = () => {
 
       {/* --- ADVANCED DETAIL MODAL --- */}
       {selectedMetric && (
-        <div className={`fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200 ${isFullscreen ? 'p-0' : 'p-4'}`}>
-          <div className={`bg-white dark:bg-slate-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ${isFullscreen ? 'w-full h-full rounded-none' : 'w-full max-w-6xl h-[85vh]'}`}>
+        <div className={`fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center animate-in fade-in duration-200 ${isFullscreen ? 'p-0' : 'p-4'}`}>
+          <div className={`bg-white dark:bg-slate-800 shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ${isFullscreen ? 'w-full h-full rounded-none' : 'w-full max-w-6xl h-[85vh] rounded-2xl'}`}>
             
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 flex justify-between items-center flex-none">
@@ -593,10 +593,10 @@ export const DashboardView: React.FC = () => {
                   </button>
                </div>
 
-               <div className="flex-1 p-6 overflow-hidden">
+               <div className="flex-1 p-6 overflow-y-auto">
                   {modalTab === 'chart' && (
-                    <div className="h-full bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 flex flex-col relative group">
-                        <div className="flex-1 w-full min-h-[400px]" style={{ minHeight: '400px' }}>
+                    <div className="h-full min-h-[400px] bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 flex flex-col relative group">
+                        <div className="flex-1 w-full" style={{ minHeight: '400px' }}>
                            <ResponsiveContainer width="99%" height="100%">
                               <LineChart data={comparisonData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
                                  <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#e2e8f0" strokeOpacity={0.5} />
