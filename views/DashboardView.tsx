@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { ObservationData } from '../types';
 import { db } from '../utils/db';
+import { exportToExcel } from '../utils/excel';
 import { 
   CloudRain, Activity, RefreshCw, X, Maximize2, Minimize2,
   TrendingUp, TrendingDown, Calendar, Droplets, Waves, Info,
@@ -198,6 +199,37 @@ export const DashboardView: React.FC = () => {
     if (selectedMetric) {
         generateComparisonData(selectedMetric, selectedYears);
     }
+  };
+
+  const handleExportRainfall = () => {
+    // Define exact headers and their order
+    const headers = ['Trạm đo', 'Hiện tại (mm)', '1 giờ (mm)', '24 giờ (mm)', '3 ngày (mm)'];
+    
+    const exportData = rainfallData.map(r => ({
+      'Trạm đo': r.name,
+      'Hiện tại (mm)': r.data.current,
+      '1 giờ (mm)': '-',
+      '24 giờ (mm)': r.data.day1,
+      '3 ngày (mm)': r.data.day3
+    }));
+    
+    exportToExcel(exportData, 'So_lieu_mua', headers);
+  };
+
+  const handleExportComparison = () => {
+    // Dynamic headers based on selected years
+    const headers = ['Thời gian', ...selectedYears.map(y => `Năm ${y}`)];
+    
+    // Transform data to match headers
+    const exportData = comparisonData.map(row => {
+        const item: any = { 'Thời gian': row.timeLabel };
+        selectedYears.forEach(y => {
+            item[`Năm ${y}`] = row[y];
+        });
+        return item;
+    });
+
+    exportToExcel(exportData, `Du_lieu_${selectedMetric?.id}`, headers);
   };
 
   return (
@@ -427,7 +459,15 @@ export const DashboardView: React.FC = () => {
                <CloudRain className="text-indigo-600 dark:text-indigo-400" size={20} />
                Số liệu mưa tại các trạm (mm)
              </h3>
-             <span className="text-xs text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-2 py-1 border dark:border-slate-600 rounded">Cập nhật 10p trước</span>
+             <div className="flex gap-2 items-center">
+                <span className="text-xs text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-2 py-1 border dark:border-slate-600 rounded hidden sm:inline-block">Cập nhật 10p trước</span>
+                <button 
+                  onClick={handleExportRainfall}
+                  className="flex items-center gap-1 text-xs font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-2 py-1 rounded transition-colors"
+                >
+                  <Download size={14}/> Xuất Excel
+                </button>
+             </div>
           </div>
           <div className="overflow-x-auto p-2">
             <table className="w-full text-sm text-left border-collapse">
@@ -584,19 +624,29 @@ export const DashboardView: React.FC = () => {
 
             {/* Content */}
             <div className="flex-1 flex flex-col overflow-hidden bg-slate-50 dark:bg-slate-900">
-               <div className="px-6 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex gap-6 flex-none">
-                  <button 
-                    onClick={() => setModalTab('chart')}
-                    className={`py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${modalTab === 'chart' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-                  >
-                    <Activity size={18}/> Đồ thị biến động
-                  </button>
-                  <button 
-                    onClick={() => setModalTab('table')}
-                    className={`py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${modalTab === 'table' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-                  >
-                    <TableIcon size={18}/> Bảng số liệu
-                  </button>
+               <div className="px-6 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex justify-between items-center flex-none">
+                  <div className="flex gap-6">
+                    <button 
+                      onClick={() => setModalTab('chart')}
+                      className={`py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${modalTab === 'chart' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                    >
+                      <Activity size={18}/> Đồ thị biến động
+                    </button>
+                    <button 
+                      onClick={() => setModalTab('table')}
+                      className={`py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${modalTab === 'table' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                    >
+                      <TableIcon size={18}/> Bảng số liệu
+                    </button>
+                  </div>
+                  {modalTab === 'table' && (
+                     <button 
+                        onClick={handleExportComparison}
+                        className="flex items-center gap-1 text-sm font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-3 py-1.5 rounded-lg transition-colors"
+                     >
+                        <Download size={16}/> Xuất Excel
+                     </button>
+                  )}
                </div>
 
                <div className="flex-1 p-6 overflow-y-auto custom-scrollbar">
@@ -604,7 +654,15 @@ export const DashboardView: React.FC = () => {
                     <div className="h-full bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 flex flex-col relative group">
                         <div className="flex-1 w-full min-h-[400px]" style={{ minHeight: '400px' }}>
                            <ResponsiveContainer width="99%" height="100%">
-                              <LineChart data={comparisonData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
+                              <AreaChart data={comparisonData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
+                                 <defs>
+                                   {selectedYears.map((year, index) => (
+                                     <linearGradient key={year} id={`color${year}`} x1="0" y1="0" x2="0" y2="1">
+                                       <stop offset="5%" stopColor={YEAR_COLORS[index % YEAR_COLORS.length]} stopOpacity={0.3}/>
+                                       <stop offset="95%" stopColor={YEAR_COLORS[index % YEAR_COLORS.length]} stopOpacity={0}/>
+                                     </linearGradient>
+                                   ))}
+                                 </defs>
                                  <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#e2e8f0" strokeOpacity={0.5} />
                                  <XAxis 
                                     dataKey="timeLabel" 
@@ -628,18 +686,20 @@ export const DashboardView: React.FC = () => {
                                  />
                                  <Legend />
                                  {selectedYears.map((year, index) => (
-                                    <Line 
+                                    <Area 
                                       key={year}
                                       type="monotone" 
                                       dataKey={year} 
                                       stroke={YEAR_COLORS[index % YEAR_COLORS.length]} 
+                                      fill={`url(#color${year})`}
+                                      fillOpacity={1}
                                       strokeWidth={3}
                                       dot={{ r: 3, strokeWidth: 2, fill: '#fff' }}
                                       activeDot={{ r: 6, strokeWidth: 0 }}
                                       name={`Năm ${year}`}
                                     />
                                  ))}
-                              </LineChart>
+                              </AreaChart>
                            </ResponsiveContainer>
                         </div>
                     </div>

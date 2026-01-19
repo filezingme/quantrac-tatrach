@@ -1,6 +1,7 @@
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { ExternalLink, Table } from 'lucide-react';
+import { ExternalLink, Table, Download } from 'lucide-react';
+import { exportToExcel } from '../utils/excel';
 
 export const ChartsView: React.FC = () => {
   const data = [
@@ -10,6 +11,19 @@ export const ChartsView: React.FC = () => {
     { level: 40, capacity: 350, area: 30 },
     { level: 45, capacity: 646, area: 45 },
   ];
+
+  const handleExportTable = () => {
+    const tableData = [
+      { from: '01/01', to: '15/04', minLevel: 25.0 },
+      { from: '16/04', to: '31/08', minLevel: 23.0 },
+    ];
+    const exportData = tableData.map(item => ({
+      'Từ ngày': item.from,
+      'Đến ngày': item.to,
+      'Mực nước thấp nhất (m)': item.minLevel
+    }));
+    exportToExcel(exportData, 'Duong_han_che_cap_nuoc');
+  };
 
   return (
     <div className="space-y-6 pb-10">
@@ -60,10 +74,16 @@ export const ChartsView: React.FC = () => {
       </div>
 
       <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
+        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center">
           <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
             <Table size={18} className="text-slate-500 dark:text-slate-400"/> Bảng Đường hạn chế cấp nước
           </h3>
+          <button 
+            onClick={handleExportTable}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
+          >
+            <Download size={14}/> Xuất Excel
+          </button>
         </div>
         <div className="p-6">
            <table className="w-full text-sm text-left">

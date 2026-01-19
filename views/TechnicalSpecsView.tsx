@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { SpecGroup, SpecItem } from '../types';
-import { ChevronDown, Plus, Trash2, Save, FolderPlus, Check } from 'lucide-react';
+import { ChevronDown, Plus, Trash2, Save, FolderPlus, Check, Download } from 'lucide-react';
 import { db } from '../utils/db';
+import { exportToExcel } from '../utils/excel';
 import { useUI } from '../components/GlobalUI';
 
 export const TechnicalSpecsView: React.FC = () => {
@@ -32,6 +33,38 @@ export const TechnicalSpecsView: React.FC = () => {
       setHasChanges(false);
       setSaveStatus('saved');
     }, 500);
+  };
+
+  const handleExport = () => {
+    const flatData: any[] = [];
+    specs.forEach(group => {
+        // Items directly in main group
+        group.items.forEach(item => {
+            flatData.push({ 
+                'Nhóm chính': group.title, 
+                'Hạng mục con': '-', 
+                'Thông số': item.name, 
+                'Giá trị': item.value, 
+                'Đơn vị': item.unit 
+            });
+        });
+        
+        // Items in sub-groups
+        if(group.subGroups) {
+            group.subGroups.forEach(sg => {
+                 sg.items.forEach(item => {
+                    flatData.push({ 
+                        'Nhóm chính': group.title, 
+                        'Hạng mục con': sg.title, 
+                        'Thông số': item.name, 
+                        'Giá trị': item.value, 
+                        'Đơn vị': item.unit 
+                    });
+                 });
+            });
+        }
+    });
+    exportToExcel(flatData, 'Thong_so_ky_thuat');
   };
 
   // Helper to deep update the spec tree
@@ -188,8 +221,15 @@ export const TechnicalSpecsView: React.FC = () => {
         </div>
         
         <div className="flex items-center gap-3">
+          <button 
+            onClick={handleExport}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-blue-600 dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm transition-all"
+          >
+            <Download size={16}/> Xuất Excel
+          </button>
+          
           {hasChanges && (
-            <span className="text-xs text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-900/30 px-2 py-1 rounded animate-pulse">
+            <span className="text-xs text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-900/30 px-2 py-1 rounded animate-pulse hidden sm:inline-block">
               ● Có thay đổi chưa lưu
             </span>
           )}
@@ -197,7 +237,7 @@ export const TechnicalSpecsView: React.FC = () => {
             onClick={handleSave} 
             disabled={saveStatus === 'saving' || !hasChanges}
             className={`
-              flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition-all
+              flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold shadow-md transition-all
               ${saveStatus === 'saved' 
                 ? 'bg-green-600 text-white shadow-green-200 dark:shadow-none' 
                 : hasChanges 

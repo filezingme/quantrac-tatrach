@@ -9,9 +9,10 @@ import {
   ResponsiveContainer, 
   Legend 
 } from 'recharts';
-import { Save, Table as TableIcon, CheckCircle, TrendingUp, Filter, CalendarDays, RefreshCw, Check } from 'lucide-react';
+import { Save, Table as TableIcon, CheckCircle, TrendingUp, Filter, CalendarDays, RefreshCw, Check, Download } from 'lucide-react';
 import { db } from '../utils/db';
 import { WaterLevelRecord } from '../types';
+import { exportToExcel } from '../utils/excel';
 
 // Years for selection (including future years for simulation)
 const AVAILABLE_YEARS = [2026, 2025, 2024, 2023, 2022];
@@ -189,6 +190,19 @@ export const WaterLevelView: React.FC = () => {
     }, 600);
   };
 
+  const handleExport = () => {
+    // Define headers explicitly to ensure order
+    const headers = ['Năm', 'Thời gian', 'Mực nước (m)', 'Loại dữ liệu'];
+    
+    const exportData = processedData.map(row => ({
+      'Năm': row.year,
+      'Thời gian': row.time.replace('T', ' '),
+      'Mực nước (m)': row.level,
+      'Loại dữ liệu': row.id.startsWith('mock-') ? 'Mô phỏng' : 'Thực đo'
+    }));
+    exportToExcel(exportData, 'Giam_sat_muc_nuoc', headers);
+  };
+
   return (
     <div className="space-y-4 pb-10 animate-fade-in h-full flex flex-col">
       <div className="flex justify-between items-start">
@@ -343,25 +357,33 @@ export const WaterLevelView: React.FC = () => {
                    {processedData.length} RECORDS
                  </span>
                </div>
-               <button 
-                onClick={handleSave}
-                disabled={saveStatus !== 'idle'}
-                className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-bold shadow-md transition-all ${
-                    saveStatus === 'saved' 
-                    ? 'bg-green-600 text-white hover:bg-green-700' 
-                    : saveStatus === 'saving'
-                        ? 'bg-blue-400 text-white cursor-wait'
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
-               >
-                 {saveStatus === 'saving' ? (
-                    <><RefreshCw size={18} className="animate-spin"/> Đang lưu...</>
-                 ) : saveStatus === 'saved' ? (
-                    <><Check size={18}/> Đã lưu</>
-                 ) : (
-                    <><Save size={18}/> Lưu thay đổi</>
-                 )}
-               </button>
+               <div className="flex gap-2">
+                 <button 
+                  onClick={handleExport}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 shadow-sm transition-all"
+                 >
+                   <Download size={18}/> Xuất Excel
+                 </button>
+                 <button 
+                  onClick={handleSave}
+                  disabled={saveStatus !== 'idle'}
+                  className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-bold shadow-md transition-all ${
+                      saveStatus === 'saved' 
+                      ? 'bg-green-600 text-white hover:bg-green-700' 
+                      : saveStatus === 'saving'
+                          ? 'bg-blue-400 text-white cursor-wait'
+                          : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
+                 >
+                   {saveStatus === 'saving' ? (
+                      <><RefreshCw size={18} className="animate-spin"/> Đang lưu...</>
+                   ) : saveStatus === 'saved' ? (
+                      <><Check size={18}/> Đã lưu</>
+                   ) : (
+                      <><Save size={18}/> Lưu thay đổi</>
+                   )}
+                 </button>
+               </div>
             </div>
             
             <div className="overflow-auto flex-1 custom-scrollbar">

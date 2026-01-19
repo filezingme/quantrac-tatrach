@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { OperationTable } from '../types';
 import { db } from '../utils/db';
-import { Save, Calendar, Search, RefreshCw, Check } from 'lucide-react';
+import { exportToExcel } from '../utils/excel';
+import { Save, Calendar, Search, RefreshCw, Check, Download } from 'lucide-react';
 
 export const OperationView: React.FC = () => {
   const [tables, setTables] = useState<OperationTable[]>(db.operationTables.get());
@@ -33,6 +34,19 @@ export const OperationView: React.FC = () => {
         db.operationTables.set(tables);
         setSaveStatus('saved');
     }, 600);
+  };
+
+  const handleExport = () => {
+    if(!activeTable) return;
+    const exportData = activeTable.data.map(row => {
+        const obj: any = {};
+        activeTable.headers.forEach((h, i) => {
+            const key = `col${i+1}` as keyof typeof row;
+            obj[h] = row[key];
+        });
+        return obj;
+    });
+    exportToExcel(exportData, `Quy_trinh_${activeTable.id}`);
   };
 
   return (
@@ -90,7 +104,15 @@ export const OperationView: React.FC = () => {
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center">
                  <h3 className="font-bold text-slate-800 dark:text-white">{activeTable.name}</h3>
-                 <span className="text-xs text-slate-400 dark:text-slate-500">Dữ liệu có thể chỉnh sửa</span>
+                 <div className="flex items-center gap-3">
+                    <span className="text-xs text-slate-400 dark:text-slate-500 hidden sm:inline-block">Dữ liệu có thể chỉnh sửa</span>
+                    <button 
+                        onClick={handleExport}
+                        className="flex items-center gap-1 text-xs font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-2 py-1.5 rounded transition-colors"
+                    >
+                        <Download size={14}/> Xuất Excel
+                    </button>
+                 </div>
                </div>
                
                <div className="overflow-x-auto">
