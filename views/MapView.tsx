@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Layers, MapPin } from 'lucide-react';
+import { Layers, MapPin, Maximize2, Minimize2 } from 'lucide-react';
 import { db } from '../utils/db';
 
 // Declare Leaflet globally since it's loaded via script tag
@@ -7,13 +7,43 @@ declare const L: any;
 
 export const MapView: React.FC = () => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null); // Ref for the outer wrapper to go fullscreen
   const mapInstanceRef = useRef<any>(null);
+  
   const [activeLayer, setActiveLayer] = useState<'streets' | 'satellite'>('streets');
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [generalInfo] = useState(db.generalInfo.get());
 
   // Coordinates for Ta Trach Reservoir (Approximate based on Thua Thien Hue)
   const centerLat = 16.326; 
   const centerLng = 107.585;
+
+  // Handle Fullscreen Toggle
+  const toggleFullscreen = () => {
+    if (!wrapperRef.current) return;
+
+    if (!document.fullscreenElement) {
+      wrapperRef.current.requestFullscreen().catch(err => {
+        console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  };
+
+  // Listen for fullscreen changes (e.g. user pressing ESC)
+  useEffect(() => {
+    const handleFullScreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+      // Force Leaflet to resize after transition
+      setTimeout(() => {
+        mapInstanceRef.current?.invalidateSize();
+      }, 200);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullScreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullScreenChange);
+  }, []);
 
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return;
@@ -117,28 +147,41 @@ export const MapView: React.FC = () => {
   }, [activeLayer]);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-fade-in relative">
-      {/* Map Toolbar */}
-      <div className="absolute top-4 right-4 z-[400] bg-white rounded-lg shadow-md border border-slate-200 p-1 flex gap-1">
+    <div ref={wrapperRef} className={`flex flex-col bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-fade-in relative ${isFullscreen ? 'h-screen w-screen rounded-none border-0 fixed inset-0 z-[9999]' : 'h-[calc(100vh-8rem)]'}`}>
+      
+      {/* Top Right Controls Container */}
+      <div className="absolute top-4 right-4 z-[400] flex flex-col gap-2">
+        {/* Layer Controls */}
+        <div className="bg-white rounded-lg shadow-md border border-slate-200 p-1 flex gap-1">
+          <button
+            onClick={() => setActiveLayer('streets')}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              activeLayer === 'streets' 
+                ? 'bg-blue-600 text-white shadow-sm' 
+                : 'text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            Bản đồ
+          </button>
+          <button
+            onClick={() => setActiveLayer('satellite')}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              activeLayer === 'satellite' 
+                ? 'bg-blue-600 text-white shadow-sm' 
+                : 'text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            Vệ tinh
+          </button>
+        </div>
+
+        {/* Fullscreen Toggle */}
         <button
-          onClick={() => setActiveLayer('streets')}
-          className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-            activeLayer === 'streets' 
-              ? 'bg-blue-600 text-white shadow-sm' 
-              : 'text-slate-600 hover:bg-slate-50'
-          }`}
+          onClick={toggleFullscreen}
+          className="bg-white hover:bg-slate-50 text-slate-600 rounded-lg shadow-md border border-slate-200 p-2 self-end transition-colors"
+          title={isFullscreen ? "Thoát toàn màn hình" : "Toàn màn hình"}
         >
-          Bản đồ
-        </button>
-        <button
-          onClick={() => setActiveLayer('satellite')}
-          className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-            activeLayer === 'satellite' 
-              ? 'bg-blue-600 text-white shadow-sm' 
-              : 'text-slate-600 hover:bg-slate-50'
-          }`}
-        >
-          Vệ tinh
+          {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
         </button>
       </div>
 
