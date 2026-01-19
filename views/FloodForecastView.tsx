@@ -424,19 +424,21 @@ export const FloodForecastView: React.FC = () => {
             </div>
          </div>
       ) : (
-        // === CHANGES HERE: Tablet Layout Refactoring ===
-        // On LG (Desktop): flex-row (Sidebar Left, Detail Right)
-        // On MD/SM (Tablet/Mobile): flex-col (Sidebar Top, Detail Bottom)
+        // === RESPONSIVE LAYOUT CHANGE ===
+        // Mobile (< MD): flex-col, h-full. Scenario List takes flex-1 to fill screen. Detail view hidden if no selection.
+        // Tablet (MD -> LG): flex-col. Scenario List takes fixed height (h-80). Detail view below it.
+        // Desktop (LG+): flex-row. Side by side.
         <div className="flex-1 flex flex-col lg:flex-row gap-6 overflow-hidden relative">
           
           {/* LIST PANE:
-              - Width: Full on mobile/tablet, Fixed (w-80) on desktop
-              - Height: Fixed (h-60) on tablet to prevent taking all space, Auto on desktop
+              - Mobile (< MD): flex-1 (fills screen). Hidden if detail is shown.
+              - Tablet (MD): h-80 (fixed height strip).
+              - Desktop (LG): h-auto (fills sidebar height), w-80 (fixed width).
            */}
           <div className={`
              w-full lg:w-80 min-w-[250px] 
-             h-64 lg:h-auto
-             bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col flex-none
+             flex-1 md:flex-none md:h-80 lg:h-auto
+             bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col
              ${selectedScenarioId && !isEditing ? 'hidden md:flex' : 'flex'} 
              ${isEditing ? 'hidden md:flex' : ''}
           `}>
@@ -489,7 +491,11 @@ export const FloodForecastView: React.FC = () => {
             </div>
           </div>
 
-          {/* RIGHT/BOTTOM: Detail / Edit View */}
+          {/* RIGHT/BOTTOM: Detail / Edit View 
+              - Mobile (< MD): flex-1 (fills screen). Hidden if not selected.
+              - Tablet (MD): flex-1 (fills remaining height below list).
+              - Desktop (LG): flex-1 (fills remaining width).
+          */}
           <div className={`
              flex-1 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col
              ${selectedScenarioId || isEditing ? 'flex' : 'hidden md:flex'}
