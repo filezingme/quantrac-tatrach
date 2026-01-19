@@ -9,23 +9,39 @@ export const CameraView: React.FC = () => {
   const ui = useUI();
 
   const handleAddCamera = () => {
-    const name = prompt('Tên Camera:');
-    if (!name) return;
-    
-    const url = prompt('Nhập URL luồng Camera (Hỗ trợ link Embed YouTube hoặc MJPEG):', 'https://www.youtube.com/embed/VIDEO_ID');
-    if (!url) return;
-    
-    const newCam: CameraInfo = {
-      id: Date.now().toString(),
-      name,
-      url,
-      status: 'online'
-    };
-    
-    const updated = [...cameras, newCam];
-    setCameras(updated);
-    db.cameras.set(updated);
-    ui.showToast('success', 'Đã thêm camera mới');
+    ui.prompt({
+      title: 'Thêm Camera mới',
+      message: 'Nhập tên hiển thị cho Camera:',
+      placeholder: 'Tên Camera (VD: Cam Đập Tràn)...',
+      onConfirm: (name) => {
+        if (!name.trim()) return;
+        
+        // Chain prompt for URL
+        setTimeout(() => {
+          ui.prompt({
+            title: 'Luồng Video',
+            message: 'Nhập URL luồng Camera (Hỗ trợ Embed YouTube hoặc MJPEG):',
+            defaultValue: 'https://www.youtube.com/embed/VIDEO_ID',
+            placeholder: 'https://...',
+            onConfirm: (url) => {
+               if (!url.trim()) return;
+               
+               const newCam: CameraInfo = {
+                id: Date.now().toString(),
+                name,
+                url,
+                status: 'online'
+              };
+              
+              const updated = [...cameras, newCam];
+              setCameras(updated);
+              db.cameras.set(updated);
+              ui.showToast('success', 'Đã thêm camera mới');
+            }
+          });
+        }, 100);
+      }
+    });
   };
 
   const handleDelete = (id: string) => {

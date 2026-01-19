@@ -2,10 +2,12 @@ import React, { useState, useRef } from 'react';
 import { Folder, Plus, ExternalLink, Image as ImageIcon, ArrowLeft, Upload, Grid, Maximize2 } from 'lucide-react';
 import { db } from '../utils/db';
 import { ImageGroup, ImageItem } from '../types';
+import { useUI } from '../components/GlobalUI';
 
 export const ImageView: React.FC = () => {
   const [groups, setGroups] = useState<ImageGroup[]>(db.images.get());
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
+  const ui = useUI();
   
   // File Input Ref for uploading
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -13,17 +15,24 @@ export const ImageView: React.FC = () => {
   // --- Group Management ---
 
   const handleAddGroup = () => {
-    const title = prompt('Nhập tên nhóm ảnh mới:');
-    if (title) {
-      const newGroup: ImageGroup = {
-        id: Date.now().toString(),
-        title,
-        images: []
-      };
-      const updated = [...groups, newGroup];
-      setGroups(updated);
-      db.images.set(updated);
-    }
+    ui.prompt({
+      title: 'Tạo Album mới',
+      message: 'Nhập tên cho nhóm hình ảnh mới:',
+      placeholder: 'Tên album...',
+      onConfirm: (title) => {
+        if (title.trim()) {
+          const newGroup: ImageGroup = {
+            id: Date.now().toString(),
+            title,
+            images: []
+          };
+          const updated = [...groups, newGroup];
+          setGroups(updated);
+          db.images.set(updated);
+          ui.showToast('success', 'Đã tạo album mới');
+        }
+      }
+    });
   };
 
   // --- Image Management ---
@@ -51,6 +60,7 @@ export const ImageView: React.FC = () => {
         
         setGroups(updated);
         db.images.set(updated);
+        ui.showToast('success', 'Đã tải ảnh lên');
       }
     };
 
@@ -61,19 +71,38 @@ export const ImageView: React.FC = () => {
 
   const handleAddImageViaUrl = () => {
     if (!activeGroupId) return;
-    const url = prompt('Nhập URL hình ảnh (Ví dụ: https://picsum.photos/400/300):');
-    if (!url) return;
-    const title = prompt('Nhập tiêu đề ảnh:') || 'Ảnh mới';
     
-    const updated = groups.map(g => {
-        if (g.id !== activeGroupId) return g;
-        return {
-          ...g,
-          images: [{ id: Date.now().toString(), url, title }, ...g.images]
-        };
-      });
-      setGroups(updated);
-      db.images.set(updated);
+    ui.prompt({
+      title: 'Thêm ảnh từ URL',
+      message: 'Nhập đường dẫn hình ảnh (URL):',
+      placeholder: 'https://...',
+      onConfirm: (url) => {
+        if (!url.trim()) return;
+        
+        // After URL, prompt for Title
+        setTimeout(() => {
+          ui.prompt({
+            title: 'Tiêu đề ảnh',
+            message: 'Nhập tiêu đề hiển thị cho hình ảnh này:',
+            defaultValue: 'Ảnh mới',
+            placeholder: 'Tiêu đề...',
+            onConfirm: (title) => {
+              const finalTitle = title.trim() || 'Ảnh mới';
+              const updated = groups.map(g => {
+                if (g.id !== activeGroupId) return g;
+                return {
+                  ...g,
+                  images: [{ id: Date.now().toString(), url, title: finalTitle }, ...g.images]
+                };
+              });
+              setGroups(updated);
+              db.images.set(updated);
+              ui.showToast('success', 'Đã thêm ảnh từ URL');
+            }
+          });
+        }, 100);
+      }
+    });
   }
 
   const activeGroup = groups.find(g => g.id === activeGroupId);
