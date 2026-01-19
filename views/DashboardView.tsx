@@ -601,7 +601,7 @@ export const DashboardView: React.FC = () => {
                   </button>
                </div>
 
-               <div className="flex-1 p-6 overflow-hidden">
+               <div className="flex-1 p-6 overflow-y-auto custom-scrollbar">
                   {modalTab === 'chart' && (
                     <div className="h-full bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 flex flex-col relative group">
                         <div className="flex-1 w-full min-h-[400px]" style={{ minHeight: '400px' }}>
