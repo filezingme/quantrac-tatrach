@@ -303,10 +303,10 @@ export const FloodForecastView: React.FC = () => {
                <div className="text-xs font-mono text-slate-500 dark:text-slate-400">UPDATE: LIVE</div>
             </div>
 
-            {/* TABLET OPTIMIZED LAYOUT: 2 ROWS (Top: Indicators/Control, Bottom: Chart) */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* TABLET OPTIMIZED LAYOUT: Changed to stack on MD, only 2 columns on XL */}
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
               
-              {/* BLOCK 1: Left - Water Level & Flow (Top Row on Tablet/Desktop) */}
+              {/* BLOCK 1: Water Level & Flow */}
               <div className="space-y-6">
                  {/* Main Level Gauge */}
                  <div className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden">
@@ -344,7 +344,7 @@ export const FloodForecastView: React.FC = () => {
                  </div>
               </div>
 
-              {/* BLOCK 2: Right - Controls & Power (Top Row on Tablet/Desktop) */}
+              {/* BLOCK 2: Controls & Power */}
               <div className="space-y-6">
                  <div className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm h-full flex flex-col">
                     <h4 className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase mb-4 flex items-center gap-2">
@@ -394,8 +394,8 @@ export const FloodForecastView: React.FC = () => {
                  </div>
               </div>
 
-              {/* BLOCK 3: Chart - Full Width (Bottom Row) */}
-              <div className="md:col-span-2 flex flex-col">
+              {/* BLOCK 3: Chart - Full Width */}
+              <div className="xl:col-span-2 flex flex-col">
                  <div className="bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm flex-1 min-h-[300px]">
                     <h4 className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase mb-4 flex items-center gap-2">
                       <Activity size={16}/> Biểu đồ diễn biến thời gian thực
@@ -499,19 +499,20 @@ export const FloodForecastView: React.FC = () => {
                  
                  {/* Scrollable Content */}
                  <div className="p-6 overflow-y-auto flex-1">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                      <div className="md:col-span-2">
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
+                      <div className="xl:col-span-2">
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tên kịch bản</label>
                         <input value={editForm.name || ''} onChange={e => setEditForm({...editForm, name: e.target.value})} className="w-full border border-slate-300 dark:border-slate-600 p-2 rounded-lg focus:ring-2 ring-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white"/>
                       </div>
-                      <div className="md:col-span-2">
+                      <div className="xl:col-span-2">
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Mô tả chi tiết</label>
                         <textarea rows={2} value={editForm.description || ''} onChange={e => setEditForm({...editForm, description: e.target.value})} className="w-full border border-slate-300 dark:border-slate-600 p-2 rounded-lg focus:ring-2 ring-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white"/>
                       </div>
                     </div>
                     
                     <h4 className="font-bold text-slate-800 dark:text-white mb-4 border-b dark:border-slate-700 pb-2">Thông số đầu vào</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* TABLET RESPONSIVE: Stacks on MD, 3 columns on XL */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                        <div>
                          <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Tổng lượng mưa (mm)</label>
                          <input type="number" value={editForm.inputs?.rainfallTotal} onChange={e => setEditForm({...editForm, inputs: {...editForm.inputs!, rainfallTotal: Number(e.target.value)}})} className="w-full border border-slate-300 dark:border-slate-600 p-2 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white"/>
@@ -591,7 +592,7 @@ export const FloodForecastView: React.FC = () => {
                        className={`px-3 md:px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 shadow-md transition-all ${isRunning ? 'bg-slate-100 dark:bg-slate-700 text-slate-400 cursor-wait' : 'bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-indigo-200 dark:shadow-none'}`}
                      >
                        {isRunning ? <RefreshCw size={16} className="animate-spin"/> : <Play size={16} fill="currentColor"/>}
-                       <span className="hidden md:inline">{isRunning ? 'Đang chạy...' : 'Chạy mô phỏng'}</span>
+                       <span className="hidden xl:inline">{isRunning ? 'Đang chạy...' : 'Chạy mô phỏng'}</span>
                      </button>
                      <button onClick={() => handleEdit(selectedScenario)} className="p-2 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                        <Edit size={18}/>
@@ -600,8 +601,8 @@ export const FloodForecastView: React.FC = () => {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 bg-slate-50/30 dark:bg-slate-900/30">
-                  {/* Input Summary Grid */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {/* Input Summary Grid: TABLET OPTIMIZED (2 cols on MD, 4 cols on XL) */}
+                  <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
                      <SummaryCard icon={<Droplets size={18}/>} label="Tổng lượng mưa" value={`${selectedScenario.inputs.rainfallTotal} mm`} />
                      <SummaryCard icon={<Clock size={18}/>} label="Thời gian mưa" value={`${selectedScenario.inputs.rainDuration} giờ`} />
                      <SummaryCard icon={<ArrowDownToLine size={18}/>} label="MN ban đầu" value={`${selectedScenario.inputs.initialWaterLevel} m`} />
@@ -611,8 +612,8 @@ export const FloodForecastView: React.FC = () => {
                   {/* Results Section */}
                   {selectedScenario.results ? (
                     <>
-                      {/* Key Metrics */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {/* Key Metrics: TABLET OPTIMIZED (1 col on MD/SM, 3 cols on XL) */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm text-center">
                           <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold mb-1">Đỉnh lũ (Qmax)</p>
                           <p className="text-2xl font-bold text-amber-600 dark:text-amber-500">{selectedScenario.results.maxInflow} <span className="text-sm text-slate-400">m³/s</span></p>
@@ -623,7 +624,7 @@ export const FloodForecastView: React.FC = () => {
                             {selectedScenario.results.maxLevel} <span className="text-sm text-slate-400">m</span>
                           </p>
                         </div>
-                        <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm text-center">
+                        <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm text-center sm:col-span-2 xl:col-span-1">
                           <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold mb-1">Thời gian đạt đỉnh</p>
                           <p className="text-2xl font-bold text-slate-700 dark:text-slate-200">T + {selectedScenario.results.peakTime} <span className="text-sm text-slate-400">giờ</span></p>
                         </div>
