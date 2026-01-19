@@ -234,27 +234,26 @@ export const DashboardView: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fade-in relative pb-10">
-      <style>{`
-        @keyframes wave-animation {
-          0% { transform: translateX(0) translateZ(0) scaleY(1); }
-          50% { transform: translateX(-25%) translateZ(0) scaleY(0.8); }
-          100% { transform: translateX(-50%) translateZ(0) scaleY(1); }
-        }
-        .wave-bg {
-          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 88.7'%3E%3Cpath d='M800 56.9c-155.5 0-204.9-50-405.5-49.9-200 0-250 49.9-394.5 49.9v31.8h800v-.2-31.6z' fill='%233b82f6'/%3E%3C/svg%3E");
-          background-position: 0 bottom;
-          background-repeat: repeat-x;
-          background-size: 50% 100%;
-          width: 200%;
-          height: 100%;
-          animation: wave-animation 10s linear infinite;
-          transform-origin: center bottom;
-          opacity: 0.8;
-        }
-      `}</style>
-
       {/* Header - Redesigned for Mobile Responsiveness */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
+        <style>{`
+          @keyframes wave-animation {
+            0% { transform: translateX(0) translateZ(0) scaleY(1); }
+            50% { transform: translateX(-25%) translateZ(0) scaleY(0.8); }
+            100% { transform: translateX(-50%) translateZ(0) scaleY(1); }
+          }
+          .wave-bg {
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 88.7'%3E%3Cpath d='M800 56.9c-155.5 0-204.9-50-405.5-49.9-200 0-250 49.9-394.5 49.9v31.8h800v-.2-31.6z' fill='%233b82f6'/%3E%3C/svg%3E");
+            background-position: 0 bottom;
+            background-repeat: repeat-x;
+            background-size: 50% 100%;
+            width: 200%;
+            height: 100%;
+            animation: wave-animation 10s linear infinite;
+            transform-origin: center bottom;
+            opacity: 0.8;
+          }
+        `}</style>
         <div>
            <h2 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-white">Dữ liệu quan trắc</h2>
            <div className="flex items-center gap-3 mt-2">
