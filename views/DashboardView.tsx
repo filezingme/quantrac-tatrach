@@ -12,7 +12,6 @@ import {
 } from 'recharts';
 import * as XLSX from 'xlsx';
 import { useUI } from '../components/GlobalUI';
-import { exportToExcel } from '../utils/excel';
 
 // --- Types & Constants ---
 
@@ -199,16 +198,6 @@ export const DashboardView: React.FC = () => {
     if (selectedMetric) {
         generateComparisonData(selectedMetric, selectedYears);
     }
-  };
-
-  const handleExportRainfall = () => {
-    const exportData = rainfallData.map(r => ({
-      'Trạm đo': r.name,
-      'Hiện tại (mm)': r.data.current,
-      'Dự báo 24h (mm)': r.data.day1,
-      'Dự báo 72h (mm)': r.data.day3
-    }));
-    exportToExcel(exportData, 'Du_lieu_mua_tram');
   };
 
   return (
@@ -438,12 +427,7 @@ export const DashboardView: React.FC = () => {
                <CloudRain className="text-indigo-600 dark:text-indigo-400" size={20} />
                Số liệu mưa tại các trạm (mm)
              </h3>
-             <div className="flex gap-2 items-center">
-               <button onClick={handleExportRainfall} className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg text-slate-500 dark:text-slate-400" title="Xuất Excel">
-                 <Download size={16} />
-               </button>
-               <span className="text-xs text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-2 py-1 border dark:border-slate-600 rounded hidden sm:block">Cập nhật 10p trước</span>
-             </div>
+             <span className="text-xs text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-2 py-1 border dark:border-slate-600 rounded">Cập nhật 10p trước</span>
           </div>
           <div className="overflow-x-auto p-2">
             <table className="w-full text-sm text-left border-collapse">
@@ -508,9 +492,10 @@ export const DashboardView: React.FC = () => {
         </div>
       </div>
 
-      {/* --- ADVANCED DETAIL MODAL (FULL SCREEN) --- */}
+      {/* --- ADVANCED DETAIL MODAL --- */}
       {selectedMetric && (
-        <div className="fixed inset-0 z-[100] bg-white dark:bg-slate-800 flex flex-col animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-0 animate-in fade-in duration-200">
+          <div className={`bg-white dark:bg-slate-800 shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ${isFullscreen ? 'w-screen h-screen' : 'w-[90vw] h-[90vh] rounded-2xl border border-slate-200 dark:border-slate-700'}`}>
             
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 flex justify-between items-center flex-none">
@@ -526,6 +511,12 @@ export const DashboardView: React.FC = () => {
                  </div>
               </div>
               <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => setIsFullscreen(!isFullscreen)}
+                  className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-full transition-colors hidden md:block"
+                >
+                  {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
+                </button>
                 <button 
                   onClick={handleCloseModal}
                   className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-slate-700 rounded-full transition-colors"
@@ -612,7 +603,7 @@ export const DashboardView: React.FC = () => {
                   {modalTab === 'chart' && (
                     <div className="h-full bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 flex flex-col relative group">
                         <div className="flex-1 w-full min-h-[400px]" style={{ minHeight: '400px' }}>
-                           <ResponsiveContainer width="100%" height="100%">
+                           <ResponsiveContainer width="99%" height="100%">
                               <LineChart data={comparisonData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
                                  <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#e2e8f0" strokeOpacity={0.5} />
                                  <XAxis 
@@ -679,6 +670,7 @@ export const DashboardView: React.FC = () => {
                   )}
                </div>
             </div>
+          </div>
         </div>
       )}
     </div>
