@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
 import { DashboardView } from './views/DashboardView';
 import { ForecastView } from './views/ForecastView';
@@ -23,16 +22,17 @@ import { ViewMode, AppNotification, UserProfile } from './types';
 import { Menu, Bell, Check, LogOut, User, Settings as SettingsIcon, X } from 'lucide-react';
 import { db } from './utils/db';
 
-// Extract the main layout to a separate component to use the UI Context and Router Hooks
+// Extract the main layout to a separate component to use the UI Context
 const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
+  const [currentView, setCurrentView] = useState<ViewMode>(ViewMode.DASHBOARD);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [user, setUser] = useState<UserProfile>(db.user.get());
 
-  const navigate = useNavigate();
-  const location = useLocation();
+  // Global UI hook
+  const ui = useUI();
 
   // Refs for click outside
   const notifRef = useRef<HTMLDivElement>(null);
@@ -84,16 +84,60 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
 
   const handleLogoutClick = () => {
     setIsUserMenuOpen(false);
+    // Direct logout without confirmation
     onLogout();
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
+  const renderView = () => {
+    switch (currentView) {
+      case ViewMode.DASHBOARD:
+        return <DashboardView />;
+      case ViewMode.MAP:
+        return <MapView />;
+      case ViewMode.WATER_LEVEL:
+        return <WaterLevelView />;
+      case ViewMode.FORECAST: 
+        return <ForecastView />;
+      case ViewMode.TECHNICAL_SPECS:
+        return <TechnicalSpecsView />;
+      case ViewMode.OPERATION:
+        return <OperationView />;
+      case ViewMode.DOCUMENTS:
+        return <DocumentsView />;
+      case ViewMode.RECORDS:
+        return <ChartsView />;
+      case ViewMode.IMAGES:
+        return <ImageView />;
+      case ViewMode.FLOOD_FORECAST:
+        return <FloodForecastView />;
+      case ViewMode.MANUAL_ENTRY:
+        return <ManualEntryView />;
+      case ViewMode.GENERAL_INFO:
+        return <GeneralInfoView />;
+      case ViewMode.CAMERA:
+        return <CameraView />;
+      case ViewMode.DEMO_CHARTS:
+        return <DemoChartsView />;
+      case ViewMode.USER_PROFILE:
+        return <UserProfileView />;
+      case ViewMode.SYSTEM_SETTINGS:
+        return <SystemSettingsView />;
+      default:
+        return (
+          <div className="flex flex-col items-center justify-center h-[50vh] text-slate-400 dark:text-slate-500">
+            <p className="text-xl">Chức năng đang được phát triển</p>
+          </div>
+        );
+    }
+  };
+
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden font-sans transition-colors duration-200">
       <Sidebar 
-        currentView={location.pathname.substring(1) as ViewMode || ViewMode.DASHBOARD} 
-        onViewChange={(view) => navigate(`/${view}`)} 
+        currentView={currentView} 
+        onViewChange={setCurrentView} 
         isOpen={isSidebarOpen}
         toggleSidebar={toggleSidebar}
       />
@@ -185,13 +229,13 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                     </div>
                     <div className="p-2">
                        <button 
-                         onClick={() => { navigate(`/${ViewMode.USER_PROFILE}`); setIsUserMenuOpen(false); }}
+                         onClick={() => { setCurrentView(ViewMode.USER_PROFILE); setIsUserMenuOpen(false); }}
                          className="w-full text-left px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg flex items-center gap-2 transition-colors"
                        >
                          <User size={16} /> Hồ sơ cá nhân
                        </button>
                        <button 
-                         onClick={() => { navigate(`/${ViewMode.SYSTEM_SETTINGS}`); setIsUserMenuOpen(false); }}
+                         onClick={() => { setCurrentView(ViewMode.SYSTEM_SETTINGS); setIsUserMenuOpen(false); }}
                          className="w-full text-left px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg flex items-center gap-2 transition-colors"
                        >
                          <SettingsIcon size={16} /> Cài đặt hệ thống
@@ -213,26 +257,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
 
         {/* Main Content Scrollable Area */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50/50 dark:bg-slate-900 transition-colors duration-200">
-          <Routes>
-            <Route path="/" element={<Navigate to={`/${ViewMode.DASHBOARD}`} replace />} />
-            <Route path={`/${ViewMode.DASHBOARD}`} element={<DashboardView />} />
-            <Route path={`/${ViewMode.MAP}`} element={<MapView />} />
-            <Route path={`/${ViewMode.WATER_LEVEL}`} element={<WaterLevelView />} />
-            <Route path={`/${ViewMode.FORECAST}`} element={<ForecastView />} />
-            <Route path={`/${ViewMode.TECHNICAL_SPECS}`} element={<TechnicalSpecsView />} />
-            <Route path={`/${ViewMode.OPERATION}`} element={<OperationView />} />
-            <Route path={`/${ViewMode.DOCUMENTS}`} element={<DocumentsView />} />
-            <Route path={`/${ViewMode.RECORDS}`} element={<ChartsView />} />
-            <Route path={`/${ViewMode.IMAGES}`} element={<ImageView />} />
-            <Route path={`/${ViewMode.FLOOD_FORECAST}`} element={<FloodForecastView />} />
-            <Route path={`/${ViewMode.MANUAL_ENTRY}`} element={<ManualEntryView />} />
-            <Route path={`/${ViewMode.GENERAL_INFO}`} element={<GeneralInfoView />} />
-            <Route path={`/${ViewMode.CAMERA}`} element={<CameraView />} />
-            <Route path={`/${ViewMode.DEMO_CHARTS}`} element={<DemoChartsView />} />
-            <Route path={`/${ViewMode.USER_PROFILE}`} element={<UserProfileView />} />
-            <Route path={`/${ViewMode.SYSTEM_SETTINGS}`} element={<SystemSettingsView />} />
-            <Route path="*" element={<Navigate to={`/${ViewMode.DASHBOARD}`} replace />} />
-          </Routes>
+          {renderView()}
         </main>
       </div>
     </div>
@@ -257,15 +282,13 @@ const App: React.FC = () => {
   };
 
   return (
-    <BrowserRouter>
-      <UIProvider>
-        {isAuthenticated ? (
-          <MainLayout onLogout={handleLogout} />
-        ) : (
-          <LoginView onLogin={handleLogin} />
-        )}
-      </UIProvider>
-    </BrowserRouter>
+    <UIProvider>
+      {isAuthenticated ? (
+        <MainLayout onLogout={handleLogout} />
+      ) : (
+        <LoginView onLogin={handleLogin} />
+      )}
+    </UIProvider>
   );
 };
 

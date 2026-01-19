@@ -3,7 +3,7 @@ import {
   Zap, Play, Settings, Plus, Trash2, Save, Edit, 
   Droplets, Clock, ArrowDownToLine, AlertTriangle, 
   BarChart2, MoreVertical, RefreshCw, ArrowLeft,
-  Activity, Power, Sliders, AlertOctagon, Gauge, Check, Download
+  Activity, Power, Sliders, AlertOctagon, Gauge, Check
 } from 'lucide-react';
 import { 
   ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, 
@@ -12,7 +12,6 @@ import {
 import { db } from '../utils/db';
 import { FloodScenario, SimulationStep } from '../types';
 import { useUI } from '../components/GlobalUI';
-import { exportToExcel } from '../utils/excel';
 
 export const FloodForecastView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'realtime' | 'scenario'>('scenario');
@@ -267,18 +266,6 @@ export const FloodForecastView: React.FC = () => {
       setScenarios(db.scenarios.get());
       setIsRunning(false);
     }, 1500); 
-  };
-
-  const handleExportResults = () => {
-    if (!selectedScenario || !selectedScenario.results) return;
-    const exportData = selectedScenario.results.timeSeries.map(s => ({
-        'Giờ thứ': s.hour,
-        'Mưa (mm)': s.rainfall,
-        'Lưu lượng đến (m3/s)': s.inflow,
-        'Tổng xả (m3/s)': s.outflow,
-        'Mực nước (m)': s.waterLevel
-    }));
-    exportToExcel(exportData, `Ket_qua_mo_phong_${selectedScenario.name.replace(/\s/g, '_')}`);
   };
 
   const riskColor = (risk?: string) => {
@@ -598,14 +585,6 @@ export const FloodForecastView: React.FC = () => {
                      </div>
                    </div>
                    <div className="flex gap-2">
-                     {selectedScenario.results && (
-                        <button 
-                            onClick={handleExportResults}
-                            className="px-3 md:px-4 py-2 rounded-lg text-sm font-medium border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center gap-2 transition-colors"
-                        >
-                            <Download size={16}/> <span className="hidden md:inline">Xuất kết quả</span>
-                        </button>
-                     )}
                      <button 
                        onClick={handleRunSimulation} 
                        disabled={isRunning}
