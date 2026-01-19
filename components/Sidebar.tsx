@@ -1,5 +1,5 @@
 import React from 'react';
-import { ViewMode } from '../types';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   CloudRain, 
@@ -18,30 +18,31 @@ import {
 } from 'lucide-react';
 
 interface SidebarProps {
-  currentView: ViewMode;
-  onViewChange: (view: ViewMode) => void;
   isOpen: boolean;
   toggleSidebar: () => void;
 }
 
 const menuItems = [
-  { id: ViewMode.DASHBOARD, label: 'Quan trắc & Giám sát', icon: LayoutDashboard },
-  { id: ViewMode.MAP, label: 'Bản đồ GIS', icon: MapIcon },
-  { id: ViewMode.WATER_LEVEL, label: 'Giám sát Mực nước', icon: TrendingUp },
-  { id: ViewMode.FORECAST, label: 'Thông tin Dự báo', icon: CloudRain },
-  { id: ViewMode.FLOOD_FORECAST, label: 'Dự báo Lũ & Kịch bản', icon: Waves },
-  { id: ViewMode.OPERATION, label: 'Quy trình vận hành', icon: Activity },
-  { id: ViewMode.DOCUMENTS, label: 'Văn bản & Quy định', icon: BookOpen },
-  { id: ViewMode.CAMERA, label: 'Camera', icon: Camera },
-  { id: ViewMode.IMAGES, label: 'Thư viện Hình ảnh', icon: ImageIcon },
-  { id: ViewMode.RECORDS, label: 'Hồ sơ & Biểu đồ', icon: FileText },
-  { id: ViewMode.DEMO_CHARTS, label: 'Thư viện Biểu đồ Demo', icon: PieChart },
-  { id: ViewMode.TECHNICAL_SPECS, label: 'Thông số kỹ thuật', icon: Settings },
-  { id: ViewMode.GENERAL_INFO, label: 'Thông tin chung', icon: Info },
-  { id: ViewMode.MANUAL_ENTRY, label: 'Nhập liệu thủ công', icon: Edit3 },
+  { path: '/dashboard', label: 'Quan trắc & Giám sát', icon: LayoutDashboard },
+  { path: '/map', label: 'Bản đồ GIS', icon: MapIcon },
+  { path: '/water-level', label: 'Giám sát Mực nước', icon: TrendingUp },
+  { path: '/forecast', label: 'Thông tin Dự báo', icon: CloudRain },
+  { path: '/flood-forecast', label: 'Dự báo Lũ & Kịch bản', icon: Waves },
+  { path: '/operation', label: 'Quy trình vận hành', icon: Activity },
+  { path: '/documents', label: 'Văn bản & Quy định', icon: BookOpen },
+  { path: '/camera', label: 'Camera', icon: Camera },
+  { path: '/images', label: 'Thư viện Hình ảnh', icon: ImageIcon },
+  { path: '/records', label: 'Hồ sơ & Biểu đồ', icon: FileText },
+  { path: '/demo-charts', label: 'Thư viện Biểu đồ Demo', icon: PieChart },
+  { path: '/specs', label: 'Thông số kỹ thuật', icon: Settings },
+  { path: '/general-info', label: 'Thông tin chung', icon: Info },
+  { path: '/manual-entry', label: 'Nhập liệu thủ công', icon: Edit3 },
 ];
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isOpen, toggleSidebar }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   return (
     <div className={`fixed inset-y-0 left-0 z-30 w-72 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 transition-transform duration-300 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 shadow-lg md:shadow-none flex flex-col`}>
       {/* Header - Adjusted to h-16 to match App header height and remove gap */}
@@ -64,12 +65,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isO
       <nav className="flex-1 overflow-y-auto py-6 px-4 custom-scrollbar">
         <ul className="space-y-1.5">
           {menuItems.map((item) => {
-            const isActive = currentView === item.id;
+            // Check if active (dashboard is also root)
+            const isActive = location.pathname === item.path || (item.path === '/dashboard' && location.pathname === '/');
+            
             return (
-              <li key={item.id}>
+              <li key={item.path}>
                 <button
                   onClick={() => {
-                    onViewChange(item.id);
+                    navigate(item.path);
                     if (window.innerWidth < 768) toggleSidebar();
                   }}
                   className={`relative w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group ${
