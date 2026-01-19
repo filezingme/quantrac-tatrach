@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { OperationTable } from '../types';
 import { db } from '../utils/db';
-import { Save, Calendar, Search } from 'lucide-react';
-import { useUI } from '../components/GlobalUI';
+import { Save, Calendar, Search, RefreshCw, Check } from 'lucide-react';
 
 export const OperationView: React.FC = () => {
   const [tables, setTables] = useState<OperationTable[]>(db.operationTables.get());
   const [activeTabId, setActiveTabId] = useState<string>('supply_limit');
-  const ui = useUI();
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+
+  useEffect(() => {
+    if (saveStatus === 'saved') {
+      const timer = setTimeout(() => setSaveStatus('idle'), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [saveStatus]);
 
   const activeTable = tables.find(t => t.id === activeTabId);
 
@@ -22,15 +28,36 @@ export const OperationView: React.FC = () => {
   };
 
   const saveAll = () => {
-    db.operationTables.set(tables);
-    ui.showToast('success', 'Đã lưu quy trình vận hành');
+    setSaveStatus('saving');
+    setTimeout(() => {
+        db.operationTables.set(tables);
+        setSaveStatus('saved');
+    }, 600);
   };
 
   return (
     <div className="space-y-6 pb-10">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Quy trình vận hành</h2>
-        <button onClick={saveAll} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-2 shadow-md shadow-blue-200 dark:shadow-none"><Save size={16}/> Lưu thay đổi</button>
+        <button 
+            onClick={saveAll} 
+            disabled={saveStatus !== 'idle'}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium shadow-md transition-all duration-300 ${
+                saveStatus === 'saved' 
+                ? 'bg-green-600 text-white hover:bg-green-700' 
+                : saveStatus === 'saving'
+                    ? 'bg-blue-400 text-white cursor-wait'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+            }`}
+        >
+            {saveStatus === 'saving' ? (
+             <><RefreshCw size={16} className="animate-spin" /> Đang lưu...</>
+           ) : saveStatus === 'saved' ? (
+             <><Check size={16} /> Đã lưu thành công</>
+           ) : (
+             <><Save size={16} /> Lưu thay đổi</>
+           )}
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

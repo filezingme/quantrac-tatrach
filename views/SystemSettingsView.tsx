@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Bell, Database, Shield, Globe, Monitor, Save, RefreshCw } from 'lucide-react';
+import { Settings, Bell, Database, Shield, Globe, Monitor, Save, RefreshCw, Check } from 'lucide-react';
 import { useUI } from '../components/GlobalUI';
 
 export const SystemSettingsView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'general' | 'notification' | 'data'>('general');
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [settings, setSettings] = useState({
       appName: 'Hệ thống Quản lý Hồ Tả Trạch',
       maintenanceMode: false,
@@ -25,6 +26,13 @@ export const SystemSettingsView: React.FC = () => {
         setTheme('light');
     }
   }, []);
+
+  useEffect(() => {
+    if (saveStatus === 'saved') {
+      const timer = setTimeout(() => setSaveStatus('idle'), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [saveStatus]);
 
   const handleThemeChange = (newTheme: 'light' | 'dark') => {
       setTheme(newTheme);
@@ -47,7 +55,10 @@ export const SystemSettingsView: React.FC = () => {
   };
 
   const handleSave = () => {
-      ui.showToast('success', 'Đã lưu cấu hình hệ thống');
+      setSaveStatus('saving');
+      setTimeout(() => {
+          setSaveStatus('saved');
+      }, 600);
   };
 
   return (
@@ -220,9 +231,22 @@ export const SystemSettingsView: React.FC = () => {
         <div className="flex justify-end pt-4">
             <button 
                 onClick={handleSave}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 shadow-lg shadow-blue-200 dark:shadow-blue-900 transition-all"
+                disabled={saveStatus !== 'idle'}
+                className={`px-6 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 shadow-lg shadow-blue-200 dark:shadow-blue-900 transition-all ${
+                    saveStatus === 'saved' 
+                    ? 'bg-green-600 text-white hover:bg-green-700' 
+                    : saveStatus === 'saving'
+                        ? 'bg-blue-400 text-white cursor-wait'
+                        : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }`}
             >
-                <Save size={18}/> Lưu thay đổi
+                {saveStatus === 'saving' ? (
+                    <><RefreshCw size={18} className="animate-spin"/> Đang lưu...</>
+                ) : saveStatus === 'saved' ? (
+                    <><Check size={18}/> Đã lưu thay đổi</>
+                ) : (
+                    <><Save size={18}/> Lưu thay đổi</>
+                )}
             </button>
         </div>
     </div>

@@ -1,12 +1,20 @@
-import React, { useState } from 'react';
-import { Upload, FileSpreadsheet, Save, CheckCircle, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Upload, FileSpreadsheet, Save, CheckCircle, AlertCircle, RefreshCw, Check } from 'lucide-react';
 import { db } from '../utils/db';
 import { ObservationData } from '../types';
 import { useUI } from '../components/GlobalUI';
 
 export const ManualEntryView: React.FC = () => {
   const [formData, setFormData] = useState<ObservationData>(db.observation.get());
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const ui = useUI();
+
+  useEffect(() => {
+    if (saveStatus === 'saved') {
+      const timer = setTimeout(() => setSaveStatus('idle'), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [saveStatus]);
 
   const handleChange = (field: keyof ObservationData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -34,16 +42,20 @@ export const ManualEntryView: React.FC = () => {
   };
 
   const handleSave = () => {
-    try {
-      const updatedData = {
-        ...formData,
-        lastUpdated: new Date().toISOString()
-      };
-      db.observation.set(updatedData);
-      ui.showToast('success', 'Dữ liệu đã được cập nhật thành công!');
-    } catch (error) {
-      ui.showToast('error', 'Có lỗi xảy ra khi lưu dữ liệu.');
-    }
+    setSaveStatus('saving');
+    setTimeout(() => {
+        try {
+            const updatedData = {
+              ...formData,
+              lastUpdated: new Date().toISOString()
+            };
+            db.observation.set(updatedData);
+            setSaveStatus('saved');
+          } catch (error) {
+            setSaveStatus('idle');
+            ui.showToast('error', 'Có lỗi xảy ra khi lưu dữ liệu.');
+          }
+    }, 600);
   };
 
   return (
@@ -158,9 +170,22 @@ export const ManualEntryView: React.FC = () => {
           <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-700">
             <button 
               onClick={handleSave}
-              className="flex items-center gap-2 bg-blue-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-blue-700 active:scale-95 transition-all shadow-lg shadow-blue-200 dark:shadow-blue-900/50"
+              disabled={saveStatus !== 'idle'}
+              className={`flex items-center gap-2 px-8 py-3 rounded-xl font-semibold active:scale-95 transition-all shadow-lg shadow-blue-200 dark:shadow-blue-900/50 ${
+                saveStatus === 'saved'
+                ? 'bg-green-600 text-white hover:bg-green-700'
+                : saveStatus === 'saving'
+                    ? 'bg-blue-400 text-white cursor-wait'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}
             >
-              <Save size={18} /> Lưu cập nhật
+              {saveStatus === 'saving' ? (
+                 <><RefreshCw size={18} className="animate-spin" /> Đang xử lý...</>
+              ) : saveStatus === 'saved' ? (
+                 <><Check size={18} /> Đã cập nhật</>
+              ) : (
+                 <><Save size={18} /> Lưu cập nhật</>
+              )}
             </button>
           </div>
         </div>

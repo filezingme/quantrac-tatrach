@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   LineChart, 
   Line, 
@@ -9,7 +9,7 @@ import {
   ResponsiveContainer, 
   Legend 
 } from 'recharts';
-import { Save, Table as TableIcon, CheckCircle, TrendingUp, Filter, CalendarDays } from 'lucide-react';
+import { Save, Table as TableIcon, CheckCircle, TrendingUp, Filter, CalendarDays, RefreshCw, Check } from 'lucide-react';
 import { db } from '../utils/db';
 import { WaterLevelRecord } from '../types';
 
@@ -34,7 +34,14 @@ export const WaterLevelView: React.FC = () => {
   const [fromDate, setFromDate] = useState(formatForInput(yesterday));
   const [toDate, setToDate] = useState(formatForInput(now));
   
-  const [notification, setNotification] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+
+  useEffect(() => {
+    if (saveStatus === 'saved') {
+      const timer = setTimeout(() => setSaveStatus('idle'), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [saveStatus]);
 
   // --- Logic to Generate/Filter Data ---
   
@@ -175,21 +182,17 @@ export const WaterLevelView: React.FC = () => {
   };
 
   const handleSave = () => {
-    db.waterLevels.set(dbData);
-    setNotification(true);
-    setTimeout(() => setNotification(false), 3000);
+    setSaveStatus('saving');
+    setTimeout(() => {
+        db.waterLevels.set(dbData);
+        setSaveStatus('saved');
+    }, 600);
   };
 
   return (
     <div className="space-y-4 pb-10 animate-fade-in h-full flex flex-col">
       <div className="flex justify-between items-start">
         <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Giám sát Mực nước</h2>
-        
-        {notification && (
-          <div className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium animate-bounce border border-green-200 dark:border-green-800">
-            <CheckCircle size={16}/> Đã lưu dữ liệu thành công
-          </div>
-        )}
       </div>
 
       {/* FILTER SECTION - Compact Single Row Layout */}
@@ -342,9 +345,22 @@ export const WaterLevelView: React.FC = () => {
                </div>
                <button 
                 onClick={handleSave}
-                className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 flex items-center gap-2 shadow-md shadow-blue-200 dark:shadow-blue-900/50 transition-all hover:scale-105 active:scale-95"
+                disabled={saveStatus !== 'idle'}
+                className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-bold shadow-md transition-all ${
+                    saveStatus === 'saved' 
+                    ? 'bg-green-600 text-white hover:bg-green-700' 
+                    : saveStatus === 'saving'
+                        ? 'bg-blue-400 text-white cursor-wait'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
                >
-                 <Save size={18}/> Lưu thay đổi
+                 {saveStatus === 'saving' ? (
+                    <><RefreshCw size={18} className="animate-spin"/> Đang lưu...</>
+                 ) : saveStatus === 'saved' ? (
+                    <><Check size={18}/> Đã lưu</>
+                 ) : (
+                    <><Save size={18}/> Lưu thay đổi</>
+                 )}
                </button>
             </div>
             

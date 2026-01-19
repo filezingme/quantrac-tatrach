@@ -1,26 +1,34 @@
-import React, { useState } from 'react';
-import { User, Mail, Phone, MapPin, Briefcase, Save, Lock, Shield, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { User, Mail, Phone, MapPin, Briefcase, Save, Lock, Shield, CheckCircle, RefreshCw, Check } from 'lucide-react';
 import { db } from '../utils/db';
 import { UserProfile } from '../types';
 import { useUI } from '../components/GlobalUI';
 
 export const UserProfileView: React.FC = () => {
   const [user, setUser] = useState<UserProfile>(db.user.get());
-  const [isSaved, setIsSaved] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const ui = useUI();
   
   // Password state
   const [passwordForm, setPasswordForm] = useState({ current: '', new: '', confirm: '' });
+
+  useEffect(() => {
+    if (saveStatus === 'saved') {
+      const timer = setTimeout(() => setSaveStatus('idle'), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [saveStatus]);
 
   const handleChange = (field: keyof UserProfile, value: string) => {
     setUser(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSaveInfo = () => {
-    db.user.set(user);
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 3000);
-    ui.showToast('success', 'Thông tin hồ sơ đã được lưu');
+    setSaveStatus('saving');
+    setTimeout(() => {
+        db.user.set(user);
+        setSaveStatus('saved');
+    }, 600);
   };
 
   const handleChangePassword = () => {
@@ -83,7 +91,6 @@ export const UserProfileView: React.FC = () => {
                     <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
                         <User size={18} className="text-blue-600 dark:text-blue-400"/> Thông tin cơ bản
                     </h3>
-                    {isSaved && <span className="text-xs text-green-600 font-bold flex items-center gap-1"><CheckCircle size={14}/> Đã lưu</span>}
                 </div>
                 <div className="p-6 space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -96,8 +103,24 @@ export const UserProfileView: React.FC = () => {
                         <InputGroup label="Địa chỉ liên hệ" icon={<MapPin size={16}/>} value={user.address || ''} onChange={v => handleChange('address', v)} />
                     </div>
                     <div className="flex justify-end pt-4">
-                        <button onClick={handleSaveInfo} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-md shadow-blue-200 dark:shadow-blue-900/50 transition-all">
-                            <Save size={16}/> Lưu thông tin
+                        <button 
+                            onClick={handleSaveInfo} 
+                            disabled={saveStatus !== 'idle'}
+                            className={`px-6 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-md transition-all ${
+                                saveStatus === 'saved' 
+                                ? 'bg-green-600 text-white hover:bg-green-700' 
+                                : saveStatus === 'saving'
+                                    ? 'bg-blue-400 text-white'
+                                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                            }`}
+                        >
+                            {saveStatus === 'saving' ? (
+                                <><RefreshCw size={16} className="animate-spin" /> Đang lưu...</>
+                            ) : saveStatus === 'saved' ? (
+                                <><Check size={16} /> Đã lưu thông tin</>
+                            ) : (
+                                <><Save size={16}/> Lưu thông tin</>
+                            )}
                         </button>
                     </div>
                 </div>

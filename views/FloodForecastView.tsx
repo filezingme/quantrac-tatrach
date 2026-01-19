@@ -3,7 +3,7 @@ import {
   Zap, Play, Settings, Plus, Trash2, Save, Edit, 
   Droplets, Clock, ArrowDownToLine, AlertTriangle, 
   BarChart2, MoreVertical, RefreshCw, ArrowLeft,
-  Activity, Power, Sliders, AlertOctagon, Gauge
+  Activity, Power, Sliders, AlertOctagon, Gauge, Check
 } from 'lucide-react';
 import { 
   ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, 
@@ -17,6 +17,7 @@ export const FloodForecastView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'realtime' | 'scenario'>('scenario');
   const [scenarios, setScenarios] = useState<FloodScenario[]>([]);
   const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const ui = useUI();
   
   // Edit/Create Mode State
@@ -47,6 +48,13 @@ export const FloodForecastView: React.FC = () => {
       setSelectedScenarioId(list[0].id);
     }
   }, []);
+
+  useEffect(() => {
+    if (saveStatus === 'saved') {
+      const timer = setTimeout(() => setSaveStatus('idle'), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [saveStatus]);
 
   // Real-time Simulation Effect
   useEffect(() => {
@@ -155,24 +163,32 @@ export const FloodForecastView: React.FC = () => {
     if (!editForm.name) return ui.showToast('error', 'Vui lòng nhập tên kịch bản');
     if (!editForm.id) return ui.showToast('error', 'Lỗi: Thiếu ID kịch bản');
 
-    // 1. Check if it's an update or create
-    const currentList = db.scenarios.get();
-    const isUpdate = currentList.some(s => s.id === editForm.id);
-    
-    if (isUpdate) {
-      db.scenarios.update(editForm as FloodScenario);
-    } else {
-      db.scenarios.add(editForm as FloodScenario);
-    }
-    
-    // 2. Refresh list from DB
-    const refreshedList = db.scenarios.get();
-    setScenarios(refreshedList);
-    
-    // 3. Reset view mode
-    setIsEditing(false);
-    setSelectedScenarioId(editForm.id);
-    ui.showToast('success', 'Đã lưu kịch bản thành công');
+    setSaveStatus('saving');
+
+    setTimeout(() => {
+        // 1. Check if it's an update or create
+        const currentList = db.scenarios.get();
+        const isUpdate = currentList.some(s => s.id === editForm.id);
+        
+        if (isUpdate) {
+        db.scenarios.update(editForm as FloodScenario);
+        } else {
+        db.scenarios.add(editForm as FloodScenario);
+        }
+        
+        // 2. Refresh list from DB
+        const refreshedList = db.scenarios.get();
+        setScenarios(refreshedList);
+        
+        setSaveStatus('saved');
+
+        // 3. Reset view mode after short delay to show success state
+        setTimeout(() => {
+            setIsEditing(false);
+            setSelectedScenarioId(editForm.id || null);
+            setSaveStatus('idle');
+        }, 1000);
+    }, 600);
   };
 
   const handleRunSimulation = () => {
@@ -529,7 +545,25 @@ export const FloodForecastView: React.FC = () => {
                  {/* Fixed Footer */}
                  <div className="p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex justify-end gap-3 flex-none">
                    <button onClick={() => { setIsEditing(false); if(isNewScenario) setSelectedScenarioId(null); }} className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-sm font-medium">Hủy bỏ</button>
-                   <button onClick={handleSaveForm} className="px-6 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-sm font-bold flex items-center gap-2 shadow-md shadow-blue-200 dark:shadow-blue-900/50"><Save size={16}/> Lưu kịch bản</button>
+                   <button 
+                        onClick={handleSaveForm} 
+                        disabled={saveStatus !== 'idle'}
+                        className={`px-6 py-2 rounded-lg text-sm font-bold flex items-center gap-2 shadow-md shadow-blue-200 dark:shadow-blue-900/50 ${
+                            saveStatus === 'saved' 
+                            ? 'bg-green-600 text-white hover:bg-green-700' 
+                            : saveStatus === 'saving'
+                                ? 'bg-blue-400 text-white cursor-wait'
+                                : 'bg-blue-600 hover:bg-blue-700 text-white'
+                        }`}
+                    >
+                        {saveStatus === 'saving' ? (
+                            <><RefreshCw size={16} className="animate-spin" /> Đang lưu...</>
+                        ) : saveStatus === 'saved' ? (
+                            <><Check size={16} /> Đã lưu</>
+                        ) : (
+                            <><Save size={16} /> Lưu kịch bản</>
+                        )}
+                    </button>
                  </div>
               </div>
             ) : selectedScenario ? (

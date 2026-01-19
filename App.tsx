@@ -84,16 +84,8 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
 
   const handleLogoutClick = () => {
     setIsUserMenuOpen(false);
-    ui.confirm({
-      title: 'Đăng xuất',
-      message: 'Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?',
-      confirmText: 'Đăng xuất',
-      type: 'danger',
-      onConfirm: () => {
-        onLogout();
-        ui.showToast('info', 'Đã đăng xuất thành công');
-      }
-    });
+    // Direct logout without confirmation
+    onLogout();
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
