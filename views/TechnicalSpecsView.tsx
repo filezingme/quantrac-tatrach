@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { SpecGroup, SpecItem } from '../types';
-import { ChevronDown, Plus, Trash2, Save, FolderPlus, Check } from 'lucide-react';
+import { ChevronDown, Plus, Trash2, Save, FolderPlus, Check, Download } from 'lucide-react';
 import { db } from '../utils/db';
 import { useUI } from '../components/GlobalUI';
+import { exportToExcel } from '../utils/excel';
 
 export const TechnicalSpecsView: React.FC = () => {
   // Load initial state from LocalStorage via db util
@@ -32,6 +33,34 @@ export const TechnicalSpecsView: React.FC = () => {
       setHasChanges(false);
       setSaveStatus('saved');
     }, 500);
+  };
+
+  const handleExport = () => {
+    // Flatten data for export
+    const flatData: any[] = [];
+    specs.forEach(group => {
+      group.items.forEach(item => {
+        flatData.push({
+          'Hạng mục': group.title,
+          'Thông số': item.name,
+          'Giá trị': item.value,
+          'Đơn vị': item.unit
+        });
+      });
+      if (group.subGroups) {
+        group.subGroups.forEach(sg => {
+          sg.items.forEach(item => {
+            flatData.push({
+              'Hạng mục': `${group.title} - ${sg.title}`,
+              'Thông số': item.name,
+              'Giá trị': item.value,
+              'Đơn vị': item.unit
+            });
+          });
+        });
+      }
+    });
+    exportToExcel(flatData, 'Thong_so_ky_thuat');
   };
 
   // Helper to deep update the spec tree
@@ -193,6 +222,12 @@ export const TechnicalSpecsView: React.FC = () => {
               ● Có thay đổi chưa lưu
             </span>
           )}
+          <button 
+            onClick={handleExport}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-all"
+          >
+            <Download size={18}/> Xuất Excel
+          </button>
           <button 
             onClick={handleSave} 
             disabled={saveStatus === 'saving' || !hasChanges}

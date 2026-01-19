@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { OperationTable } from '../types';
 import { db } from '../utils/db';
-import { Save, Calendar, Search, RefreshCw, Check } from 'lucide-react';
+import { Save, Calendar, Search, RefreshCw, Check, Download } from 'lucide-react';
+import { exportToExcel } from '../utils/excel';
 
 export const OperationView: React.FC = () => {
   const [tables, setTables] = useState<OperationTable[]>(db.operationTables.get());
@@ -35,29 +36,54 @@ export const OperationView: React.FC = () => {
     }, 600);
   };
 
+  const handleExport = () => {
+    if (!activeTable) return;
+    
+    // Map data based on headers
+    const exportData = activeTable.data.map(row => {
+        const mappedRow: any = {};
+        activeTable.headers.forEach((header, index) => {
+            if (index === 0) mappedRow[header] = row.col1;
+            if (index === 1) mappedRow[header] = row.col2;
+            if (index === 2) mappedRow[header] = row.col3;
+        });
+        return mappedRow;
+    });
+
+    exportToExcel(exportData, activeTable.id);
+  };
+
   return (
     <div className="space-y-6 pb-10">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Quy trình vận hành</h2>
-        <button 
-            onClick={saveAll} 
-            disabled={saveStatus !== 'idle'}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium shadow-md transition-all duration-300 ${
-                saveStatus === 'saved' 
-                ? 'bg-green-600 text-white hover:bg-green-700' 
-                : saveStatus === 'saving'
-                    ? 'bg-blue-400 text-white cursor-wait'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
-            }`}
-        >
-            {saveStatus === 'saving' ? (
-             <><RefreshCw size={16} className="animate-spin" /> Đang lưu...</>
-           ) : saveStatus === 'saved' ? (
-             <><Check size={16} /> Đã lưu thành công</>
-           ) : (
-             <><Save size={16} /> Lưu thay đổi</>
-           )}
-        </button>
+        <div className="flex gap-2">
+            <button
+                onClick={handleExport}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-all"
+            >
+                <Download size={16}/> Xuất Excel
+            </button>
+            <button 
+                onClick={saveAll} 
+                disabled={saveStatus !== 'idle'}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium shadow-md transition-all duration-300 ${
+                    saveStatus === 'saved' 
+                    ? 'bg-green-600 text-white hover:bg-green-700' 
+                    : saveStatus === 'saving'
+                        ? 'bg-blue-400 text-white cursor-wait'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+            >
+                {saveStatus === 'saving' ? (
+                <><RefreshCw size={16} className="animate-spin" /> Đang lưu...</>
+                ) : saveStatus === 'saved' ? (
+                <><Check size={16} /> Đã lưu thành công</>
+                ) : (
+                <><Save size={16} /> Lưu thay đổi</>
+                )}
+            </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
