@@ -534,7 +534,10 @@ export const DashboardView: React.FC = () => {
 
       {/* --- ADVANCED DETAIL MODAL --- */}
       {selectedMetric && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-0 animate-in fade-in duration-200">
+        <div 
+          className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-0 animate-in fade-in duration-200"
+          style={{ marginTop: 0 }}
+        >
           <div className={`bg-white dark:bg-slate-800 shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ${isFullscreen ? 'w-screen h-screen' : 'w-[90vw] h-[90vh] rounded-2xl border border-slate-200 dark:border-slate-700'}`}>
             
             {/* Modal Header */}
