@@ -1,0 +1,7 @@
+{
+  "name": "Ta Trach Reservoir Manager",
+  "description": "Comprehensive management system for Ta Trach Reservoir, including real-time monitoring, flood forecasting, technical specifications, and operational procedures.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

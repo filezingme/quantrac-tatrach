@@ -1,0 +1,251 @@
+import React, { useState, useEffect } from 'react';
+import { Settings, Bell, Database, Shield, Globe, Monitor, Save, RefreshCw } from 'lucide-react';
+
+export const SystemSettingsView: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<'general' | 'notification' | 'data'>('general');
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [settings, setSettings] = useState({
+      appName: 'Hệ thống Quản lý Hồ Tả Trạch',
+      maintenanceMode: false,
+      emailAlerts: true,
+      smsAlerts: false,
+      pushNotif: true,
+      alertThresholdLevel: 44.5,
+      backupFrequency: 'daily'
+  });
+
+  useEffect(() => {
+    // Sync state with local storage on mount
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark' || (!savedTheme && document.documentElement.classList.contains('dark'))) {
+        setTheme('dark');
+    } else {
+        setTheme('light');
+    }
+  }, []);
+
+  const handleThemeChange = (newTheme: 'light' | 'dark') => {
+      setTheme(newTheme);
+      if (newTheme === 'dark') {
+          document.documentElement.classList.add('dark');
+          localStorage.setItem('theme', 'dark');
+      } else {
+          document.documentElement.classList.remove('dark');
+          localStorage.setItem('theme', 'light');
+      }
+  };
+
+  const toggle = (key: keyof typeof settings) => {
+      setSettings(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleChange = (key: keyof typeof settings, value: any) => {
+      setSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  return (
+    <div className="max-w-5xl mx-auto pb-10 space-y-6 animate-fade-in">
+        <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Cài đặt hệ thống</h2>
+
+        <div className="flex flex-col md:flex-row gap-6">
+            
+            {/* Sidebar Navigation */}
+            <div className="w-full md:w-64 flex-none space-y-2">
+                <NavButton active={activeTab === 'general'} onClick={() => setActiveTab('general')} icon={<Settings size={18}/>} label="Chung" />
+                <NavButton active={activeTab === 'notification'} onClick={() => setActiveTab('notification')} icon={<Bell size={18}/>} label="Thông báo & Cảnh báo" />
+                <NavButton active={activeTab === 'data'} onClick={() => setActiveTab('data')} icon={<Database size={18}/>} label="Dữ liệu & Sao lưu" />
+            </div>
+
+            {/* Content Area */}
+            <div className="flex-1 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm min-h-[500px] transition-colors duration-200">
+                
+                {/* General Settings */}
+                {activeTab === 'general' && (
+                    <div className="p-6 space-y-8">
+                        <div>
+                            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1 flex items-center gap-2">
+                                <Globe size={20} className="text-blue-600 dark:text-blue-400"/> Cấu hình chung
+                            </h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Thông tin cơ bản và trạng thái hệ thống.</p>
+                            
+                            <div className="space-y-4 max-w-lg">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tên hệ thống</label>
+                                    <input 
+                                        type="text" 
+                                        value={settings.appName}
+                                        onChange={(e) => handleChange('appName', e.target.value)}
+                                        className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-slate-700 dark:text-white"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Ngôn ngữ hiển thị</label>
+                                    <select className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-700 dark:text-white">
+                                        <option value="vi">Tiếng Việt</option>
+                                        <option value="en">English</option>
+                                    </select>
+                                </div>
+                                <div className="flex items-center justify-between py-2">
+                                    <div>
+                                        <p className="font-medium text-slate-800 dark:text-white">Chế độ bảo trì</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">Chỉ Admin mới có thể truy cập khi bật</p>
+                                    </div>
+                                    <Switch checked={settings.maintenanceMode} onChange={() => toggle('maintenanceMode')} />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="pt-6 border-t border-slate-100 dark:border-slate-700">
+                             <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1 flex items-center gap-2">
+                                <Monitor size={20} className="text-purple-600 dark:text-purple-400"/> Giao diện
+                            </h3>
+                             <div className="mt-4 grid grid-cols-3 gap-4 max-w-md">
+                                 <div 
+                                    onClick={() => handleThemeChange('light')}
+                                    className={`border-2 rounded-lg p-3 text-center cursor-pointer transition-all ${theme === 'light' ? 'border-blue-500 bg-blue-50 dark:bg-slate-700' : 'border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+                                 >
+                                     <div className="h-10 bg-white rounded mb-2 border border-blue-200 dark:border-slate-500"></div>
+                                     <span className={`text-xs font-bold ${theme === 'light' ? 'text-blue-700 dark:text-blue-300' : 'text-slate-600 dark:text-slate-400'}`}>Sáng</span>
+                                 </div>
+                                 <div 
+                                    onClick={() => handleThemeChange('dark')}
+                                    className={`border-2 rounded-lg p-3 text-center cursor-pointer transition-all ${theme === 'dark' ? 'border-blue-500 bg-blue-50 dark:bg-slate-700' : 'border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+                                 >
+                                     <div className="h-10 bg-slate-800 rounded mb-2 border border-slate-600"></div>
+                                     <span className={`text-xs font-bold ${theme === 'dark' ? 'text-blue-700 dark:text-blue-300' : 'text-slate-600 dark:text-slate-400'}`}>Tối</span>
+                                 </div>
+                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Notification Settings */}
+                {activeTab === 'notification' && (
+                     <div className="p-6 space-y-8">
+                        <div>
+                            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1 flex items-center gap-2">
+                                <Bell size={20} className="text-amber-500"/> Kênh thông báo
+                            </h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Quản lý cách hệ thống gửi cảnh báo.</p>
+                            
+                            <div className="space-y-4 max-w-lg divide-y divide-slate-100 dark:divide-slate-700">
+                                <div className="flex items-center justify-between py-2">
+                                    <div>
+                                        <p className="font-medium text-slate-800 dark:text-white">Thông báo qua Email</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">Gửi báo cáo và cảnh báo quan trọng</p>
+                                    </div>
+                                    <Switch checked={settings.emailAlerts} onChange={() => toggle('emailAlerts')} />
+                                </div>
+                                <div className="flex items-center justify-between py-2">
+                                    <div>
+                                        <p className="font-medium text-slate-800 dark:text-white">Thông báo SMS</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">Chỉ dành cho tình huống khẩn cấp</p>
+                                    </div>
+                                    <Switch checked={settings.smsAlerts} onChange={() => toggle('smsAlerts')} />
+                                </div>
+                                <div className="flex items-center justify-between py-2">
+                                    <div>
+                                        <p className="font-medium text-slate-800 dark:text-white">Web Push Notification</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">Thông báo trực tiếp trên trình duyệt</p>
+                                    </div>
+                                    <Switch checked={settings.pushNotif} onChange={() => toggle('pushNotif')} />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="pt-6 border-t border-slate-100 dark:border-slate-700">
+                             <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1 flex items-center gap-2">
+                                <Shield size={20} className="text-red-500"/> Ngưỡng cảnh báo
+                            </h3>
+                            <div className="mt-4 max-w-xs">
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Mực nước cảnh báo (m)</label>
+                                <div className="flex gap-2">
+                                    <input 
+                                        type="number" 
+                                        value={settings.alertThresholdLevel}
+                                        onChange={(e) => handleChange('alertThresholdLevel', parseFloat(e.target.value))}
+                                        className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 outline-none font-bold text-red-600 dark:bg-slate-700"
+                                    />
+                                    <span className="flex items-center text-slate-500 dark:text-slate-400 text-sm">m</span>
+                                </div>
+                                <p className="text-xs text-slate-400 mt-1">Hệ thống sẽ gửi cảnh báo khi mực nước vượt quá giá trị này.</p>
+                            </div>
+                        </div>
+                     </div>
+                )}
+
+                {/* Data Settings */}
+                {activeTab === 'data' && (
+                    <div className="p-6 space-y-8">
+                        <div>
+                             <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1 flex items-center gap-2">
+                                <Database size={20} className="text-green-600"/> Sao lưu dữ liệu
+                            </h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Cấu hình sao lưu tự động và thủ công.</p>
+                            
+                            <div className="space-y-4 max-w-lg">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tần suất sao lưu tự động</label>
+                                    <select 
+                                        value={settings.backupFrequency}
+                                        onChange={(e) => handleChange('backupFrequency', e.target.value)}
+                                        className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-700 dark:text-white"
+                                    >
+                                        <option value="daily">Hàng ngày (00:00)</option>
+                                        <option value="weekly">Hàng tuần (Chủ nhật)</option>
+                                        <option value="monthly">Hàng tháng</option>
+                                        <option value="manual">Chỉ thủ công</option>
+                                    </select>
+                                </div>
+                                <div className="pt-2">
+                                    <button className="flex items-center gap-2 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300">
+                                        <RefreshCw size={16}/> Sao lưu ngay lập tức
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+        
+        {/* Save Bar */}
+        <div className="flex justify-end pt-4">
+            <button 
+                onClick={() => alert('Đã lưu cấu hình hệ thống')}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 shadow-lg shadow-blue-200 dark:shadow-blue-900 transition-all"
+            >
+                <Save size={18}/> Lưu thay đổi
+            </button>
+        </div>
+    </div>
+  );
+};
+
+// --- Helper Components ---
+
+const NavButton = ({ active, onClick, icon, label }: { active: boolean, onClick: () => void, icon: React.ReactNode, label: string }) => (
+    <button 
+        onClick={onClick}
+        className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-colors ${active ? 'bg-blue-600 text-white shadow-md shadow-blue-200 dark:shadow-blue-900' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}
+    >
+        {icon}
+        {label}
+    </button>
+);
+
+const Switch = ({ checked, onChange }: { checked: boolean, onChange: () => void }) => (
+    <button
+        onClick={onChange}
+        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+            checked ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700'
+        }`}
+    >
+        <span
+            aria-hidden="true"
+            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                checked ? 'translate-x-5' : 'translate-x-0'
+            }`}
+        />
+    </button>
+);
