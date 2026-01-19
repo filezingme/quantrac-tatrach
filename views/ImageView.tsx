@@ -29,7 +29,6 @@ export const ImageView: React.FC = () => {
           const updated = [...groups, newGroup];
           setGroups(updated);
           db.images.set(updated);
-          ui.showToast('success', 'Đã tạo album mới');
         }
       }
     });
@@ -60,7 +59,6 @@ export const ImageView: React.FC = () => {
         
         setGroups(updated);
         db.images.set(updated);
-        ui.showToast('success', 'Đã tải ảnh lên');
       }
     };
 
@@ -97,7 +95,6 @@ export const ImageView: React.FC = () => {
               });
               setGroups(updated);
               db.images.set(updated);
-              ui.showToast('success', 'Đã thêm ảnh từ URL');
             }
           });
         }, 100);

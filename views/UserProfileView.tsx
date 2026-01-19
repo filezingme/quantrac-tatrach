@@ -40,7 +40,6 @@ export const UserProfileView: React.FC = () => {
         ui.showToast('error', 'Mật khẩu xác nhận không khớp');
         return;
     }
-    ui.showToast('success', 'Đổi mật khẩu thành công (Mô phỏng)');
     setPasswordForm({ current: '', new: '', confirm: '' });
   };
 

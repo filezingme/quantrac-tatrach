@@ -65,7 +65,6 @@ export const DashboardView: React.FC = () => {
 
   const refreshData = () => {
       setData(db.observation.get());
-      ui.showToast('success', 'Đã cập nhật dữ liệu mới nhất');
   };
 
   useEffect(() => {
@@ -198,7 +197,6 @@ export const DashboardView: React.FC = () => {
   const handleViewData = () => {
     if (selectedMetric) {
         generateComparisonData(selectedMetric, selectedYears);
-        ui.showToast('success', 'Đã tải dữ liệu so sánh');
     }
   };
 

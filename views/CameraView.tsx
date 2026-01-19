@@ -36,7 +36,6 @@ export const CameraView: React.FC = () => {
               const updated = [...cameras, newCam];
               setCameras(updated);
               db.cameras.set(updated);
-              ui.showToast('success', 'Đã thêm camera mới');
             }
           });
         }, 100);
@@ -52,7 +51,6 @@ export const CameraView: React.FC = () => {
             const updated = cameras.filter(c => c.id !== id);
             setCameras(updated);
             db.cameras.set(updated);
-            ui.showToast('success', 'Đã xóa camera');
         }
     });
   };

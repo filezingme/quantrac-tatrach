@@ -43,7 +43,6 @@ export const SystemSettingsView: React.FC = () => {
           document.documentElement.classList.remove('dark');
           localStorage.setItem('theme', 'light');
       }
-      ui.showToast('info', `Đã chuyển sang giao diện ${newTheme === 'dark' ? 'tối' : 'sáng'}`);
   };
 
   const toggle = (key: keyof typeof settings) => {

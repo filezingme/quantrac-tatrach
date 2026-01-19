@@ -154,7 +154,6 @@ export const FloodForecastView: React.FC = () => {
                 setIsEditing(false);
                 setEditForm({});
             }
-            ui.showToast('success', 'Đã xóa kịch bản');
         }
     });
   };
@@ -194,7 +193,6 @@ export const FloodForecastView: React.FC = () => {
   const handleRunSimulation = () => {
     if (!selectedScenario) return;
     setIsRunning(true);
-    ui.showToast('info', 'Đang chạy mô phỏng...');
 
     // SIMULATION ENGINE LOGIC
     setTimeout(() => {
@@ -267,7 +265,6 @@ export const FloodForecastView: React.FC = () => {
       db.scenarios.update(updatedScenario);
       setScenarios(db.scenarios.get());
       setIsRunning(false);
-      ui.showToast('success', 'Mô phỏng hoàn tất');
     }, 1500); 
   };
 

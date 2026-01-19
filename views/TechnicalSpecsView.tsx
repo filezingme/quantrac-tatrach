@@ -31,7 +31,6 @@ export const TechnicalSpecsView: React.FC = () => {
       db.specs.set(specs);
       setHasChanges(false);
       setSaveStatus('saved');
-      ui.showToast('success', 'Đã lưu thông số kỹ thuật thành công');
     }, 500);
   };
 
@@ -70,7 +69,6 @@ export const TechnicalSpecsView: React.FC = () => {
     
     // Auto expand the group if needed
     setExpanded(prev => ({ ...prev, [parentId]: true }));
-    ui.showToast('info', 'Đã thêm dòng thông số mới');
   };
 
   const addSubGroup = (parentId: string) => {
@@ -87,7 +85,6 @@ export const TechnicalSpecsView: React.FC = () => {
           return g;
         }));
         setExpanded(prev => ({ ...prev, [parentId]: true }));
-        ui.showToast('success', 'Đã thêm hạng mục mới');
       }
     });
   };
@@ -116,7 +113,6 @@ export const TechnicalSpecsView: React.FC = () => {
             items: removeFromList(g.items),
             subGroups: g.subGroups ? g.subGroups.map(sg => ({ ...sg, items: removeFromList(sg.items) })) : undefined
             })));
-            ui.showToast('success', 'Đã xóa thông số');
         }
     });
   };
