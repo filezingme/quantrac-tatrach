@@ -64,6 +64,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, isO
       <nav className="flex-1 overflow-y-auto py-6 px-4 custom-scrollbar">
         <ul className="space-y-1.5">
           {menuItems.map((item) => {
+            // Check if active (simple comparison for now, assuming exact matches)
             const isActive = currentView === item.id;
             return (
               <li key={item.id}>

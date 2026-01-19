@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Download, FileText, Filter, Calendar, ShieldCheck, Book, AlertTriangle } from 'lucide-react';
+import { exportToExcel } from '../utils/excel';
 
 // Types for local use
 interface Document {
@@ -47,6 +48,17 @@ export const DocumentsView: React.FC = () => {
     doc.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
     doc.number.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleExport = () => {
+    const exportData = filteredDocs.map(doc => ({
+        'Số hiệu': doc.number,
+        'Ngày ban hành': doc.date,
+        'Tiêu đề': doc.title,
+        'Người ký': doc.signer,
+        'Loại': doc.type
+    }));
+    exportToExcel(exportData, 'Danh_sach_van_ban');
+  };
 
   return (
     <div className="space-y-6 pb-10 animate-fade-in">
@@ -98,8 +110,8 @@ export const DocumentsView: React.FC = () => {
              <Filter size={16} />
              <span>Hiển thị <b>{filteredDocs.length}</b> kết quả</span>
           </div>
-          <button className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline">
-            Tải về danh sách
+          <button onClick={handleExport} className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline">
+            Xuất Excel danh sách
           </button>
         </div>
 
