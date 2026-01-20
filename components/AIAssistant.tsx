@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenAI } from "@google/genai";
-import { MessageSquare, X, Send, Sparkles, BarChart2, HelpCircle, ChevronRight, Loader2, Maximize2, Minimize2 } from 'lucide-react';
+import { MessageSquare, X, Send, Sparkles, BarChart2, HelpCircle, ChevronRight, Loader2, Maximize2, Minimize2, Key } from 'lucide-react';
 import { db } from '../utils/db';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, LineChart, Line } from 'recharts';
 
@@ -45,6 +45,16 @@ export const AIAssistant: React.FC = () => {
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  
+  // Check for AI Studio environment support
+  const [canSelectKey, setCanSelectKey] = useState(false);
+
+  useEffect(() => {
+    // Check if window.aistudio exists using type assertion to avoid TS errors with conflicting global types
+    if (typeof window !== 'undefined' && (window as any).aistudio) {
+      setCanSelectKey(true);
+    }
+  }, []);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -52,6 +62,19 @@ export const AIAssistant: React.FC = () => {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, isOpen, isExpanded]);
+
+  const handleSelectKey = async () => {
+    const aistudio = (window as any).aistudio;
+    if (aistudio) {
+      try {
+        await aistudio.openSelectKey();
+        // Assuming success allows us to proceed in the next request
+        alert("Đã chọn API Key thành công. Vui lòng thử lại câu hỏi của bạn.");
+      } catch (e) {
+        console.error("Failed to select key", e);
+      }
+    }
+  };
 
   // --- AI LOGIC ---
   const handleSend = async () => {
@@ -69,8 +92,8 @@ export const AIAssistant: React.FC = () => {
         observation: db.observation.get(),
         forecast: db.forecast.get(),
         generalInfo: db.generalInfo.get(),
-        specs: db.specs.get(), // Just passing structure, might be too large, but ok for demo
-        waterLevels: db.waterLevels.get().slice(0, 24) // Last 24h for quick chart
+        specs: db.specs.get(), 
+        waterLevels: db.waterLevels.get().slice(0, 24) 
       };
 
       // 2. Prepare System Prompt
@@ -108,13 +131,19 @@ export const AIAssistant: React.FC = () => {
       // 3. Call Gemini API
       let responseText = "";
       
-      // Safe check for API Key to avoid ReferenceError in browser without polyfills
-      const apiKey = typeof process !== 'undefined' && process.env ? process.env.API_KEY : undefined;
+      // Get API Key from process.env
+      let apiKey = process.env.API_KEY;
+      
+      // Attempt to force key selection if available and key is missing
+      if (!apiKey && (window as any).aistudio) {
+         // Note: We can't await this inside the render loop, so we assume user might have clicked the button
+         // Or we proceed to simulation
+      }
       
       if (apiKey) {
         const ai = new GoogleGenAI({ apiKey: apiKey });
         const result = await ai.models.generateContent({
-          model: "gemini-3-flash-preview", // Updated to valid model
+          model: "gemini-3-flash-preview", 
           contents: input,
           config: {
             systemInstruction: systemInstruction,
@@ -125,7 +154,6 @@ export const AIAssistant: React.FC = () => {
         // --- SIMULATION MODE (FALLBACK) ---
         await new Promise(r => setTimeout(r, 1500)); // Fake delay
         
-        // Simple keyword check for simulation
         const lowerInput = input.toLowerCase();
         if (lowerInput.includes('biểu đồ') || lowerInput.includes('đồ thị') || lowerInput.includes('chart')) {
            const mockChartData = contextData.waterLevels.map(r => ({
@@ -136,9 +164,9 @@ export const AIAssistant: React.FC = () => {
            
            responseText = JSON.stringify({
              type: "chart",
-             content: "Dưới đây là biểu đồ diễn biến mực nước và lưu lượng trong 24 giờ qua dựa trên số liệu vận hành (Mô phỏng).",
+             content: "⚠️ **Chế độ mô phỏng**: Dưới đây là biểu đồ mẫu (Do chưa cấu hình API Key).\n\nĐể sử dụng dữ liệu thực và AI thông minh, vui lòng cấu hình API Key trong file `.env` hoặc chọn Key.",
              chartConfig: {
-               title: "Diễn biến Mực nước & Lưu lượng đến",
+               title: "Diễn biến Mực nước & Lưu lượng đến (Mô phỏng)",
                type: "area",
                xAxisKey: "time",
                keys: [
@@ -152,7 +180,7 @@ export const AIAssistant: React.FC = () => {
            const wl = contextData.observation.waterLevel;
            responseText = JSON.stringify({
              type: "text",
-             content: `(Chế độ mô phỏng - Chưa cấu hình API Key)\n\nTheo số liệu quan trắc mới nhất:\n- **Mực nước thượng lưu:** ${wl} m\n- **Dung tích:** ${contextData.observation.capacity} triệu m³\n- **Lưu lượng đến:** ${contextData.observation.inflow} m³/s\n- **Tổng xả:** ${contextData.observation.outflow} m³/s\n\nHồ đang vận hành bình thường theo quy trình.`
+             content: `⚠️ **Chế độ mô phỏng** (Chưa có API Key)\n\nHiện tại hệ thống đang trả về câu trả lời mặc định. Để kích hoạt trí tuệ nhân tạo Gemini, bạn cần:\n1. Tạo file \`.env\` với nội dung \`API_KEY=your_key\`\n2. Hoặc nếu đang dùng Project IDX, nhấn nút **"Chọn API Key"** phía trên.\n\nThông tin hiện tại:\n- Mực nước: ${wl} m\n- Dung tích: ${contextData.observation.capacity} triệu m³`
            });
         }
       }
@@ -160,11 +188,9 @@ export const AIAssistant: React.FC = () => {
       // 4. Parse Response
       let parsedRes;
       try {
-        // Clean markdown code blocks if AI adds them
         const cleanJson = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
         parsedRes = JSON.parse(cleanJson);
       } catch (e) {
-        // Fallback if not JSON
         parsedRes = { type: 'text', content: responseText };
       }
 
@@ -178,13 +204,19 @@ export const AIAssistant: React.FC = () => {
 
       setMessages(prev => [...prev, botMsg]);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("AI Error:", error);
+      
+      let errorMsg = 'Xin lỗi, tôi gặp sự cố khi kết nối với máy chủ AI.';
+      if (error.message?.includes('API key not found') || error.toString().includes('API key')) {
+          errorMsg = 'Lỗi: Không tìm thấy API Key hợp lệ. Vui lòng kiểm tra cấu hình.';
+      }
+
       setMessages(prev => [...prev, {
         id: Date.now().toString(),
         role: 'model',
         type: 'error',
-        content: 'Xin lỗi, tôi gặp sự cố khi kết nối với máy chủ AI. Vui lòng thử lại sau.'
+        content: errorMsg
       }]);
     } finally {
       setIsLoading(false);
@@ -267,6 +299,15 @@ export const AIAssistant: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center gap-1">
+          {canSelectKey && !process.env.API_KEY && (
+             <button 
+                onClick={handleSelectKey} 
+                className="p-1.5 bg-yellow-400 text-yellow-900 rounded-lg transition-colors text-xs font-bold mr-2 hover:bg-yellow-300" 
+                title="Chọn API Key"
+             >
+                <Key size={14} className="inline mr-1"/> Key
+             </button>
+          )}
           <button onClick={() => setShowGuide(!showGuide)} className="p-1.5 hover:bg-white/20 rounded-lg transition-colors" title="Hướng dẫn">
             <HelpCircle size={18} />
           </button>
@@ -364,7 +405,7 @@ export const AIAssistant: React.FC = () => {
         </div>
         <div className="text-center mt-2">
            <p className="text-[10px] text-slate-400 dark:text-slate-500">
-             AI có thể đưa ra thông tin không chính xác. Hãy kiểm chứng số liệu quan trọng.
+             {!process.env.API_KEY ? 'Chế độ mô phỏng (Chưa cấu hình API Key)' : 'AI có thể đưa ra thông tin không chính xác.'}
            </p>
         </div>
       </div>
