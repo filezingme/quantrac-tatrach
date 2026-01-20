@@ -88,7 +88,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto overflow-x-visible py-6 custom-scrollbar">
+      <nav className="flex-1 py-6 sidebar-scrollbar">
         <ul className="space-y-1.5 px-3">
           {menuItems.map((item) => {
             // Check if active (dashboard is also root)

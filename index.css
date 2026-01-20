@@ -7,7 +7,7 @@ body {
   background-color: #f3f4f6;
 }
 
-/* Custom scrollbar */
+/* Global Custom scrollbar (keeping existing for other areas like main content) */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -24,4 +24,43 @@ body {
 }
 .dark ::-webkit-scrollbar-thumb {
   background: #475569;
+}
+
+/* Sidebar Specific Scrollbar Styles */
+.sidebar-scrollbar {
+  overflow-y: auto;
+  overflow-x: hidden !important; /* Force hide horizontal scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent; /* Firefox: thumb track (hidden by default) */
+}
+
+/* Show scrollbar on hover for Firefox */
+.sidebar-scrollbar:hover {
+  scrollbar-color: #cbd5e1 transparent; 
+}
+.dark .sidebar-scrollbar:hover {
+  scrollbar-color: #475569 transparent;
+}
+
+/* Webkit (Chrome/Safari/Edge) configuration */
+.sidebar-scrollbar::-webkit-scrollbar {
+  width: 5px; /* Thinner than global scrollbar for elegance */
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-track {
+  background: transparent; 
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb {
+  background-color: transparent; /* Hidden by default */
+  border-radius: 10px;
+}
+
+/* Show scrollbar on hover for Webkit */
+.sidebar-scrollbar:hover::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1; 
+}
+
+.dark .sidebar-scrollbar:hover::-webkit-scrollbar-thumb {
+  background-color: #475569;
 }
