@@ -10,7 +10,8 @@ import {
   AppNotification,
   UserProfile,
   ForecastData,
-  WaterLevelRecord
+  WaterLevelRecord,
+  SystemSettings
 } from '../types';
 
 const KEYS = {
@@ -24,7 +25,8 @@ const KEYS = {
   SCENARIOS: 'app_scenarios',
   NOTIFICATIONS: 'app_notifications',
   USER: 'app_user',
-  WATER_LEVEL_RECORDS: 'app_water_level_records'
+  WATER_LEVEL_RECORDS: 'app_water_level_records',
+  SETTINGS: 'app_settings'
 };
 
 // --- Default Data ---
@@ -332,6 +334,25 @@ const defaultWaterLevels: WaterLevelRecord[] = Array.from({length: 24}).map((_, 
   };
 });
 
+const defaultSettings: SystemSettings = {
+  appName: 'Hệ thống Quản lý Hồ Tả Trạch',
+  maintenanceMode: false,
+  language: 'vi',
+  dateFormat: 'DD/MM/YYYY',
+  features: {
+    enableAIAssistant: true,
+    enableDemoCharts: true,
+    enableFloodSimulation: true,
+  },
+  notifications: {
+    emailAlerts: true,
+    smsAlerts: false,
+    pushNotif: true,
+    alertThresholdLevel: 44.5,
+  },
+  backupFrequency: 'daily'
+};
+
 // --- DB Operations ---
 
 export const db = {
@@ -405,5 +426,9 @@ export const db = {
   waterLevels: {
     get: () => db.get<WaterLevelRecord[]>(KEYS.WATER_LEVEL_RECORDS, defaultWaterLevels),
     set: (data: WaterLevelRecord[]) => db.set(KEYS.WATER_LEVEL_RECORDS, data),
+  },
+  settings: {
+    get: () => db.get<SystemSettings>(KEYS.SETTINGS, defaultSettings),
+    set: (data: SystemSettings) => db.set(KEYS.SETTINGS, data),
   }
 };

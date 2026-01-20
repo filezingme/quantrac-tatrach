@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
@@ -20,7 +21,7 @@ import { SystemSettingsView } from './views/SystemSettingsView';
 import { LoginView } from './views/LoginView';
 import { UIProvider, useUI } from './components/GlobalUI';
 import { AIAssistant } from './components/AIAssistant'; // Imported AI Assistant
-import { AppNotification, UserProfile } from './types';
+import { AppNotification, UserProfile, SystemSettings } from './types';
 import { Menu, Bell, Check, LogOut, User, Settings as SettingsIcon, X } from 'lucide-react';
 import { db } from './utils/db';
 
@@ -31,6 +32,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [user, setUser] = useState<UserProfile>(db.user.get());
+  const [settings, setSettings] = useState<SystemSettings>(db.settings.get());
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -56,11 +58,13 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
     // Initial load
     setNotifications(db.notifications.get());
     setUser(db.user.get());
+    setSettings(db.settings.get());
 
     // Listen for DB changes
     const handleDbChange = () => {
       setNotifications(db.notifications.get());
       setUser(db.user.get());
+      setSettings(db.settings.get());
     };
     window.addEventListener('db-change', handleDbChange);
     return () => window.removeEventListener('db-change', handleDbChange);
@@ -109,7 +113,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
               <Menu size={24} />
             </button>
             <h1 className="text-lg font-semibold text-slate-800 dark:text-slate-100 hidden sm:block">
-              Hệ thống hỗ trợ ra quyết định
+              {settings.appName}
             </h1>
           </div>
           
@@ -238,8 +242,8 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
           </Routes>
         </main>
 
-        {/* AI Assistant Overlay */}
-        <AIAssistant />
+        {/* AI Assistant Overlay - Conditionally Rendered */}
+        {settings.features.enableAIAssistant && <AIAssistant />}
       </div>
     </div>
   );

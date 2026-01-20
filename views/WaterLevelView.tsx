@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
   LineChart, 
@@ -30,7 +31,13 @@ export const WaterLevelView: React.FC = () => {
   const yesterday = new Date(now);
   yesterday.setDate(yesterday.getDate() - 1);
 
-  const formatForInput = (d: Date) => d.toISOString().slice(0, 16); // YYYY-MM-DDTHH:mm
+  const formatForInput = (d: Date) => {
+    // Return ISO format for <input type="datetime-local" /> value
+    // Adjust to local ISO string to handle timezone correctly in input
+    const offset = d.getTimezoneOffset() * 60000;
+    const localISOTime = (new Date(d.getTime() - offset)).toISOString().slice(0, 16);
+    return localISOTime;
+  };
 
   const [fromDate, setFromDate] = useState(formatForInput(yesterday));
   const [toDate, setToDate] = useState(formatForInput(now));
@@ -79,8 +86,6 @@ export const WaterLevelView: React.FC = () => {
 
          baseData.forEach((r, idx) => {
            // Create a date object for the selected year but keeping the month/day/time of the base record
-           // Note: This is a simplification. In a real app, we'd generate a full time series.
-           // Here we just take the 'base' records and project them into the selected year.
            const origDate = new Date(r.time);
            const newDate = new Date(origDate);
            newDate.setFullYear(year);
@@ -118,6 +123,7 @@ export const WaterLevelView: React.FC = () => {
 
     processedData.forEach(record => {
       const d = new Date(record.time);
+      // Format: dd/mm HH:mm
       const label = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
       
       if (!map.has(label)) {
@@ -194,12 +200,18 @@ export const WaterLevelView: React.FC = () => {
     // Define headers explicitly to ensure order
     const headers = ['Năm', 'Thời gian', 'Mực nước (m)', 'Loại dữ liệu'];
     
-    const exportData = processedData.map(row => ({
-      'Năm': row.year,
-      'Thời gian': row.time.replace('T', ' '),
-      'Mực nước (m)': row.level,
-      'Loại dữ liệu': row.id.startsWith('mock-') ? 'Mô phỏng' : 'Thực đo'
-    }));
+    const exportData = processedData.map(row => {
+      // Localize export time format
+      const d = new Date(row.time);
+      const formattedTime = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+      
+      return {
+        'Năm': row.year,
+        'Thời gian': formattedTime,
+        'Mực nước (m)': row.level,
+        'Loại dữ liệu': row.id.startsWith('mock-') ? 'Mô phỏng' : 'Thực đo'
+      };
+    });
     exportToExcel(exportData, 'Giam_sat_muc_nuoc', headers);
   };
 
@@ -391,13 +403,17 @@ export const WaterLevelView: React.FC = () => {
                 <thead className="bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-400 font-semibold sticky top-0 z-10 shadow-sm">
                   <tr>
                     <th className="px-6 py-4 w-24 text-center">Năm</th>
-                    <th className="px-6 py-4 w-1/3">Thời gian</th>
+                    <th className="px-6 py-4 w-1/3">Thời gian (dd/MM/yyyy HH:mm)</th>
                     <th className="px-6 py-4">Mực nước hồ (m)</th>
                     <th className="px-6 py-4 text-right">Loại dữ liệu</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700 bg-white dark:bg-slate-800">
-                  {processedData.map((row, index) => (
+                  {processedData.map((row, index) => {
+                    const d = new Date(row.time);
+                    const formattedDisplayTime = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+                    
+                    return (
                     <tr key={`${row.id}-${index}`} className="hover:bg-blue-50/50 dark:hover:bg-slate-700/50 transition-colors group">
                       <td className="px-6 py-3 text-center">
                         <span className={`inline-block px-2.5 py-1 rounded-md text-xs font-bold ${row.year > new Date().getFullYear() ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'}`}>
@@ -405,12 +421,16 @@ export const WaterLevelView: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-6 py-2">
-                         <input 
-                           type="datetime-local"
-                           value={row.time.slice(0, 16)}
-                           onChange={(e) => handleUpdateRecord(row.id, 'time', e.target.value)}
-                           className="w-full bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-slate-600 focus:border-blue-500 focus:bg-white dark:focus:bg-slate-700 rounded px-3 py-1.5 outline-none transition-all font-medium text-slate-700 dark:text-slate-300"
-                         />
+                         <div className="flex items-center justify-between">
+                            <span className="font-medium text-slate-700 dark:text-slate-300">{formattedDisplayTime}</span>
+                            <input 
+                              type="datetime-local"
+                              value={formatForInput(d)}
+                              onChange={(e) => handleUpdateRecord(row.id, 'time', e.target.value)}
+                              className="w-8 opacity-0 focus:opacity-100 hover:opacity-100 cursor-pointer"
+                              title="Chỉnh sửa thời gian"
+                            />
+                         </div>
                       </td>
                       <td className="px-6 py-2">
                         <div className="relative">
@@ -443,7 +463,7 @@ export const WaterLevelView: React.FC = () => {
                         )}
                       </td>
                     </tr>
-                  ))}
+                  )}})}
                   {processedData.length === 0 && (
                      <tr>
                        <td colSpan={4} className="px-6 py-12 text-center text-slate-400 dark:text-slate-500 italic">

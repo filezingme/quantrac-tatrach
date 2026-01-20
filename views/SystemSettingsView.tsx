@@ -1,24 +1,22 @@
+
 import React, { useState, useEffect } from 'react';
-import { Settings, Bell, Database, Shield, Globe, Monitor, Save, RefreshCw, Check } from 'lucide-react';
+import { Settings, Bell, Database, Shield, Globe, Monitor, Save, RefreshCw, Check, Zap, Layout } from 'lucide-react';
 import { useUI } from '../components/GlobalUI';
+import { db } from '../utils/db';
+import { SystemSettings } from '../types';
 
 export const SystemSettingsView: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'general' | 'notification' | 'data'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'features' | 'notification' | 'data'>('general');
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
-  const [settings, setSettings] = useState({
-      appName: 'Hệ thống Quản lý Hồ Tả Trạch',
-      maintenanceMode: false,
-      emailAlerts: true,
-      smsAlerts: false,
-      pushNotif: true,
-      alertThresholdLevel: 44.5,
-      backupFrequency: 'daily'
-  });
+  
+  // Load initial settings from DB
+  const [settings, setSettings] = useState<SystemSettings>(db.settings.get());
+  
   const ui = useUI();
 
   useEffect(() => {
-    // Sync state with local storage on mount
+    // Sync theme state with local storage on mount
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark' || (!savedTheme && document.documentElement.classList.contains('dark'))) {
         setTheme('dark');
@@ -45,18 +43,37 @@ export const SystemSettingsView: React.FC = () => {
       }
   };
 
-  const toggle = (key: keyof typeof settings) => {
-      setSettings(prev => ({ ...prev, [key]: !prev[key] }));
+  const toggleFeature = (key: keyof SystemSettings['features']) => {
+      setSettings(prev => ({
+          ...prev,
+          features: {
+              ...prev.features,
+              [key]: !prev.features[key]
+          }
+      }));
   };
 
-  const handleChange = (key: keyof typeof settings, value: any) => {
+  const toggleNotification = (key: keyof SystemSettings['notifications']) => {
+      setSettings(prev => ({
+          ...prev,
+          notifications: {
+              ...prev.notifications,
+              [key]: !prev.notifications[key]
+          }
+      }));
+  };
+
+  const handleChange = (key: keyof SystemSettings, value: any) => {
       setSettings(prev => ({ ...prev, [key]: value }));
   };
 
   const handleSave = () => {
       setSaveStatus('saving');
+      // Save to DB
       setTimeout(() => {
+          db.settings.set(settings);
           setSaveStatus('saved');
+          ui.showToast('success', 'Đã lưu cấu hình hệ thống');
       }, 600);
   };
 
@@ -68,7 +85,8 @@ export const SystemSettingsView: React.FC = () => {
             
             {/* Sidebar Navigation */}
             <div className="w-full md:w-64 flex-none space-y-2">
-                <NavButton active={activeTab === 'general'} onClick={() => setActiveTab('general')} icon={<Settings size={18}/>} label="Chung" />
+                <NavButton active={activeTab === 'general'} onClick={() => setActiveTab('general')} icon={<Settings size={18}/>} label="Chung & Giao diện" />
+                <NavButton active={activeTab === 'features'} onClick={() => setActiveTab('features')} icon={<Zap size={18}/>} label="Tính năng & Tiện ích" />
                 <NavButton active={activeTab === 'notification'} onClick={() => setActiveTab('notification')} icon={<Bell size={18}/>} label="Thông báo & Cảnh báo" />
                 <NavButton active={activeTab === 'data'} onClick={() => setActiveTab('data')} icon={<Database size={18}/>} label="Dữ liệu & Sao lưu" />
             </div>
@@ -96,18 +114,23 @@ export const SystemSettingsView: React.FC = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Ngôn ngữ hiển thị</label>
-                                    <select className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-700 dark:text-white">
-                                        <option value="vi">Tiếng Việt</option>
-                                        <option value="en">English</option>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Định dạng Ngày/Tháng</label>
+                                    <select 
+                                        value={settings.dateFormat}
+                                        onChange={(e) => handleChange('dateFormat', e.target.value)}
+                                        className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-700 dark:text-white"
+                                    >
+                                        <option value="DD/MM/YYYY">DD/MM/YYYY (Việt Nam)</option>
+                                        <option value="MM/DD/YYYY">MM/DD/YYYY (US)</option>
                                     </select>
+                                    <p className="text-xs text-slate-500 mt-1">Áp dụng cho hiển thị bảng biểu và đồ thị.</p>
                                 </div>
                                 <div className="flex items-center justify-between py-2">
                                     <div>
                                         <p className="font-medium text-slate-800 dark:text-white">Chế độ bảo trì</p>
                                         <p className="text-xs text-slate-500 dark:text-slate-400">Chỉ Admin mới có thể truy cập khi bật</p>
                                     </div>
-                                    <Switch checked={settings.maintenanceMode} onChange={() => toggle('maintenanceMode')} />
+                                    <Switch checked={settings.maintenanceMode} onChange={() => handleChange('maintenanceMode', !settings.maintenanceMode)} />
                                 </div>
                             </div>
                         </div>
@@ -136,12 +159,48 @@ export const SystemSettingsView: React.FC = () => {
                     </div>
                 )}
 
+                {/* Features Settings */}
+                {activeTab === 'features' && (
+                     <div className="p-6 space-y-8">
+                        <div>
+                            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1 flex items-center gap-2">
+                                <Zap size={20} className="text-amber-500"/> Tính năng & Tiện ích
+                            </h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Bật/Tắt các module chức năng của hệ thống.</p>
+                            
+                            <div className="space-y-4 max-w-xl divide-y divide-slate-100 dark:divide-slate-700">
+                                <div className="flex items-center justify-between py-3">
+                                    <div>
+                                        <p className="font-medium text-slate-800 dark:text-white">Trợ lý ảo AI (Gemini)</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">Hỗ trợ tra cứu nhanh và vẽ biểu đồ tự động.</p>
+                                    </div>
+                                    <Switch checked={settings.features.enableAIAssistant} onChange={() => toggleFeature('enableAIAssistant')} />
+                                </div>
+                                <div className="flex items-center justify-between py-3">
+                                    <div>
+                                        <p className="font-medium text-slate-800 dark:text-white">Mô phỏng Lũ & Kịch bản</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">Cho phép chạy các kịch bản dự báo lũ giả định.</p>
+                                    </div>
+                                    <Switch checked={settings.features.enableFloodSimulation} onChange={() => toggleFeature('enableFloodSimulation')} />
+                                </div>
+                                <div className="flex items-center justify-between py-3">
+                                    <div>
+                                        <p className="font-medium text-slate-800 dark:text-white">Thư viện Biểu đồ Demo</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">Hiển thị các loại biểu đồ nâng cao để tham khảo.</p>
+                                    </div>
+                                    <Switch checked={settings.features.enableDemoCharts} onChange={() => toggleFeature('enableDemoCharts')} />
+                                </div>
+                            </div>
+                        </div>
+                     </div>
+                )}
+
                 {/* Notification Settings */}
                 {activeTab === 'notification' && (
                      <div className="p-6 space-y-8">
                         <div>
                             <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1 flex items-center gap-2">
-                                <Bell size={20} className="text-amber-500"/> Kênh thông báo
+                                <Bell size={20} className="text-blue-500"/> Kênh thông báo
                             </h3>
                             <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Quản lý cách hệ thống gửi cảnh báo.</p>
                             
@@ -151,21 +210,21 @@ export const SystemSettingsView: React.FC = () => {
                                         <p className="font-medium text-slate-800 dark:text-white">Thông báo qua Email</p>
                                         <p className="text-xs text-slate-500 dark:text-slate-400">Gửi báo cáo và cảnh báo quan trọng</p>
                                     </div>
-                                    <Switch checked={settings.emailAlerts} onChange={() => toggle('emailAlerts')} />
+                                    <Switch checked={settings.notifications.emailAlerts} onChange={() => toggleNotification('emailAlerts')} />
                                 </div>
                                 <div className="flex items-center justify-between py-2">
                                     <div>
                                         <p className="font-medium text-slate-800 dark:text-white">Thông báo SMS</p>
                                         <p className="text-xs text-slate-500 dark:text-slate-400">Chỉ dành cho tình huống khẩn cấp</p>
                                     </div>
-                                    <Switch checked={settings.smsAlerts} onChange={() => toggle('smsAlerts')} />
+                                    <Switch checked={settings.notifications.smsAlerts} onChange={() => toggleNotification('smsAlerts')} />
                                 </div>
                                 <div className="flex items-center justify-between py-2">
                                     <div>
                                         <p className="font-medium text-slate-800 dark:text-white">Web Push Notification</p>
                                         <p className="text-xs text-slate-500 dark:text-slate-400">Thông báo trực tiếp trên trình duyệt</p>
                                     </div>
-                                    <Switch checked={settings.pushNotif} onChange={() => toggle('pushNotif')} />
+                                    <Switch checked={settings.notifications.pushNotif} onChange={() => toggleNotification('pushNotif')} />
                                 </div>
                             </div>
                         </div>
@@ -179,8 +238,8 @@ export const SystemSettingsView: React.FC = () => {
                                 <div className="flex gap-2">
                                     <input 
                                         type="number" 
-                                        value={settings.alertThresholdLevel}
-                                        onChange={(e) => handleChange('alertThresholdLevel', parseFloat(e.target.value))}
+                                        value={settings.notifications.alertThresholdLevel}
+                                        onChange={(e) => setSettings(prev => ({...prev, notifications: {...prev.notifications, alertThresholdLevel: parseFloat(e.target.value)}}))}
                                         className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 outline-none font-bold text-red-600 dark:bg-slate-700"
                                     />
                                     <span className="flex items-center text-slate-500 dark:text-slate-400 text-sm">m</span>

@@ -190,3 +190,28 @@ export interface UserProfile {
   department?: string;
   address?: string;
 }
+
+export interface SystemSettings {
+  appName: string;
+  maintenanceMode: boolean;
+  language: 'vi' | 'en';
+  dateFormat: 'DD/MM/YYYY' | 'MM/DD/YYYY';
+  
+  // Feature Toggles
+  features: {
+    enableAIAssistant: boolean;
+    enableDemoCharts: boolean;
+    enableFloodSimulation: boolean;
+  };
+
+  // Notifications
+  notifications: {
+    emailAlerts: boolean;
+    smsAlerts: boolean;
+    pushNotif: boolean;
+    alertThresholdLevel: number;
+  };
+
+  // Data
+  backupFrequency: 'daily' | 'weekly' | 'monthly' | 'manual';
+}
