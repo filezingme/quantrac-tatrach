@@ -311,7 +311,7 @@ export const DashboardView: React.FC = () => {
         {/* Main Metric Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
           
-          {/* 1. Water Level - Updated Design */}
+          {/* 1. Water Level - Updated Design to Square/Rectangle */}
           <div 
             onClick={() => handleOpenModal(metrics.waterLevel)}
             className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden group h-56 flex flex-col p-5"
@@ -340,33 +340,39 @@ export const DashboardView: React.FC = () => {
                       </div>
                   </div>
 
-                  {/* Redesigned Water Tank Visualizer */}
-                  <div className="relative h-full w-20 bg-blue-50/30 dark:bg-slate-700/30 rounded-full border border-blue-100 dark:border-slate-600 overflow-hidden shadow-inner backdrop-blur-sm">
+                  {/* Redesigned Water Tank Visualizer - Rectangular/Boxy */}
+                  <div className="relative h-full w-24 bg-slate-100 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-600 overflow-hidden shadow-inner flex-none ml-2">
+                      {/* Ruler Ticks */}
+                      <div className="absolute right-0 top-0 bottom-0 w-full z-20 pointer-events-none flex flex-col justify-between py-2 px-1">
+                          {[...Array(6)].map((_, i) => (
+                              <div key={i} className="flex items-center justify-end w-full gap-1 opacity-40">
+                                  <span className="text-[8px] font-mono">{60 - i*10}</span>
+                                  <div className="w-2 h-[1px] bg-slate-500"></div>
+                              </div>
+                          ))}
+                      </div>
+
                       {/* Critical Level Marker Line */}
-                      <div className="absolute top-[25%] left-0 w-full flex items-center gap-1 opacity-60 z-20" title="MNDBT (45m)">
-                          <div className="h-[1px] w-full bg-red-500"></div>
+                      <div className="absolute top-[25%] left-0 w-full flex items-center z-30" title="MNDBT (45m)">
+                          <div className="h-[1px] w-full bg-red-500 opacity-70"></div>
                       </div>
                       
                       {/* Dead Level Marker Line */}
-                      <div className="absolute bottom-[38%] left-0 w-full flex items-center gap-1 opacity-40 z-20" title="MNC (23m)">
-                          <div className="h-[1px] w-full bg-slate-600 dark:bg-slate-300"></div>
+                      <div className="absolute bottom-[38%] left-0 w-full flex items-center z-30" title="MNC (23m)">
+                          <div className="h-[1px] w-full bg-slate-500 dark:bg-slate-300 opacity-70"></div>
                       </div>
 
                       {/* Water Fill & Wave */}
-                      <div className="absolute bottom-0 left-0 w-full transition-all duration-1000 ease-in-out z-10" style={{ height: `${waterPercent}%` }}>
+                      <div className="absolute bottom-0 left-0 w-full transition-all duration-1000 ease-in-out z-10 bg-gradient-to-t from-blue-600 to-cyan-400 opacity-90" style={{ height: `${waterPercent}%` }}>
                           {/* Top Surface Glow */}
-                          <div className="absolute top-0 left-0 w-full h-[2px] bg-white/50 z-20"></div>
+                          <div className="absolute top-0 left-0 w-full h-[1px] bg-white/50 z-20"></div>
                           
                           {/* Animated Wave on Top */}
                           <div className="absolute -top-3 left-0 w-full h-4"><div className="wave-bg"></div></div>
                           
-                          {/* Gradient Body */}
-                          <div className="w-full h-full bg-gradient-to-t from-blue-500 to-cyan-400 opacity-90"></div>
-                          
                           {/* Bubbles */}
                           <div className="bubble w-1 h-1 left-1/3 bottom-2 delay-100"></div>
                           <div className="bubble w-1.5 h-1.5 left-2/3 bottom-5 delay-700"></div>
-                          <div className="bubble w-1 h-1 left-1/2 bottom-8 delay-300"></div>
                       </div>
                   </div>
                </div>

@@ -283,22 +283,26 @@ export const ImageView: React.FC = () => {
 
       {/* LIGHTBOX MODAL */}
       {selectedIndex !== null && activeGroup && activeGroup.images[selectedIndex] && (
-        <div className="fixed inset-0 z-[5000] bg-black/95 backdrop-blur-sm flex flex-col animate-in fade-in duration-200">
-           {/* Lightbox Header */}
-           <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-50 bg-gradient-to-b from-black/60 to-transparent">
-              <span className="text-white/80 text-sm font-medium">
+        <div className="fixed inset-0 z-[5000] bg-slate-900/80 backdrop-blur-md flex flex-col animate-in fade-in duration-200">
+           
+           {/* Top Controls (Overlay) */}
+           <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-50 pointer-events-none">
+              <span className="text-white/90 text-sm font-bold bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm pointer-events-auto">
                 {selectedIndex + 1} / {activeGroup.images.length}
               </span>
               <button 
                 onClick={() => setSelectedIndex(null)}
-                className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+                className="p-2 text-white/70 hover:text-white bg-black/20 hover:bg-black/50 rounded-full transition-colors backdrop-blur-sm pointer-events-auto"
               >
                 <X size={24} />
               </button>
            </div>
 
            {/* Main Image Area */}
-           <div className="flex-1 flex items-center justify-center relative p-4 group select-none">
+           <div 
+             className="flex-1 w-full h-full flex items-center justify-center relative group select-none"
+             onClick={() => setSelectedIndex(null)} // Click outside to close
+           >
               {/* Previous Button */}
               <button 
                 onClick={(e) => { e.stopPropagation(); navigateImage(-1); }}
@@ -311,7 +315,7 @@ export const ImageView: React.FC = () => {
               <img 
                 src={activeGroup.images[selectedIndex].url} 
                 alt={activeGroup.images[selectedIndex].title}
-                className="max-h-full max-w-full object-contain shadow-2xl"
+                className="max-h-full max-w-full h-full object-contain shadow-2xl transition-transform duration-200"
                 onClick={(e) => e.stopPropagation()} 
               />
 
@@ -324,9 +328,11 @@ export const ImageView: React.FC = () => {
               </button>
            </div>
 
-           {/* Caption Footer */}
-           <div className="p-4 bg-gradient-to-t from-black/80 to-transparent text-center pb-8">
-              <h3 className="text-white font-bold text-lg">{activeGroup.images[selectedIndex].title}</h3>
+           {/* Caption Footer (Overlay) */}
+           <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent text-center pb-8 z-40 pointer-events-none">
+              <h3 className="text-white font-bold text-lg pointer-events-auto inline-block drop-shadow-md">
+                {activeGroup.images[selectedIndex].title}
+              </h3>
            </div>
         </div>
       )}
