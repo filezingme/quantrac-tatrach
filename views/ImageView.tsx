@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { Folder, Plus, ExternalLink, Image as ImageIcon, ArrowLeft, Upload, Grid, Maximize2 } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Folder, Plus, ExternalLink, Image as ImageIcon, ArrowLeft, Upload, Grid, Maximize2, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { db } from '../utils/db';
 import { ImageGroup, ImageItem } from '../types';
 import { useUI } from '../components/GlobalUI';
@@ -7,10 +7,47 @@ import { useUI } from '../components/GlobalUI';
 export const ImageView: React.FC = () => {
   const [groups, setGroups] = useState<ImageGroup[]>(db.images.get());
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
+  
+  // Lightbox State
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
   const ui = useUI();
   
   // File Input Ref for uploading
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const activeGroup = groups.find(g => g.id === activeGroupId);
+
+  // --- Keyboard Navigation for Lightbox ---
+  useEffect(() => {
+    if (selectedIndex === null) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        navigateImage(-1);
+      } else if (e.key === 'ArrowRight') {
+        navigateImage(1);
+      } else if (e.key === 'Escape') {
+        setSelectedIndex(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedIndex, activeGroup]);
+
+  const navigateImage = (direction: number) => {
+    if (!activeGroup || selectedIndex === null) return;
+    const count = activeGroup.images.length;
+    if (count === 0) return;
+
+    let newIndex = selectedIndex + direction;
+    // Loop navigation
+    if (newIndex < 0) newIndex = count - 1;
+    if (newIndex >= count) newIndex = 0;
+    
+    setSelectedIndex(newIndex);
+  };
 
   // --- Group Management ---
 
@@ -102,8 +139,6 @@ export const ImageView: React.FC = () => {
     });
   }
 
-  const activeGroup = groups.find(g => g.id === activeGroupId);
-
   return (
     <div className="space-y-6 pb-10 animate-fade-in h-[calc(100vh-8rem)] flex flex-col">
       
@@ -158,14 +193,18 @@ export const ImageView: React.FC = () => {
                     </div>
                 ) : (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                        {activeGroup.images.map((img) => (
-                           <div key={img.id} className="group relative bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden aspect-square cursor-pointer">
+                        {activeGroup.images.map((img, index) => (
+                           <div 
+                             key={img.id} 
+                             onClick={() => setSelectedIndex(index)}
+                             className="group relative bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden aspect-square cursor-pointer hover:shadow-md transition-all"
+                           >
                                <img src={img.url} alt={img.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"/>
                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
                                    <p className="text-white text-sm font-medium truncate">{img.title}</p>
-                                   <button className="absolute top-2 right-2 text-white/80 hover:text-white bg-black/20 hover:bg-black/50 p-1.5 rounded-full backdrop-blur-sm">
+                                   <div className="absolute top-2 right-2 text-white/80 hover:text-white bg-black/20 hover:bg-black/50 p-1.5 rounded-full backdrop-blur-sm">
                                       <Maximize2 size={16}/>
-                                   </button>
+                                   </div>
                                </div>
                            </div>
                         ))}
@@ -239,6 +278,56 @@ export const ImageView: React.FC = () => {
                     <span className="font-medium">Tạo Album mới</span>
                 </button>
             </div>
+        </div>
+      )}
+
+      {/* LIGHTBOX MODAL */}
+      {selectedIndex !== null && activeGroup && activeGroup.images[selectedIndex] && (
+        <div className="fixed inset-0 z-[5000] bg-black/95 backdrop-blur-sm flex flex-col animate-in fade-in duration-200">
+           {/* Lightbox Header */}
+           <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-50 bg-gradient-to-b from-black/60 to-transparent">
+              <span className="text-white/80 text-sm font-medium">
+                {selectedIndex + 1} / {activeGroup.images.length}
+              </span>
+              <button 
+                onClick={() => setSelectedIndex(null)}
+                className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+              >
+                <X size={24} />
+              </button>
+           </div>
+
+           {/* Main Image Area */}
+           <div className="flex-1 flex items-center justify-center relative p-4 group select-none">
+              {/* Previous Button */}
+              <button 
+                onClick={(e) => { e.stopPropagation(); navigateImage(-1); }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 p-3 text-white/50 hover:text-white bg-black/20 hover:bg-black/50 rounded-full backdrop-blur-md transition-all z-40 opacity-0 group-hover:opacity-100"
+              >
+                <ChevronLeft size={32} />
+              </button>
+
+              {/* Image */}
+              <img 
+                src={activeGroup.images[selectedIndex].url} 
+                alt={activeGroup.images[selectedIndex].title}
+                className="max-h-full max-w-full object-contain shadow-2xl"
+                onClick={(e) => e.stopPropagation()} 
+              />
+
+              {/* Next Button */}
+              <button 
+                onClick={(e) => { e.stopPropagation(); navigateImage(1); }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-3 text-white/50 hover:text-white bg-black/20 hover:bg-black/50 rounded-full backdrop-blur-md transition-all z-40 opacity-0 group-hover:opacity-100"
+              >
+                <ChevronRight size={32} />
+              </button>
+           </div>
+
+           {/* Caption Footer */}
+           <div className="p-4 bg-gradient-to-t from-black/80 to-transparent text-center pb-8">
+              <h3 className="text-white font-bold text-lg">{activeGroup.images[selectedIndex].title}</h3>
+           </div>
         </div>
       )}
     </div>
