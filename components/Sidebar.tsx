@@ -50,7 +50,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
   return (
     <div 
       className={`
-        fixed inset-y-0 left-0 z-[1000] 
+        fixed inset-y-0 left-0 z-30 
         bg-white dark:bg-slate-800 
         border-r border-slate-200 dark:border-slate-700 
         text-slate-600 dark:text-slate-300 
