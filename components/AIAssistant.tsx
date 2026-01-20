@@ -108,10 +108,13 @@ export const AIAssistant: React.FC = () => {
       // 3. Call Gemini API
       let responseText = "";
       
-      if (process.env.API_KEY) {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      // Safe check for API Key to avoid ReferenceError in browser without polyfills
+      const apiKey = typeof process !== 'undefined' && process.env ? process.env.API_KEY : undefined;
+      
+      if (apiKey) {
+        const ai = new GoogleGenAI({ apiKey: apiKey });
         const result = await ai.models.generateContent({
-          model: "gemini-2.5-flash-latest",
+          model: "gemini-3-flash-preview", // Updated to valid model
           contents: input,
           config: {
             systemInstruction: systemInstruction,
@@ -133,7 +136,7 @@ export const AIAssistant: React.FC = () => {
            
            responseText = JSON.stringify({
              type: "chart",
-             content: "Dưới đây là biểu đồ diễn biến mực nước và lưu lượng trong 24 giờ qua dựa trên số liệu vận hành.",
+             content: "Dưới đây là biểu đồ diễn biến mực nước và lưu lượng trong 24 giờ qua dựa trên số liệu vận hành (Mô phỏng).",
              chartConfig: {
                title: "Diễn biến Mực nước & Lưu lượng đến",
                type: "area",
@@ -149,7 +152,7 @@ export const AIAssistant: React.FC = () => {
            const wl = contextData.observation.waterLevel;
            responseText = JSON.stringify({
              type: "text",
-             content: `Theo số liệu quan trắc mới nhất:\n- **Mực nước thượng lưu:** ${wl} m\n- **Dung tích:** ${contextData.observation.capacity} triệu m³\n- **Lưu lượng đến:** ${contextData.observation.inflow} m³/s\n- **Tổng xả:** ${contextData.observation.outflow} m³/s\n\nHồ đang vận hành bình thường theo quy trình.`
+             content: `(Chế độ mô phỏng - Chưa cấu hình API Key)\n\nTheo số liệu quan trắc mới nhất:\n- **Mực nước thượng lưu:** ${wl} m\n- **Dung tích:** ${contextData.observation.capacity} triệu m³\n- **Lưu lượng đến:** ${contextData.observation.inflow} m³/s\n- **Tổng xả:** ${contextData.observation.outflow} m³/s\n\nHồ đang vận hành bình thường theo quy trình.`
            });
         }
       }
@@ -176,7 +179,7 @@ export const AIAssistant: React.FC = () => {
       setMessages(prev => [...prev, botMsg]);
 
     } catch (error) {
-      console.error(error);
+      console.error("AI Error:", error);
       setMessages(prev => [...prev, {
         id: Date.now().toString(),
         role: 'model',
@@ -260,7 +263,7 @@ export const AIAssistant: React.FC = () => {
           </div>
           <div>
             <h3 className="font-bold text-sm">Trợ lý ảo Tả Trạch</h3>
-            <p className="text-[10px] text-white/80">Hỗ trợ bởi Gemini 2.5</p>
+            <p className="text-[10px] text-white/80">Hỗ trợ bởi Gemini 3.0</p>
           </div>
         </div>
         <div className="flex items-center gap-1">
