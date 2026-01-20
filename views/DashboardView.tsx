@@ -5,7 +5,7 @@ import { exportToExcel } from '../utils/excel';
 import { 
   CloudRain, Activity, RefreshCw, X, Maximize2, Minimize2,
   TrendingUp, TrendingDown, Calendar, Droplets, Waves, Info,
-  Table as TableIcon, Filter, Download, CheckCircle, ChevronDown, Check
+  Table as TableIcon, Filter, Download, CheckCircle, ChevronDown, ChevronUp, Check
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
@@ -56,6 +56,7 @@ export const DashboardView: React.FC = () => {
   const [selectedMetric, setSelectedMetric] = useState<MetricDetail | null>(null);
   const [modalTab, setModalTab] = useState<'chart' | 'table'>('chart');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showFilters, setShowFilters] = useState(true); // State to toggle filter visibility
   
   // Filter State
   const [filterFrom, setFilterFrom] = useState(new Date(new Date().setHours(0,0,0,0)).toISOString().slice(0, 16));
@@ -75,7 +76,7 @@ export const DashboardView: React.FC = () => {
     return () => window.removeEventListener('db-change', handleDbChange);
   }, []);
 
-  // Force chart resize on modal open/tab change
+  // Force chart resize on modal open/tab change/filter toggle
   useEffect(() => {
     if (selectedMetric && modalTab === 'chart') {
       const timer = setTimeout(() => {
@@ -83,7 +84,7 @@ export const DashboardView: React.FC = () => {
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [selectedMetric, modalTab, isFullscreen]);
+  }, [selectedMetric, modalTab, isFullscreen, showFilters]);
 
   // Constants
   const MAX_DAM_HEIGHT = 60;
@@ -180,6 +181,7 @@ export const DashboardView: React.FC = () => {
     setSelectedMetric(metric);
     setModalTab('chart');
     setIsFullscreen(false);
+    setShowFilters(true); // Reset filters to visible when opening
     // Reset filters
     setFilterFrom(new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().slice(0, 16));
     setFilterTo(new Date().toISOString().slice(0, 16));
@@ -604,6 +606,13 @@ export const DashboardView: React.FC = () => {
 
               <div className="flex items-center gap-2">
                 <button 
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`p-2 rounded-full transition-colors hidden md:block ${showFilters ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
+                  title={showFilters ? "Ẩn bộ lọc" : "Hiện bộ lọc"}
+                >
+                  <Filter size={20} />
+                </button>
+                <button 
                   onClick={() => setIsFullscreen(!isFullscreen)}
                   className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-full transition-colors hidden md:block"
                 >
@@ -619,63 +628,73 @@ export const DashboardView: React.FC = () => {
             </div>
 
             {/* Filters */}
-            <div className="px-6 py-4 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex flex-col xl:flex-row gap-4 xl:items-end flex-none">
-                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                       <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Từ ngày giờ</label>
-                       <input 
-                         type="datetime-local" 
-                         value={filterFrom}
-                         onChange={(e) => setFilterFrom(e.target.value)}
-                         className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-slate-700 dark:text-white"
-                       />
-                    </div>
-                    <div>
-                       <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Đến ngày giờ</label>
-                       <input 
-                         type="datetime-local" 
-                         value={filterTo}
-                         onChange={(e) => setFilterTo(e.target.value)}
-                         className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-slate-700 dark:text-white"
-                       />
-                    </div>
-                </div>
+            {showFilters && (
+              <div className="px-6 py-4 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex flex-col xl:flex-row gap-4 xl:items-end flex-none relative animate-in slide-in-from-top-2 duration-200">
+                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Từ ngày giờ</label>
+                        <input 
+                          type="datetime-local" 
+                          value={filterFrom}
+                          onChange={(e) => setFilterFrom(e.target.value)}
+                          className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-slate-700 dark:text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Đến ngày giờ</label>
+                        <input 
+                          type="datetime-local" 
+                          value={filterTo}
+                          onChange={(e) => setFilterTo(e.target.value)}
+                          className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-slate-700 dark:text-white"
+                        />
+                      </div>
+                  </div>
 
-                <div className="flex-[1.5]">
-                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">So sánh các năm</label>
-                    <div className="flex flex-wrap gap-2">
-                        {AVAILABLE_YEARS.map((year) => {
-                           const selectionIndex = selectedYears.indexOf(year);
-                           const isSelected = selectionIndex !== -1;
-                           const color = isSelected ? getSeriesColor(selectionIndex, selectedMetric.color) : undefined;
-                           
-                           return (
-                             <button
-                               key={year}
-                               onClick={() => toggleYear(year)}
-                               className={`px-3 py-2 rounded-lg text-xs font-bold border transition-all flex items-center gap-2 ${
-                                 isSelected 
-                                   ? 'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-white border-slate-300 dark:border-slate-600' 
-                                   : 'bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
-                               }`}
-                             >
-                               <span className={`w-2 h-2 rounded-full ${isSelected ? '' : 'bg-slate-300 dark:bg-slate-600'}`} style={{ backgroundColor: color }}></span>
-                               {year}
-                             </button>
-                           );
-                        })}
-                    </div>
-                </div>
+                  <div className="flex-[1.5]">
+                      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">So sánh các năm</label>
+                      <div className="flex flex-wrap gap-2">
+                          {AVAILABLE_YEARS.map((year) => {
+                            const selectionIndex = selectedYears.indexOf(year);
+                            const isSelected = selectionIndex !== -1;
+                            const color = isSelected ? getSeriesColor(selectionIndex, selectedMetric.color) : undefined;
+                            
+                            return (
+                              <button
+                                key={year}
+                                onClick={() => toggleYear(year)}
+                                className={`px-3 py-2 rounded-lg text-xs font-bold border transition-all flex items-center gap-2 ${
+                                  isSelected 
+                                    ? 'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-white border-slate-300 dark:border-slate-600' 
+                                    : 'bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
+                                }`}
+                              >
+                                <span className={`w-2 h-2 rounded-full ${isSelected ? '' : 'bg-slate-300 dark:bg-slate-600'}`} style={{ backgroundColor: color }}></span>
+                                {year}
+                              </button>
+                            );
+                          })}
+                      </div>
+                  </div>
 
-                <div>
-                   <button 
-                     onClick={handleViewData}
-                     className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold shadow-md shadow-blue-200 dark:shadow-none transition-all flex items-center justify-center gap-2"
-                   >
-                     <Filter size={16}/> Xem dữ liệu
-                   </button>
-                </div>
-            </div>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={handleViewData}
+                      className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold shadow-md shadow-blue-200 dark:shadow-none transition-all flex items-center justify-center gap-2"
+                    >
+                      <Filter size={16}/> Xem dữ liệu
+                    </button>
+                    
+                    <button
+                      onClick={() => setShowFilters(false)}
+                      className="p-2.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-600"
+                      title="Thu gọn bộ lọc"
+                    >
+                      <ChevronUp size={18}/>
+                    </button>
+                  </div>
+              </div>
+            )}
 
             {/* Content */}
             <div className="flex-1 flex flex-col overflow-hidden bg-slate-50 dark:bg-slate-900">
