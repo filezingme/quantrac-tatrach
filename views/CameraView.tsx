@@ -102,8 +102,8 @@ export const CameraView: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {cameras.map((cam) => (
-          <div key={cam.id} className="bg-slate-900 rounded-xl overflow-hidden shadow-lg border border-slate-700 relative group flex flex-col">
-             <div className="relative aspect-video bg-black">
+          <div key={cam.id} className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700 relative group flex flex-col hover:shadow-lg transition-all">
+             <div className="relative aspect-video bg-slate-100 dark:bg-black">
                
                {renderCameraContent(cam)}
                
@@ -127,13 +127,13 @@ export const CameraView: React.FC = () => {
                </div>
              </div>
 
-             <div className="p-4 bg-slate-800 flex justify-between items-center z-10">
+             <div className="p-4 border-t border-slate-100 dark:border-slate-700 flex justify-between items-center z-10 bg-white dark:bg-slate-800">
                <div className="flex items-center gap-3">
-                 <div className="p-2 bg-slate-700 rounded-full">
-                    <Camera size={18} className="text-blue-400" />
+                 <div className="p-2 bg-blue-50 dark:bg-slate-700/50 rounded-full">
+                    <Camera size={18} className="text-blue-600 dark:text-blue-400" />
                  </div>
                  <div>
-                    <span className="text-slate-200 font-bold block">{cam.name}</span>
+                    <span className="text-slate-800 dark:text-slate-200 font-bold block">{cam.name}</span>
                     <span className="text-[10px] text-slate-500 font-mono uppercase">ID: {cam.id.slice(-6)}</span>
                  </div>
                </div>
@@ -142,7 +142,7 @@ export const CameraView: React.FC = () => {
                  href={cam.url} 
                  target="_blank" 
                  rel="noopener noreferrer"
-                 className="text-xs text-slate-400 hover:text-white flex items-center gap-1 transition-colors"
+                 className="text-xs text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-300 flex items-center gap-1 transition-colors font-medium"
                >
                  Mở rộng <ExternalLink size={12}/>
                </a>
