@@ -19,6 +19,7 @@ import { UserProfileView } from './views/UserProfileView';
 import { SystemSettingsView } from './views/SystemSettingsView';
 import { LoginView } from './views/LoginView';
 import { UIProvider, useUI } from './components/GlobalUI';
+import { AIAssistant } from './components/AIAssistant'; // Imported AI Assistant
 import { AppNotification, UserProfile } from './types';
 import { Menu, Bell, Check, LogOut, User, Settings as SettingsIcon, X } from 'lucide-react';
 import { db } from './utils/db';
@@ -100,7 +101,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
         toggleSidebar={toggleSidebar}
       />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 relative">
         {/* Header */}
         <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 h-16 flex items-center justify-between px-4 sm:px-6 z-20 shadow-sm relative transition-colors duration-200">
           <div className="flex items-center gap-4">
@@ -236,6 +237,9 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
+
+        {/* AI Assistant Overlay */}
+        <AIAssistant />
       </div>
     </div>
   );
