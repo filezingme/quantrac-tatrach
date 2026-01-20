@@ -31,7 +31,8 @@ interface MetricDetail {
 
 // Years available for comparison
 const AVAILABLE_YEARS = [2024, 2023, 2022, 2021];
-const YEAR_COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b'];
+// Colors for secondary comparison lines (when multiple years are selected)
+const COMPARE_COLORS = ['#94a3b8', '#ef4444', '#8b5cf6', '#f59e0b', '#ec4899']; // Slate, Red, Purple, Amber, Pink
 
 // Generate smoother mock history data
 const generateSparklineHistory = (baseValue: number, variance: number) => {
@@ -230,6 +231,12 @@ export const DashboardView: React.FC = () => {
     });
 
     exportToExcel(exportData, `Du_lieu_${selectedMetric?.id}`, headers);
+  };
+
+  // Helper to determine chart color: Primary year gets metric color, others get contrast colors
+  const getSeriesColor = (index: number, baseColor: string) => {
+     if (index === 0) return baseColor;
+     return COMPARE_COLORS[(index - 1) % COMPARE_COLORS.length];
   };
 
   return (
@@ -608,8 +615,11 @@ export const DashboardView: React.FC = () => {
                 <div className="flex-[1.5]">
                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">So sánh các năm</label>
                     <div className="flex flex-wrap gap-2">
-                        {AVAILABLE_YEARS.map((year, idx) => {
-                           const isSelected = selectedYears.includes(year);
+                        {AVAILABLE_YEARS.map((year) => {
+                           const selectionIndex = selectedYears.indexOf(year);
+                           const isSelected = selectionIndex !== -1;
+                           const color = isSelected ? getSeriesColor(selectionIndex, selectedMetric.color) : undefined;
+                           
                            return (
                              <button
                                key={year}
@@ -620,7 +630,7 @@ export const DashboardView: React.FC = () => {
                                    : 'bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
                                }`}
                              >
-                               <span className={`w-2 h-2 rounded-full ${isSelected ? '' : 'bg-slate-300 dark:bg-slate-600'}`} style={{ backgroundColor: isSelected ? YEAR_COLORS[idx] : undefined }}></span>
+                               <span className={`w-2 h-2 rounded-full ${isSelected ? '' : 'bg-slate-300 dark:bg-slate-600'}`} style={{ backgroundColor: color }}></span>
                                {year}
                              </button>
                            );
@@ -672,12 +682,15 @@ export const DashboardView: React.FC = () => {
                            <ResponsiveContainer width="99%" height="100%">
                               <AreaChart data={comparisonData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
                                  <defs>
-                                   {selectedYears.map((year, index) => (
-                                     <linearGradient key={year} id={`color${year}`} x1="0" y1="0" x2="0" y2="1">
-                                       <stop offset="5%" stopColor={YEAR_COLORS[index % YEAR_COLORS.length]} stopOpacity={0.3}/>
-                                       <stop offset="95%" stopColor={YEAR_COLORS[index % YEAR_COLORS.length]} stopOpacity={0}/>
-                                     </linearGradient>
-                                   ))}
+                                   {selectedYears.map((year, index) => {
+                                     const color = getSeriesColor(index, selectedMetric.color);
+                                     return (
+                                       <linearGradient key={year} id={`color${year}`} x1="0" y1="0" x2="0" y2="1">
+                                         <stop offset="5%" stopColor={color} stopOpacity={0.3}/>
+                                         <stop offset="95%" stopColor={color} stopOpacity={0}/>
+                                       </linearGradient>
+                                     );
+                                   })}
                                  </defs>
                                  <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#e2e8f0" strokeOpacity={0.5} />
                                  <XAxis 
@@ -701,20 +714,23 @@ export const DashboardView: React.FC = () => {
                                     itemStyle={{ fontSize: '13px', fontWeight: 600 }}
                                  />
                                  <Legend />
-                                 {selectedYears.map((year, index) => (
-                                    <Area 
-                                      key={year}
-                                      type="monotone" 
-                                      dataKey={year} 
-                                      stroke={YEAR_COLORS[index % YEAR_COLORS.length]} 
-                                      fill={`url(#color${year})`}
-                                      fillOpacity={1}
-                                      strokeWidth={3}
-                                      dot={{ r: 3, strokeWidth: 2, fill: '#fff' }}
-                                      activeDot={{ r: 6, strokeWidth: 0 }}
-                                      name={`Năm ${year}`}
-                                    />
-                                 ))}
+                                 {selectedYears.map((year, index) => {
+                                    const color = getSeriesColor(index, selectedMetric.color);
+                                    return (
+                                      <Area 
+                                        key={year}
+                                        type="monotone" 
+                                        dataKey={year} 
+                                        stroke={color} 
+                                        fill={`url(#color${year})`}
+                                        fillOpacity={1}
+                                        strokeWidth={3}
+                                        dot={{ r: 3, strokeWidth: 2, fill: '#fff' }}
+                                        activeDot={{ r: 6, strokeWidth: 0 }}
+                                        name={`Năm ${year}`}
+                                      />
+                                    );
+                                 })}
                               </AreaChart>
                            </ResponsiveContainer>
                         </div>
