@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { MessageSquare, X, Send, Sparkles, BarChart2, HelpCircle, ChevronRight, Loader2, Maximize2, Minimize2, Key } from 'lucide-react';
@@ -51,7 +50,7 @@ export const AIAssistant: React.FC = () => {
   const [canSelectKey, setCanSelectKey] = useState(false);
 
   useEffect(() => {
-    // Check if window.aistudio exists using type assertion to avoid TS errors
+    // Check if window.aistudio exists using type assertion to avoid TS errors with conflicting global types
     if (typeof window !== 'undefined' && (window as any).aistudio) {
       setCanSelectKey(true);
     }
@@ -69,6 +68,7 @@ export const AIAssistant: React.FC = () => {
     if (aistudio) {
       try {
         await aistudio.openSelectKey();
+        // Assuming success allows us to proceed in the next request
         alert("Đã chọn API Key thành công. Vui lòng thử lại câu hỏi của bạn.");
       } catch (e) {
         console.error("Failed to select key", e);
@@ -131,14 +131,19 @@ export const AIAssistant: React.FC = () => {
       // 3. Call Gemini API
       let responseText = "";
       
-      // Get API Key from process.env (injected by Vite)
-      // Note: process.env.API_KEY is replaced by string literal during build
-      const apiKey = process.env.API_KEY;
+      // Get API Key from process.env
+      let apiKey = process.env.API_KEY;
+      
+      // Attempt to force key selection if available and key is missing
+      if (!apiKey && (window as any).aistudio) {
+         // Note: We can't await this inside the render loop, so we assume user might have clicked the button
+         // Or we proceed to simulation
+      }
       
       if (apiKey) {
         const ai = new GoogleGenAI({ apiKey: apiKey });
         const result = await ai.models.generateContent({
-          model: "gemini-2.0-flash", // Updated to latest stable/preview suitable for text
+          model: "gemini-3-flash-preview", 
           contents: input,
           config: {
             systemInstruction: systemInstruction,
@@ -159,7 +164,7 @@ export const AIAssistant: React.FC = () => {
            
            responseText = JSON.stringify({
              type: "chart",
-             content: "⚠️ **Chế độ mô phỏng**: Dưới đây là biểu đồ mẫu (Do chưa cấu hình API Key).\n\nĐể sử dụng dữ liệu thực và AI thông minh, vui lòng cấu hình API Key trong file `.env` hoặc Cài đặt Vercel.",
+             content: "⚠️ **Chế độ mô phỏng**: Dưới đây là biểu đồ mẫu (Do chưa cấu hình API Key).\n\nĐể sử dụng dữ liệu thực và AI thông minh, vui lòng cấu hình API Key trong file `.env` hoặc chọn Key.",
              chartConfig: {
                title: "Diễn biến Mực nước & Lưu lượng đến (Mô phỏng)",
                type: "area",
@@ -175,7 +180,7 @@ export const AIAssistant: React.FC = () => {
            const wl = contextData.observation.waterLevel;
            responseText = JSON.stringify({
              type: "text",
-             content: `⚠️ **Chế độ mô phỏng** (Chưa có API Key)\n\nHiện tại hệ thống đang trả về câu trả lời mặc định. Để kích hoạt trí tuệ nhân tạo Gemini, bạn cần:\n1. Cấu hình \`API_KEY\` trong Environment Variables (Vercel/Netlify).\n2. Hoặc tạo file \`.env\` local.\n\nThông tin hiện tại:\n- Mực nước: ${wl} m\n- Dung tích: ${contextData.observation.capacity} triệu m³`
+             content: `⚠️ **Chế độ mô phỏng** (Chưa có API Key)\n\nHiện tại hệ thống đang trả về câu trả lời mặc định. Để kích hoạt trí tuệ nhân tạo Gemini, bạn cần:\n1. Tạo file \`.env\` với nội dung \`API_KEY=your_key\`\n2. Hoặc nếu đang dùng Project IDX, nhấn nút **"Chọn API Key"** phía trên.\n\nThông tin hiện tại:\n- Mực nước: ${wl} m\n- Dung tích: ${contextData.observation.capacity} triệu m³`
            });
         }
       }
@@ -290,7 +295,7 @@ export const AIAssistant: React.FC = () => {
           </div>
           <div>
             <h3 className="font-bold text-sm">Trợ lý ảo Tả Trạch</h3>
-            <p className="text-[10px] text-white/80">Hỗ trợ bởi Gemini 2.0</p>
+            <p className="text-[10px] text-white/80">Hỗ trợ bởi Gemini 3.0</p>
           </div>
         </div>
         <div className="flex items-center gap-1">
