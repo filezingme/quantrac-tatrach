@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
   LineChart, 
@@ -24,23 +23,11 @@ export const WaterLevelView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'chart' | 'table'>('chart');
   
   // Filter States
-  const [selectedYears, setSelectedYears] = useState<number[]>([new Date().getFullYear()]);
+  const [selectedYears, setSelectedYears] = useState<number[]>([2026]);
   
-  // Default range: From yesterday to today
-  const now = new Date();
-  const yesterday = new Date(now);
-  yesterday.setDate(yesterday.getDate() - 1);
-
-  const formatForInput = (d: Date) => {
-    // Return ISO format for <input type="datetime-local" /> value
-    // Adjust to local ISO string to handle timezone correctly in input
-    const offset = d.getTimezoneOffset() * 60000;
-    const localISOTime = (new Date(d.getTime() - offset)).toISOString().slice(0, 16);
-    return localISOTime;
-  };
-
-  const [fromDate, setFromDate] = useState(formatForInput(yesterday));
-  const [toDate, setToDate] = useState(formatForInput(now));
+  // Default range: Specific dates in 2026 as requested
+  const [fromDate, setFromDate] = useState('2026-01-19T00:00');
+  const [toDate, setToDate] = useState('2026-01-20T23:59');
   
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
@@ -215,6 +202,12 @@ export const WaterLevelView: React.FC = () => {
     exportToExcel(exportData, 'Giam_sat_muc_nuoc', headers);
   };
 
+  // Helper for datetime-local input
+  const formatForInput = (date: Date) => {
+    const pad = (num: number) => num.toString().padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  };
+
   return (
     <div className="space-y-4 pb-10 animate-fade-in h-full flex flex-col">
       <div className="flex justify-between items-start">
@@ -314,51 +307,58 @@ export const WaterLevelView: React.FC = () => {
           <div className="p-6 h-full flex flex-col">
             <h3 className="font-bold text-slate-800 dark:text-white mb-4 text-center">Biểu đồ so sánh mực nước qua các năm</h3>
             <div className="flex-1 w-full min-h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#e2e8f0" strokeOpacity={0.5} />
-                  <XAxis 
-                    dataKey="timeLabel" 
-                    tick={{fontSize: 12, fill: '#64748b'}}
-                    minTickGap={30}
-                    tickLine={false}
-                    axisLine={{ stroke: '#475569', strokeOpacity: 0.3 }}
-                  />
-                  <YAxis 
-                    domain={['auto', 'auto']} 
-                    label={{ value: 'Mực nước (m)', angle: -90, position: 'insideLeft', fill: '#64748b' }} 
-                    tick={{fontSize: 12, fill: '#64748b'}}
-                    tickLine={false}
-                    axisLine={{ stroke: '#475569', strokeOpacity: 0.3 }}
-                  />
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', backgroundColor: 'var(--tooltip-bg, #fff)' }}
-                    itemStyle={{ fontSize: '13px', fontWeight: 600 }}
-                    labelStyle={{ marginBottom: '8px', color: '#64748b', fontSize: '12px', fontWeight: 600 }}
-                  />
-                  <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }}/>
-                  {selectedYears.map((year, index) => (
-                    <Line 
-                      key={year}
-                      type="monotone" 
-                      dataKey={year} 
-                      stroke={COLORS[index % COLORS.length]} 
-                      strokeWidth={3}
-                      dot={{ r: 3, strokeWidth: 1, fill: '#fff' }}
-                      activeDot={{ r: 6, strokeWidth: 0 }}
-                      name={`Năm ${year}`}
-                      connectNulls
-                      animationDuration={1500}
+              {chartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#e2e8f0" strokeOpacity={0.5} />
+                    <XAxis 
+                      dataKey="timeLabel" 
+                      tick={{fontSize: 12, fill: '#64748b'}}
+                      minTickGap={30}
+                      tickLine={false}
+                      axisLine={{ stroke: '#475569', strokeOpacity: 0.3 }}
                     />
-                  ))}
-                </LineChart>
-              </ResponsiveContainer>
+                    <YAxis 
+                      domain={['auto', 'auto']} 
+                      label={{ value: 'Mực nước (m)', angle: -90, position: 'insideLeft', fill: '#64748b' }} 
+                      tick={{fontSize: 12, fill: '#64748b'}}
+                      tickLine={false}
+                      axisLine={{ stroke: '#475569', strokeOpacity: 0.3 }}
+                    />
+                    <Tooltip 
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', backgroundColor: 'var(--tooltip-bg, #fff)' }}
+                      itemStyle={{ fontSize: '13px', fontWeight: 600 }}
+                      labelStyle={{ marginBottom: '8px', color: '#64748b', fontSize: '12px', fontWeight: 600 }}
+                    />
+                    <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }}/>
+                    {selectedYears.map((year, index) => (
+                      <Line 
+                        key={year}
+                        type="monotone" 
+                        dataKey={year} 
+                        stroke={COLORS[index % COLORS.length]} 
+                        strokeWidth={3}
+                        dot={{ r: 3, strokeWidth: 1, fill: '#fff' }}
+                        activeDot={{ r: 6, strokeWidth: 0 }}
+                        name={`Năm ${year}`}
+                        connectNulls
+                        animationDuration={1500}
+                      />
+                    ))}
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-center">
+                    <div className="bg-slate-100 dark:bg-slate-700 p-4 rounded-full mb-4">
+                        <Filter className="text-slate-400 dark:text-slate-500" size={32} />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">Chưa có dữ liệu hiển thị</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs">
+                        Vui lòng điều chỉnh bộ lọc <b>Thời gian</b> và chọn <b>Năm</b> phù hợp để xem dữ liệu so sánh.
+                    </p>
+                </div>
+              )}
             </div>
-            {chartData.length === 0 && (
-              <div className="text-center text-slate-400 dark:text-slate-500 py-10">
-                Không có dữ liệu hiển thị cho bộ lọc này
-              </div>
-            )}
           </div>
         ) : (
           <div className="flex flex-col h-full">

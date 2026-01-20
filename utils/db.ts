@@ -318,9 +318,9 @@ const defaultScenarios: FloodScenario[] = [
   }
 ];
 
-// Generate some sample water level data (hourly for last 24h)
+// Generate some sample water level data
 const now = new Date();
-const defaultWaterLevels: WaterLevelRecord[] = Array.from({length: 24}).map((_, i) => {
+const hourlyRecords: WaterLevelRecord[] = Array.from({length: 24}).map((_, i) => {
   const d = new Date(now);
   d.setHours(d.getHours() - (23 - i));
   d.setMinutes(0);
@@ -333,6 +333,29 @@ const defaultWaterLevels: WaterLevelRecord[] = Array.from({length: 24}).map((_, 
     level: parseFloat(level.toFixed(2))
   };
 });
+
+// Specific Data for 19/01/2026 and 20/01/2026
+const specific2026Records: WaterLevelRecord[] = [];
+// 19/01/2026
+for(let h=0; h<24; h++) {
+  const level = 38.5 + Math.sin(h / 8) * 0.5 + Math.random() * 0.1;
+  specific2026Records.push({
+    id: `wl-2026-01-19-${h}`,
+    time: `2026-01-19T${h.toString().padStart(2, '0')}:00`,
+    level: parseFloat(level.toFixed(2))
+  });
+}
+// 20/01/2026
+for(let h=0; h<24; h++) {
+  const level = 39.0 + Math.cos(h / 8) * 0.6 + Math.random() * 0.1;
+  specific2026Records.push({
+    id: `wl-2026-01-20-${h}`,
+    time: `2026-01-20T${h.toString().padStart(2, '0')}:00`,
+    level: parseFloat(level.toFixed(2))
+  });
+}
+
+const defaultWaterLevels = [...hourlyRecords, ...specific2026Records];
 
 const defaultSettings: SystemSettings = {
   appName: 'Hệ thống Quản lý Hồ Tả Trạch',
