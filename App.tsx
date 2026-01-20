@@ -118,8 +118,8 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
       />
 
       <div className="flex-1 flex flex-col min-w-0 relative">
-        {/* Header */}
-        <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 h-16 flex items-center justify-between px-4 sm:px-6 z-20 shadow-sm relative transition-colors duration-200">
+        {/* Header - Increased z-index to 500 to stay above Map controls (z-400) */}
+        <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 h-16 flex items-center justify-between px-4 sm:px-6 z-[500] shadow-sm relative transition-colors duration-200">
           <div className="flex items-center gap-4">
             <button onClick={toggleSidebar} className="md:hidden text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200">
               <Menu size={24} />
