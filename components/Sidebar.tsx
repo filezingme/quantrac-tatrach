@@ -99,7 +99,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       {/* Footer */}
       <div className="p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/30">
         <div className="flex justify-center">
-            <p className="text-[10px] text-slate-400 dark:text-slate-500">Version 2.4.2 © 2024</p>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500">Version 3.0.1 © 2026</p>
         </div>
       </div>
     </div>

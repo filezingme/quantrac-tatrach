@@ -1,6 +1,6 @@
 {
-  "name": "Ta Trach Reservoir Manager",
-  "description": "Comprehensive management system for Ta Trach Reservoir, including real-time monitoring, flood forecasting, technical specifications, and operational procedures.",
+  "name": "Hệ thống Quản lý Hồ Tả Trạch",
+  "description": "Hệ thống quản lý toàn diện cho hồ chứa Ta Trach, bao gồm giám sát thời gian thực, dự báo lũ lụt, thông số kỹ thuật và quy trình vận hành.",
   "requestFramePermissions": [
     "camera"
   ]
