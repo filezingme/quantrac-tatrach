@@ -269,7 +269,7 @@ export const AIAssistant: React.FC = () => {
     return (
       <button 
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white p-4 rounded-full shadow-lg shadow-blue-500/30 transition-all hover:scale-110 active:scale-95 group"
+        className="fixed bottom-6 right-6 z-[3000] bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white p-4 rounded-full shadow-lg shadow-blue-500/30 transition-all hover:scale-110 active:scale-95 group"
         title="Trợ lý ảo AI"
       >
         <Sparkles size={24} className="animate-pulse" />
@@ -281,9 +281,9 @@ export const AIAssistant: React.FC = () => {
   }
 
   return (
-    <div className={`fixed z-50 transition-all duration-300 ease-in-out shadow-2xl flex flex-col bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden
+    <div className={`fixed z-[3000] transition-all duration-300 ease-in-out shadow-2xl flex flex-col bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden
       ${isExpanded 
-        ? 'inset-0 md:inset-10 md:rounded-2xl' 
+        ? 'inset-4 md:inset-20 rounded-2xl' // Mobile: inset-4 (padding from edges), Desktop: inset-20
         : 'bottom-6 right-6 w-[90vw] md:w-[400px] h-[600px] rounded-2xl'
       }
     `}>
@@ -295,7 +295,7 @@ export const AIAssistant: React.FC = () => {
           </div>
           <div>
             <h3 className="font-bold text-sm">Trợ lý ảo Tả Trạch</h3>
-            <p className="text-[10px] text-white/80">Hỗ trợ bởi Gemini 3.0</p>
+            <p className="text-[10px] text-white/80">Hệ thống hỗ trợ ra quyết định</p>
           </div>
         </div>
         <div className="flex items-center gap-1">
