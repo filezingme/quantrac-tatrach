@@ -14,12 +14,16 @@ import {
   Map as MapIcon,
   BookOpen,
   TrendingUp,
-  PieChart
+  PieChart,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 interface SidebarProps {
   isOpen: boolean;
   toggleSidebar: () => void;
+  isCollapsed: boolean;
+  toggleCollapse: () => void;
 }
 
 const menuItems = [
@@ -39,21 +43,43 @@ const menuItems = [
   { path: '/manual-entry', label: 'Nhập liệu thủ công', icon: Edit3 },
 ];
 
-export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isCollapsed, toggleCollapse }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
   return (
-    <div className={`fixed inset-y-0 left-0 z-30 w-72 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 transition-transform duration-300 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 shadow-lg md:shadow-none flex flex-col`}>
-      {/* Header - Adjusted to h-16 to match App header height and remove gap */}
-      <div className="flex items-center justify-between h-16 px-6 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
+    <div 
+      className={`
+        fixed inset-y-0 left-0 z-30 
+        bg-white dark:bg-slate-800 
+        border-r border-slate-200 dark:border-slate-700 
+        text-slate-600 dark:text-slate-300 
+        transition-all duration-300 ease-in-out
+        flex flex-col
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
+        md:relative md:translate-x-0 
+        ${isCollapsed ? 'md:w-20' : 'md:w-72'}
+        shadow-lg md:shadow-none
+      `}
+    >
+      {/* Desktop Toggle Button */}
+      <button 
+        onClick={toggleCollapse}
+        className="hidden md:flex absolute -right-3 top-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full p-1 shadow-md text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 z-50 transition-colors"
+        title={isCollapsed ? "Mở rộng menu" : "Thu gọn menu"}
+      >
+        {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+      </button>
+
+      {/* Header */}
+      <div className={`flex items-center h-16 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 transition-all duration-300 overflow-hidden ${isCollapsed ? 'px-0 justify-center' : 'px-6 justify-between'}`}>
         <div className="flex items-center gap-3">
-          <div className="bg-blue-600 p-2 rounded-lg text-white shadow-blue-200 dark:shadow-none shadow-md">
+          <div className="bg-blue-600 p-2 rounded-lg text-white shadow-blue-200 dark:shadow-none shadow-md shrink-0">
             <Waves size={20} />
           </div>
-          <div>
-            <h1 className="font-bold text-lg text-slate-800 dark:text-white leading-tight">Hồ Tả Trạch</h1>
-            <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">Hệ thống quản lý</p>
+          <div className={`transition-opacity duration-200 ${isCollapsed ? 'opacity-0 w-0 hidden' : 'opacity-100 w-auto'}`}>
+            <h1 className="font-bold text-lg text-slate-800 dark:text-white leading-tight whitespace-nowrap">Hồ Tả Trạch</h1>
+            <p className="text-xs text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap">Hệ thống quản lý</p>
           </div>
         </div>
         <button onClick={toggleSidebar} className="md:hidden text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
@@ -62,34 +88,54 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-6 px-4 custom-scrollbar">
-        <ul className="space-y-1.5">
+      <nav className="flex-1 overflow-y-auto overflow-x-visible py-6 custom-scrollbar">
+        <ul className="space-y-1.5 px-3">
           {menuItems.map((item) => {
             // Check if active (dashboard is also root)
             const isActive = location.pathname === item.path || (item.path === '/dashboard' && location.pathname === '/');
             
             return (
-              <li key={item.path}>
+              <li key={item.path} className="group relative">
                 <button
                   onClick={() => {
                     navigate(item.path);
                     if (window.innerWidth < 768) toggleSidebar();
                   }}
-                  className={`relative w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group ${
-                    isActive
+                  className={`
+                    relative w-full flex items-center 
+                    ${isCollapsed ? 'justify-center px-0' : 'justify-start px-4'} 
+                    py-3 text-sm font-medium rounded-xl transition-all duration-200 
+                    ${isActive
                       ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 shadow-sm'
                       : 'hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-100 text-slate-500 dark:text-slate-400'
-                  }`}
+                    }
+                  `}
+                  title={isCollapsed ? item.label : undefined}
                 >
                   <item.icon 
                     size={20} 
-                    className={`transition-colors ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} 
+                    className={`shrink-0 transition-colors ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} 
                   />
-                  {item.label}
-                  {isActive && (
+                  
+                  {/* Text Label - Hidden when collapsed */}
+                  <span className={`ml-3 whitespace-nowrap transition-all duration-200 ${isCollapsed ? 'w-0 opacity-0 hidden' : 'w-auto opacity-100'}`}>
+                    {item.label}
+                  </span>
+
+                  {/* Active Indicator Dot */}
+                  {isActive && !isCollapsed && (
                     <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400" />
                   )}
                 </button>
+
+                {/* Floating Tooltip for Collapsed State */}
+                {isCollapsed && (
+                  <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-1.5 bg-slate-800 text-white text-xs font-bold rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 shadow-lg whitespace-nowrap z-50">
+                    {item.label}
+                    {/* Tiny arrow pointing left */}
+                    <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-2 h-2 bg-slate-800 rotate-45 transform"></div>
+                  </div>
+                )}
               </li>
             );
           })}
@@ -97,10 +143,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/30">
-        <div className="flex justify-center">
-            <p className="text-[10px] text-slate-400 dark:text-slate-500">Version 3.0.1 © 2026</p>
-        </div>
+      <div className={`p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/30 transition-all duration-300 ${isCollapsed ? 'flex justify-center' : ''}`}>
+        {isCollapsed ? (
+           <span className="text-[10px] font-bold text-slate-400">v3.0</span>
+        ) : (
+           <div className="flex justify-center">
+              <p className="text-[10px] text-slate-400 dark:text-slate-500">Version 3.0.1 © 2026</p>
+           </div>
+        )}
       </div>
     </div>
   );

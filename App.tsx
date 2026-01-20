@@ -29,6 +29,12 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  
+  // Sidebar Collapse State (Desktop)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    return localStorage.getItem('sidebarCollapsed') === 'true';
+  });
+
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [user, setUser] = useState<UserProfile>(db.user.get());
   const [settings, setSettings] = useState<SystemSettings>(db.settings.get());
@@ -85,6 +91,11 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
+  const toggleSidebarCollapse = () => {
+    setIsSidebarCollapsed(!isSidebarCollapsed);
+    localStorage.setItem('sidebarCollapsed', String(!isSidebarCollapsed));
+  };
+
   const handleMarkAllRead = () => {
     db.notifications.markAllRead();
   };
@@ -102,6 +113,8 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
       <Sidebar 
         isOpen={isSidebarOpen}
         toggleSidebar={toggleSidebar}
+        isCollapsed={isSidebarCollapsed}
+        toggleCollapse={toggleSidebarCollapse}
       />
 
       <div className="flex-1 flex flex-col min-w-0 relative">
