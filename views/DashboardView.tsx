@@ -5,7 +5,7 @@ import { exportToExcel } from '../utils/excel';
 import { 
   CloudRain, Activity, RefreshCw, X, Maximize2, Minimize2,
   TrendingUp, TrendingDown, Calendar, Droplets, Waves, Info,
-  Table as TableIcon, Filter, Download, CheckCircle
+  Table as TableIcon, Filter, Download, CheckCircle, ChevronDown, Check
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
@@ -566,13 +566,42 @@ export const DashboardView: React.FC = () => {
                  <div className="p-2 rounded-lg text-white shadow-md" style={{ backgroundColor: selectedMetric.color }}>
                    <Activity size={24}/>
                  </div>
-                 <div>
-                   <h3 className="text-xl font-bold text-slate-800 dark:text-white">{selectedMetric.label}</h3>
-                   <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                      <span className="font-medium text-slate-700 dark:text-slate-300">Giá trị hiện tại: {selectedMetric.value} {selectedMetric.unit}</span>
-                   </div>
+                 
+                 {/* Title Area with Hover Dropdown */}
+                 <div className="relative group cursor-pointer">
+                    <div className="flex items-center gap-2">
+                       <h3 className="text-xl font-bold text-slate-800 dark:text-white">{selectedMetric.label}</h3>
+                       <ChevronDown size={20} className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-transform group-hover:rotate-180" />
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                        <span className="font-medium text-slate-700 dark:text-slate-300">Giá trị hiện tại: {selectedMetric.value} {selectedMetric.unit}</span>
+                    </div>
+
+                    {/* Dropdown Menu */}
+                    <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all z-50 transform origin-top-left">
+                       <div className="p-2 space-y-1">
+                          {Object.values(metrics).map((m) => (
+                             <div 
+                                key={m.id}
+                                onClick={(e) => {
+                                   e.stopPropagation(); // Prevent bubbling
+                                   handleOpenModal(m); 
+                                }}
+                                className={`flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors ${selectedMetric.id === m.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+                             >
+                                <div className="w-3 h-3 rounded-full flex-none" style={{ backgroundColor: m.color }}></div>
+                                <div className="flex-1">
+                                   <p className="font-bold text-sm text-slate-700 dark:text-slate-200">{m.label}</p>
+                                   <p className="text-xs text-slate-500">{m.value} {m.unit}</p>
+                                </div>
+                                {selectedMetric.id === m.id && <Check size={16} className="ml-auto text-blue-600 dark:text-blue-400"/>}
+                             </div>
+                          ))}
+                       </div>
+                    </div>
                  </div>
               </div>
+
               <div className="flex items-center gap-2">
                 <button 
                   onClick={() => setIsFullscreen(!isFullscreen)}
