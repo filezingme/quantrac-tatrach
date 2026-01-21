@@ -24,11 +24,11 @@ const IconGrid3 = ({ size = 18, className = "" }: { size?: number, className?: s
 
 const IconGrid4 = ({ size = 18, className = "" }: { size?: number, className?: string }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <rect x="2" y="3" width="20" height="18" rx="2" />
-    <path d="M7 3v18" />
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <path d="M7.5 3v18" />
     <path d="M12 3v18" />
-    <path d="M17 3v18" />
-    <path d="M2 12h20" />
+    <path d="M16.5 3v18" />
+    <path d="M3 12h18" />
   </svg>
 );
 
@@ -122,11 +122,13 @@ export const CameraView: React.FC = () => {
   const getGridClass = () => {
     switch (gridCols) {
       case 3:
-        return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
+        // On tablet (md), show 3 columns
+        return 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3';
       case 4:
-        return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
+        // On tablet (md), show 4 columns (dense view)
+        return 'grid-cols-1 sm:grid-cols-2 md:grid-cols-4';
       default: // 2 cols
-        return 'grid-cols-1 md:grid-cols-2';
+        return 'grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2';
     }
   };
 
@@ -140,8 +142,8 @@ export const CameraView: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-3 self-end md:self-auto">
-             {/* Grid View Controls (Hidden on mobile) */}
-             <div className="hidden md:flex items-center bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-1 shadow-sm">
+             {/* Grid View Controls (Visible on Tablet/Desktop) */}
+             <div className="hidden sm:flex items-center bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-1 shadow-sm">
                 <button 
                   onClick={() => setGridCols(2)}
                   className={`p-2 rounded-lg transition-all flex items-center gap-1.5 ${gridCols === 2 ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
