@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Zap, Play, Settings, Plus, Trash2, Save, Edit, 
   Droplets, Clock, ArrowDownToLine, AlertTriangle, 
   BarChart2, MoreVertical, RefreshCw, ArrowLeft,
-  Activity, Power, Sliders, AlertOctagon, Gauge, Check
+  Activity, Power, Sliders, AlertOctagon, Gauge, Check, AlertCircle
 } from 'lucide-react';
 import { 
   ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, 
@@ -23,6 +24,7 @@ export const FloodForecastView: React.FC = () => {
   // Edit/Create Mode State
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<Partial<FloodScenario>>({});
+  const [formError, setFormError] = useState('');
 
   // Simulation State
   const [isRunning, setIsRunning] = useState(false);
@@ -122,6 +124,7 @@ export const FloodForecastView: React.FC = () => {
       }
     };
     setEditForm(newScenario);
+    setFormError('');
     setIsEditing(true);
     // We set selectedScenarioId, but note that it won't appear in the list until saved
     setSelectedScenarioId(newId); 
@@ -129,6 +132,7 @@ export const FloodForecastView: React.FC = () => {
 
   const handleEdit = (scenario: FloodScenario) => {
     setEditForm({ ...scenario });
+    setFormError('');
     setIsEditing(true);
   };
 
@@ -159,8 +163,15 @@ export const FloodForecastView: React.FC = () => {
   };
 
   const handleSaveForm = () => {
-    if (!editForm.name) return ui.showToast('error', 'Vui lòng nhập tên kịch bản');
-    if (!editForm.id) return ui.showToast('error', 'Lỗi: Thiếu ID kịch bản');
+    setFormError('');
+    if (!editForm.name) {
+        setFormError('Vui lòng nhập tên kịch bản');
+        return;
+    }
+    if (!editForm.id) {
+        setFormError('Lỗi: Thiếu ID kịch bản');
+        return;
+    }
 
     setSaveStatus('saving');
 
@@ -502,14 +513,22 @@ export const FloodForecastView: React.FC = () => {
                  
                  {/* Scrollable Content */}
                  <div className="p-6 overflow-y-auto flex-1">
+                    {/* Inline Error */}
+                    {formError && (
+                      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm flex items-start gap-2 mb-4 animate-in slide-in-from-top-2">
+                          <AlertCircle size={18} className="shrink-0 mt-0.5"/>
+                          <span>{formError}</span>
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
                       <div className="xl:col-span-2">
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tên kịch bản</label>
-                        <input value={editForm.name || ''} onChange={e => setEditForm({...editForm, name: e.target.value})} className="w-full border border-slate-300 dark:border-slate-600 p-2 rounded-lg focus:ring-2 ring-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 focus:text-slate-900 dark:focus:text-white"/>
+                        <input value={editForm.name || ''} onChange={e => setEditForm({...editForm, name: e.target.value})} className="w-full border border-slate-300 dark:border-slate-600 p-2 rounded-lg focus:ring-2 ring-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-400 focus:text-slate-900 dark:focus:text-white transition-colors"/>
                       </div>
                       <div className="xl:col-span-2">
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Mô tả chi tiết</label>
-                        <textarea rows={2} value={editForm.description || ''} onChange={e => setEditForm({...editForm, description: e.target.value})} className="w-full border border-slate-300 dark:border-slate-600 p-2 rounded-lg focus:ring-2 ring-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 focus:text-slate-900 dark:focus:text-white"/>
+                        <textarea rows={2} value={editForm.description || ''} onChange={e => setEditForm({...editForm, description: e.target.value})} className="w-full border border-slate-300 dark:border-slate-600 p-2 rounded-lg focus:ring-2 ring-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-400 focus:text-slate-900 dark:focus:text-white transition-colors"/>
                       </div>
                     </div>
                     
@@ -518,23 +537,23 @@ export const FloodForecastView: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                        <div>
                          <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Tổng lượng mưa (mm)</label>
-                         <input type="number" value={editForm.inputs?.rainfallTotal} onChange={e => setEditForm({...editForm, inputs: {...editForm.inputs!, rainfallTotal: Number(e.target.value)}})} className="w-full border border-slate-300 dark:border-slate-600 p-2 rounded-lg bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 focus:text-slate-900 dark:focus:text-white"/>
+                         <input type="number" value={editForm.inputs?.rainfallTotal} onChange={e => setEditForm({...editForm, inputs: {...editForm.inputs!, rainfallTotal: Number(e.target.value)}})} className="w-full border border-slate-300 dark:border-slate-600 p-2 rounded-lg bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-400 focus:text-slate-900 dark:focus:text-white transition-colors"/>
                        </div>
                        <div>
                          <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Thời gian mưa (giờ)</label>
-                         <input type="number" value={editForm.inputs?.rainDuration} onChange={e => setEditForm({...editForm, inputs: {...editForm.inputs!, rainDuration: Number(e.target.value)}})} className="w-full border border-slate-300 dark:border-slate-600 p-2 rounded-lg bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 focus:text-slate-900 dark:focus:text-white"/>
+                         <input type="number" value={editForm.inputs?.rainDuration} onChange={e => setEditForm({...editForm, inputs: {...editForm.inputs!, rainDuration: Number(e.target.value)}})} className="w-full border border-slate-300 dark:border-slate-600 p-2 rounded-lg bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-400 focus:text-slate-900 dark:focus:text-white transition-colors"/>
                        </div>
                        <div>
                          <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Mực nước hồ ban đầu (m)</label>
-                         <input type="number" value={editForm.inputs?.initialWaterLevel} onChange={e => setEditForm({...editForm, inputs: {...editForm.inputs!, initialWaterLevel: Number(e.target.value)}})} className="w-full border border-slate-300 dark:border-slate-600 p-2 rounded-lg bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 focus:text-slate-900 dark:focus:text-white"/>
+                         <input type="number" value={editForm.inputs?.initialWaterLevel} onChange={e => setEditForm({...editForm, inputs: {...editForm.inputs!, initialWaterLevel: Number(e.target.value)}})} className="w-full border border-slate-300 dark:border-slate-600 p-2 rounded-lg bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-400 focus:text-slate-900 dark:focus:text-white transition-colors"/>
                        </div>
                        <div>
                          <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Lưu lượng cơ bản (m³/s)</label>
-                         <input type="number" value={editForm.inputs?.baseInflow} onChange={e => setEditForm({...editForm, inputs: {...editForm.inputs!, baseInflow: Number(e.target.value)}})} className="w-full border border-slate-300 dark:border-slate-600 p-2 rounded-lg bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 focus:text-slate-900 dark:focus:text-white"/>
+                         <input type="number" value={editForm.inputs?.baseInflow} onChange={e => setEditForm({...editForm, inputs: {...editForm.inputs!, baseInflow: Number(e.target.value)}})} className="w-full border border-slate-300 dark:border-slate-600 p-2 rounded-lg bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-400 focus:text-slate-900 dark:focus:text-white transition-colors"/>
                        </div>
                        <div>
                          <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">Độ ẩm đất (AMC)</label>
-                         <select value={editForm.inputs?.soilMoisture} onChange={e => setEditForm({...editForm, inputs: {...editForm.inputs!, soilMoisture: e.target.value as any}})} className="w-full border border-slate-300 dark:border-slate-600 p-2 rounded-lg bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 focus:text-slate-900 dark:focus:text-white">
+                         <select value={editForm.inputs?.soilMoisture} onChange={e => setEditForm({...editForm, inputs: {...editForm.inputs!, soilMoisture: e.target.value as any}})} className="w-full border border-slate-300 dark:border-slate-600 p-2 rounded-lg bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-400 focus:text-slate-900 dark:focus:text-white transition-colors">
                            <option value="dry">Khô (Dry)</option>
                            <option value="normal">Trung bình (Normal)</option>
                            <option value="wet">Bão hòa (Wet)</option>
