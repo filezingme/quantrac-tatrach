@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Settings, Bell, Database, Shield, Globe, Monitor, Save, RefreshCw, Check, Zap, Layout } from 'lucide-react';
+import { Settings, Bell, Database, Shield, Globe, Monitor, Save, RefreshCw, Check, Zap, Layout, AlertTriangle } from 'lucide-react';
 import { useUI } from '../components/GlobalUI';
 import { db } from '../utils/db';
 import { SystemSettings } from '../types';
@@ -279,6 +279,25 @@ export const SystemSettingsView: React.FC = () => {
                                     </button>
                                 </div>
                             </div>
+                        </div>
+
+                        <div className="pt-6 border-t border-slate-100 dark:border-slate-700">
+                            <h3 className="text-lg font-bold text-red-600 dark:text-red-400 mb-1 flex items-center gap-2">
+                            <AlertTriangle size={20}/> Vùng nguy hiểm
+                            </h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Các tác vụ này không thể hoàn tác.</p>
+                            
+                            <button 
+                                onClick={() => {
+                                    if(confirm('Bạn có chắc chắn muốn khôi phục dữ liệu gốc? Mọi thay đổi sẽ bị mất.')) {
+                                        localStorage.clear();
+                                        window.location.reload();
+                                    }
+                                }}
+                                className="flex items-center gap-2 px-4 py-2 border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg text-sm font-bold hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+                            >
+                                <RefreshCw size={16}/> Khôi phục cài đặt gốc (Reset Data)
+                            </button>
                         </div>
                     </div>
                 )}

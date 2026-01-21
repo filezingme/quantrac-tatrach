@@ -5,29 +5,30 @@ import {
   OperationTable, 
   ImageGroup, 
   GeneralInfo, 
-  CameraInfo,
-  FloodScenario,
-  AppNotification,
-  UserProfile,
-  ForecastData,
-  WaterLevelRecord,
-  SystemSettings
+  CameraInfo, 
+  FloodScenario, 
+  AppNotification, 
+  UserProfile, 
+  ForecastData, 
+  WaterLevelRecord, 
+  SystemSettings 
 } from '../types';
 
+// CHANGED: Version bump to v3 to force fresh data load for all users
 const KEYS = {
-  OBSERVATION: 'app_observation',
-  FORECAST: 'app_forecast',
-  SPECS: 'app_specs',
-  OPERATION_TABLES: 'app_op_tables',
-  IMAGES: 'app_images',
-  GENERAL_INFO: 'app_general_info',
-  CAMERAS: 'app_cameras',
-  SCENARIOS: 'app_scenarios',
-  NOTIFICATIONS: 'app_notifications',
-  CURRENT_USER: 'app_current_user',
-  USERS_LIST: 'app_users_list',
-  WATER_LEVEL_RECORDS: 'app_water_level_records',
-  SETTINGS: 'app_settings'
+  OBSERVATION: 'app_observation_v3',
+  FORECAST: 'app_forecast_v3',
+  SPECS: 'app_specs_v3',
+  OPERATION_TABLES: 'app_op_tables_v3',
+  IMAGES: 'app_images_v3',
+  GENERAL_INFO: 'app_general_info_v3',
+  CAMERAS: 'app_cameras_v3',
+  SCENARIOS: 'app_scenarios_v3',
+  NOTIFICATIONS: 'app_notifications_v3',
+  CURRENT_USER: 'app_current_user_v3',
+  USERS_LIST: 'app_users_list_v3',
+  WATER_LEVEL_RECORDS: 'app_water_level_records_v3',
+  SETTINGS: 'app_settings_v3'
 };
 
 // --- Default Data ---
@@ -281,7 +282,7 @@ const defaultCameras: CameraInfo[] = [
   { id: 'c3', name: 'Camera Thượng Lưu', url: 'https://www.youtube.com/embed/N9ppshL89dA?autoplay=1&mute=1', status: 'online' },
 ];
 
-// --- UPDATED MOCK NOTIFICATIONS ---
+// --- MOCK NOTIFICATIONS ---
 const defaultNotifications: AppNotification[] = [
   { id: 'n1', title: 'Cảnh báo lũ', message: 'Mực nước đang tiến sát mức báo động I. Cần theo dõi sát sao.', time: '10 phút trước', read: false, type: 'alert' },
   { id: 'n2', title: 'Mất tín hiệu cảm biến', message: 'Cảm biến áp lực thấm tại vị trí P12 bị mất kết nối. Vui lòng kiểm tra.', time: '1 giờ trước', read: false, type: 'warning' },
