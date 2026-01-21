@@ -341,7 +341,7 @@ export const ImageView: React.FC = () => {
       {/* LIGHTBOX MODAL */}
       {selectedIndex !== null && activeGroup && activeGroup.images[selectedIndex] && (
         <div 
-          className="fixed inset-0 z-[5000] bg-black/95 backdrop-blur-sm flex flex-col animate-in fade-in duration-300"
+          className="fixed inset-0 z-[5000] bg-slate-900/80 backdrop-blur-md flex flex-col animate-in fade-in duration-300"
           style={{ marginTop: 0 }}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
