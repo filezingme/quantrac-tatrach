@@ -75,7 +75,7 @@ export const ImageView: React.FC = () => {
     const diffY = touchStartRef.current.y - touchEnd.y;
     const absDiffX = Math.abs(diffX);
     const absDiffY = Math.abs(diffY);
-    const threshold = 50; // Minimum distance to be considered a swipe
+    const threshold = 40; // Reduced threshold for better sensitivity
 
     // Ignore taps/small movements
     if (Math.max(absDiffX, absDiffY) < threshold) {
@@ -86,10 +86,10 @@ export const ImageView: React.FC = () => {
     if (absDiffX > absDiffY) {
       // Horizontal Swipe
       if (diffX > 0) {
-        // Swiped Left -> Next Image
+        // Swiped Left (finger moves left) -> Next Image
         navigateImage(1);
       } else {
-        // Swiped Right -> Previous Image
+        // Swiped Right (finger moves right) -> Previous Image
         navigateImage(-1);
       }
     } else {
@@ -341,23 +341,23 @@ export const ImageView: React.FC = () => {
       {/* LIGHTBOX MODAL */}
       {selectedIndex !== null && activeGroup && activeGroup.images[selectedIndex] && (
         <div 
-          className="fixed inset-0 z-[5000] bg-slate-900/90 backdrop-blur-md flex flex-col animate-in fade-in duration-300"
+          className="fixed inset-0 z-[5000] bg-black/95 backdrop-blur-sm flex flex-col animate-in fade-in duration-300"
           style={{ marginTop: 0 }}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-           {/* Custom Animations Styles */}
+           {/* Custom iOS-like Slide Animations */}
            <style>{`
-             @keyframes slide-in-right {
-               from { opacity: 0; transform: translateX(40px) scale(0.95); }
-               to { opacity: 1; transform: translateX(0) scale(1); }
+             @keyframes slide-next {
+               from { transform: translateX(100vw); }
+               to { transform: translateX(0); }
              }
-             @keyframes slide-in-left {
-               from { opacity: 0; transform: translateX(-40px) scale(0.95); }
-               to { opacity: 1; transform: translateX(0) scale(1); }
+             @keyframes slide-prev {
+               from { transform: translateX(-100vw); }
+               to { transform: translateX(0); }
              }
-             .animate-slide-in-right { animation: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-             .animate-slide-in-left { animation: slide-in-left 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+             .animate-slide-next { animation: slide-next 0.3s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
+             .animate-slide-prev { animation: slide-prev 0.3s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
            `}</style>
 
            {/* Top Controls (Overlay) */}
@@ -386,15 +386,15 @@ export const ImageView: React.FC = () => {
                 <ChevronLeft size={32} />
               </button>
 
-              {/* Image with smooth transition */}
+              {/* Image with iOS-like slide transition */}
               <img 
-                key={selectedIndex} // Important: forces re-mount to trigger animation
+                key={selectedIndex} // Forces re-mount to trigger animation
                 src={activeGroup.images[selectedIndex].url} 
                 alt={activeGroup.images[selectedIndex].title}
                 className={`max-h-full max-w-full h-full object-contain shadow-2xl ${
-                  direction === 1 ? 'animate-slide-in-right' : 
-                  direction === -1 ? 'animate-slide-in-left' : 
-                  'animate-in zoom-in-95 duration-300'
+                  direction === 1 ? 'animate-slide-next' : 
+                  direction === -1 ? 'animate-slide-prev' : 
+                  'animate-in zoom-in-95 duration-200'
                 }`}
                 onClick={(e) => e.stopPropagation()} 
               />
