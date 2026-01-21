@@ -24,7 +24,7 @@ import { LoginView } from './views/LoginView';
 import { UIProvider, useUI } from './components/GlobalUI';
 import { AIAssistant } from './components/AIAssistant'; 
 import { AppNotification, UserProfile, SystemSettings } from './types';
-import { Menu, Bell, Check, LogOut, User, Settings as SettingsIcon, X, AlertTriangle, AlertCircle, Info, Clock, ChevronLeft } from 'lucide-react';
+import { Menu, Bell, Check, LogOut, User, Settings as SettingsIcon, X, AlertTriangle, AlertCircle, Info, Clock, ChevronLeft, Mail } from 'lucide-react';
 import { db } from './utils/db';
 
 // Extract the main layout to a separate component to use the UI Context
@@ -112,6 +112,15 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const handleMarkAsRead = (id: string) => {
     const updated = notifications.map(n => n.id === id ? { ...n, read: true } : n);
     db.notifications.set(updated);
+  };
+
+  const handleMarkAsUnread = (id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    const updated = notifications.map(n => n.id === id ? { ...n, read: false } : n);
+    db.notifications.set(updated);
+    // Return to list view
+    setViewNotification(null);
+    ui.showToast('info', 'Đã đánh dấu chưa đọc');
   };
 
   const handleLogoutClick = () => {
@@ -252,7 +261,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                           <div className="w-full h-full shrink-0 flex flex-col bg-slate-50/30 dark:bg-slate-900/10">
                              {viewNotification && (
                                <>
-                                 <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 bg-white dark:bg-slate-800 shadow-sm flex-none z-10">
+                                 <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2 bg-white dark:bg-slate-800 shadow-sm flex-none z-10">
                                     <button 
                                       onClick={closeNotificationDetail}
                                       className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors text-slate-500 dark:text-slate-400"
@@ -263,6 +272,13 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                                     <div className="flex-1 min-w-0">
                                        <h3 className="font-bold text-sm text-slate-800 dark:text-white truncate">Chi tiết thông báo</h3>
                                     </div>
+                                    <button
+                                      onClick={(e) => handleMarkAsUnread(viewNotification.id, e)}
+                                      className="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors"
+                                      title="Đánh dấu chưa đọc"
+                                    >
+                                        <Mail size={18} />
+                                    </button>
                                  </div>
                                  
                                  <div className="p-5 overflow-y-auto flex-1 hover-scrollbar bg-white dark:bg-slate-800">
@@ -508,6 +524,13 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                                   <div className="flex-1 min-w-0">
                                      <h3 className="font-bold text-lg text-slate-800 dark:text-white truncate">Chi tiết thông báo</h3>
                                   </div>
+                                  <button
+                                      onClick={(e) => handleMarkAsUnread(viewNotification.id, e)}
+                                      className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors"
+                                      title="Đánh dấu chưa đọc"
+                                  >
+                                      <Mail size={20} />
+                                  </button>
                                   <button 
                                      onClick={() => { setShowAllNotifications(false); setViewNotification(null); }}
                                      className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors text-slate-500"
