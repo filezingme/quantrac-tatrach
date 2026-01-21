@@ -10,6 +10,7 @@ export const ImageView: React.FC = () => {
   
   // Lightbox State
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [direction, setDirection] = useState<number>(0); // 0: none, 1: next (slide right), -1: prev (slide left)
 
   const ui = useUI();
   
@@ -32,6 +33,7 @@ export const ImageView: React.FC = () => {
         navigateImage(1);
       } else if (e.key === 'Escape') {
         setSelectedIndex(null);
+        setDirection(0);
       }
     };
 
@@ -39,16 +41,17 @@ export const ImageView: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedIndex, activeGroup]);
 
-  const navigateImage = (direction: number) => {
+  const navigateImage = (dir: number) => {
     if (!activeGroup || selectedIndex === null) return;
     const count = activeGroup.images.length;
     if (count === 0) return;
 
-    let newIndex = selectedIndex + direction;
+    let newIndex = selectedIndex + dir;
     // Loop navigation
     if (newIndex < 0) newIndex = count - 1;
     if (newIndex >= count) newIndex = 0;
     
+    setDirection(dir);
     setSelectedIndex(newIndex);
   };
 
@@ -92,6 +95,7 @@ export const ImageView: React.FC = () => {
     } else {
       // Vertical Swipe -> Close Modal
       setSelectedIndex(null);
+      setDirection(0);
     }
     
     touchStartRef.current = null;
@@ -245,7 +249,10 @@ export const ImageView: React.FC = () => {
                           {activeGroup.images.map((img, index) => (
                              <div 
                                key={img.id} 
-                               onClick={() => setSelectedIndex(index)}
+                               onClick={() => {
+                                 setDirection(0);
+                                 setSelectedIndex(index);
+                               }}
                                className="group relative bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden aspect-square cursor-pointer hover:shadow-md transition-all"
                              >
                                  <img src={img.url} alt={img.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"/>
@@ -334,20 +341,33 @@ export const ImageView: React.FC = () => {
       {/* LIGHTBOX MODAL */}
       {selectedIndex !== null && activeGroup && activeGroup.images[selectedIndex] && (
         <div 
-          className="fixed inset-0 z-[5000] bg-slate-900/80 backdrop-blur-md flex flex-col animate-in fade-in duration-200"
+          className="fixed inset-0 z-[5000] bg-slate-900/90 backdrop-blur-md flex flex-col animate-in fade-in duration-300"
           style={{ marginTop: 0 }}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-           
+           {/* Custom Animations Styles */}
+           <style>{`
+             @keyframes slide-in-right {
+               from { opacity: 0; transform: translateX(40px) scale(0.95); }
+               to { opacity: 1; transform: translateX(0) scale(1); }
+             }
+             @keyframes slide-in-left {
+               from { opacity: 0; transform: translateX(-40px) scale(0.95); }
+               to { opacity: 1; transform: translateX(0) scale(1); }
+             }
+             .animate-slide-in-right { animation: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+             .animate-slide-in-left { animation: slide-in-left 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+           `}</style>
+
            {/* Top Controls (Overlay) */}
            <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-50 pointer-events-none">
-              <span className="text-white/90 text-sm font-bold bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm pointer-events-auto">
+              <span className="text-white/90 text-sm font-bold bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm pointer-events-auto border border-white/10">
                 {selectedIndex + 1} / {activeGroup.images.length}
               </span>
               <button 
                 onClick={() => setSelectedIndex(null)}
-                className="p-2 text-white/70 hover:text-white bg-black/20 hover:bg-black/50 rounded-full transition-colors backdrop-blur-sm pointer-events-auto"
+                className="p-2 text-white/70 hover:text-white bg-black/20 hover:bg-black/50 rounded-full transition-colors backdrop-blur-sm pointer-events-auto border border-white/10"
               >
                 <X size={24} />
               </button>
@@ -355,29 +375,34 @@ export const ImageView: React.FC = () => {
 
            {/* Main Image Area */}
            <div 
-             className="flex-1 w-full h-full flex items-center justify-center relative group select-none"
+             className="flex-1 w-full h-full flex items-center justify-center relative group select-none overflow-hidden"
              onClick={() => setSelectedIndex(null)} // Click outside to close
            >
               {/* Previous Button - Hidden on Mobile */}
               <button 
                 onClick={(e) => { e.stopPropagation(); navigateImage(-1); }}
-                className="hidden md:block absolute left-4 top-1/2 -translate-y-1/2 p-3 text-white/50 hover:text-white bg-black/20 hover:bg-black/50 rounded-full backdrop-blur-md transition-all z-40 opacity-0 group-hover:opacity-100"
+                className="hidden md:block absolute left-4 top-1/2 -translate-y-1/2 p-3 text-white/50 hover:text-white bg-black/20 hover:bg-black/50 rounded-full backdrop-blur-md transition-all z-40 opacity-0 group-hover:opacity-100 border border-white/10"
               >
                 <ChevronLeft size={32} />
               </button>
 
-              {/* Image */}
+              {/* Image with smooth transition */}
               <img 
+                key={selectedIndex} // Important: forces re-mount to trigger animation
                 src={activeGroup.images[selectedIndex].url} 
                 alt={activeGroup.images[selectedIndex].title}
-                className="max-h-full max-w-full h-full object-contain shadow-2xl transition-transform duration-200"
+                className={`max-h-full max-w-full h-full object-contain shadow-2xl ${
+                  direction === 1 ? 'animate-slide-in-right' : 
+                  direction === -1 ? 'animate-slide-in-left' : 
+                  'animate-in zoom-in-95 duration-300'
+                }`}
                 onClick={(e) => e.stopPropagation()} 
               />
 
               {/* Next Button - Hidden on Mobile */}
               <button 
                 onClick={(e) => { e.stopPropagation(); navigateImage(1); }}
-                className="hidden md:block absolute right-4 top-1/2 -translate-y-1/2 p-3 text-white/50 hover:text-white bg-black/20 hover:bg-black/50 rounded-full backdrop-blur-md transition-all z-40 opacity-0 group-hover:opacity-100"
+                className="hidden md:block absolute right-4 top-1/2 -translate-y-1/2 p-3 text-white/50 hover:text-white bg-black/20 hover:bg-black/50 rounded-full backdrop-blur-md transition-all z-40 opacity-0 group-hover:opacity-100 border border-white/10"
               >
                 <ChevronRight size={32} />
               </button>
