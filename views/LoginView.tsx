@@ -116,11 +116,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
             <ShieldCheck size={14} className="text-green-500" />
             <span>Bảo mật & An toàn dữ liệu</span>
           </div>
-          <p className="text-[10px] text-slate-400">Version 2.4.3 © 2024 Ta Trach Management System</p>
-        </div>
-        
-        <div className="absolute -top-12 right-0 text-slate-400 text-xs font-mono opacity-50">
-           admin / 123
+          <p className="text-[10px] text-slate-400">Version 3.0.1 © 2026 Ta Trach Management System</p>
         </div>
       </div>
     </div>

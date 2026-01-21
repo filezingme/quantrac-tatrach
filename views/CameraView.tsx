@@ -4,31 +4,55 @@ import { db } from '../utils/db';
 import { CameraInfo } from '../types';
 import { useUI } from '../components/GlobalUI';
 
-// Custom Icons for precise grid visualization
+// Custom Icons for precise grid visualization (CCTV Style with padding)
 const IconGrid2 = ({ size = 18, className = "" }: { size?: number, className?: string }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <rect x="3" y="3" width="18" height="18" rx="2" />
-    <path d="M12 3v18" />
-    <path d="M3 12h18" />
+    <rect x="3.5" y="3.5" width="7" height="7" rx="1" />
+    <rect x="13.5" y="3.5" width="7" height="7" rx="1" />
+    <rect x="3.5" y="13.5" width="7" height="7" rx="1" />
+    <rect x="13.5" y="13.5" width="7" height="7" rx="1" />
   </svg>
 );
 
 const IconGrid3 = ({ size = 18, className = "" }: { size?: number, className?: string }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <rect x="3" y="3" width="18" height="18" rx="2" />
-    <path d="M9 3v18" />
-    <path d="M15 3v18" />
-    <path d="M3 12h18" />
+    {/* Row 1 */}
+    <rect x="2.5" y="2.5" width="5" height="5" rx="1" />
+    <rect x="9.5" y="2.5" width="5" height="5" rx="1" />
+    <rect x="16.5" y="2.5" width="5" height="5" rx="1" />
+    {/* Row 2 */}
+    <rect x="2.5" y="9.5" width="5" height="5" rx="1" />
+    <rect x="9.5" y="9.5" width="5" height="5" rx="1" />
+    <rect x="16.5" y="9.5" width="5" height="5" rx="1" />
+    {/* Row 3 */}
+    <rect x="2.5" y="16.5" width="5" height="5" rx="1" />
+    <rect x="9.5" y="16.5" width="5" height="5" rx="1" />
+    <rect x="16.5" y="16.5" width="5" height="5" rx="1" />
   </svg>
 );
 
 const IconGrid4 = ({ size = 18, className = "" }: { size?: number, className?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <rect x="3" y="3" width="18" height="18" rx="2" />
-    <path d="M7.5 3v18" />
-    <path d="M12 3v18" />
-    <path d="M16.5 3v18" />
-    <path d="M3 12h18" />
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    {/* Row 1 */}
+    <rect x="2.5" y="2.5" width="4" height="4" rx="0.5" />
+    <rect x="8" y="2.5" width="4" height="4" rx="0.5" />
+    <rect x="13.5" y="2.5" width="4" height="4" rx="0.5" />
+    <rect x="19" y="2.5" width="4" height="4" rx="0.5" />
+    {/* Row 2 */}
+    <rect x="2.5" y="8" width="4" height="4" rx="0.5" />
+    <rect x="8" y="8" width="4" height="4" rx="0.5" />
+    <rect x="13.5" y="8" width="4" height="4" rx="0.5" />
+    <rect x="19" y="8" width="4" height="4" rx="0.5" />
+    {/* Row 3 */}
+    <rect x="2.5" y="13.5" width="4" height="4" rx="0.5" />
+    <rect x="8" y="13.5" width="4" height="4" rx="0.5" />
+    <rect x="13.5" y="13.5" width="4" height="4" rx="0.5" />
+    <rect x="19" y="13.5" width="4" height="4" rx="0.5" />
+    {/* Row 4 */}
+    <rect x="2.5" y="19" width="4" height="4" rx="0.5" />
+    <rect x="8" y="19" width="4" height="4" rx="0.5" />
+    <rect x="13.5" y="19" width="4" height="4" rx="0.5" />
+    <rect x="19" y="19" width="4" height="4" rx="0.5" />
   </svg>
 );
 
