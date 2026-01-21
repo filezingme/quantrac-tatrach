@@ -1,8 +1,36 @@
 import React, { useState } from 'react';
-import { Camera, Plus, Trash2, ExternalLink, X, Grid, LayoutGrid, Monitor } from 'lucide-react';
+import { Camera, Plus, Trash2, ExternalLink, X } from 'lucide-react';
 import { db } from '../utils/db';
 import { CameraInfo } from '../types';
 import { useUI } from '../components/GlobalUI';
+
+// Custom Icons for precise grid visualization
+const IconGrid2 = ({ size = 18, className = "" }: { size?: number, className?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <path d="M12 3v18" />
+    <path d="M3 12h18" />
+  </svg>
+);
+
+const IconGrid3 = ({ size = 18, className = "" }: { size?: number, className?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <path d="M9 3v18" />
+    <path d="M15 3v18" />
+    <path d="M3 12h18" />
+  </svg>
+);
+
+const IconGrid4 = ({ size = 18, className = "" }: { size?: number, className?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="2" y="3" width="20" height="18" rx="2" />
+    <path d="M7 3v18" />
+    <path d="M12 3v18" />
+    <path d="M17 3v18" />
+    <path d="M2 12h20" />
+  </svg>
+);
 
 export const CameraView: React.FC = () => {
   const [cameras, setCameras] = useState<CameraInfo[]>(db.cameras.get());
@@ -119,7 +147,7 @@ export const CameraView: React.FC = () => {
                   className={`p-2 rounded-lg transition-all flex items-center gap-1.5 ${gridCols === 2 ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
                   title="2 Camera / Hàng"
                 >
-                   <Grid size={18} />
+                   <IconGrid2 size={18} />
                    <span className="text-xs font-bold">2</span>
                 </button>
                 <button 
@@ -127,7 +155,7 @@ export const CameraView: React.FC = () => {
                   className={`p-2 rounded-lg transition-all flex items-center gap-1.5 ${gridCols === 3 ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
                   title="3 Camera / Hàng"
                 >
-                   <LayoutGrid size={18} />
+                   <IconGrid3 size={18} />
                    <span className="text-xs font-bold">3</span>
                 </button>
                 <button 
@@ -135,7 +163,7 @@ export const CameraView: React.FC = () => {
                   className={`p-2 rounded-lg transition-all flex items-center gap-1.5 ${gridCols === 4 ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
                   title="4 Camera / Hàng"
                 >
-                   <Monitor size={18} />
+                   <IconGrid4 size={18} />
                    <span className="text-xs font-bold">4</span>
                 </button>
              </div>
