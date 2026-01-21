@@ -275,15 +275,20 @@ const defaultGeneral: GeneralInfo = {
   constructionTime: "2005 - 2013"
 };
 
-// Use YouTube Embed URLs for realistic simulation
 const defaultCameras: CameraInfo[] = [
   { id: 'c1', name: 'Camera Đập Chính', url: 'https://www.youtube.com/embed/qRTVg8HHzUo?autoplay=1&mute=1', status: 'online' },
   { id: 'c2', name: 'Camera Tràn Xả Lũ', url: 'https://www.youtube.com/embed/S2H378d3c50?autoplay=1&mute=1', status: 'online' },
   { id: 'c3', name: 'Camera Thượng Lưu', url: 'https://www.youtube.com/embed/N9ppshL89dA?autoplay=1&mute=1', status: 'online' },
 ];
 
+// --- UPDATED MOCK NOTIFICATIONS ---
 const defaultNotifications: AppNotification[] = [
-  { id: 'n1', title: 'Cảnh báo lũ', message: 'Mực nước đang tiến sát mức báo động I.', time: '10 phút trước', read: false, type: 'alert' },
+  { id: 'n1', title: 'Cảnh báo lũ', message: 'Mực nước đang tiến sát mức báo động I. Cần theo dõi sát sao.', time: '10 phút trước', read: false, type: 'alert' },
+  { id: 'n2', title: 'Mất tín hiệu cảm biến', message: 'Cảm biến áp lực thấm tại vị trí P12 bị mất kết nối. Vui lòng kiểm tra.', time: '1 giờ trước', read: false, type: 'warning' },
+  { id: 'n3', title: 'Báo cáo định kỳ', message: 'Báo cáo thủy văn tháng 1/2026 đã sẵn sàng để tải về.', time: '3 giờ trước', read: false, type: 'info' },
+  { id: 'n4', title: 'Đăng nhập lạ', message: 'Phát hiện đăng nhập từ IP lạ (113.161.x.x) vào lúc 08:30 sáng nay.', time: '5 giờ trước', read: true, type: 'warning' },
+  { id: 'n5', title: 'Kế hoạch bảo trì', message: 'Hệ thống sẽ bảo trì định kỳ vào 00:00 ngày 25/01/2026.', time: '1 ngày trước', read: true, type: 'info' },
+  { id: 'n6', title: 'Dự báo mưa lớn', message: 'Đài KTTV cảnh báo mưa lớn diện rộng trong 24h tới tại lưu vực sông Hương.', time: '1 ngày trước', read: true, type: 'alert' },
 ];
 
 const defaultAdminUser: UserProfile = {
@@ -301,24 +306,21 @@ const defaultAdminUser: UserProfile = {
   address: 'Hương Thủy, Thừa Thiên Huế'
 };
 
-// Generate Mock Users List (20 users)
 const generateMockUsers = (): UserProfile[] => {
   const users: UserProfile[] = [defaultAdminUser];
-  
-  // Add 19 more users
   const depts = ['Phòng Kỹ thuật', 'Phòng Hành chính', 'Tổ Bảo vệ', 'Tổ Vận hành', 'Ban Giám đốc'];
   const firstNames = ['Nguyen', 'Tran', 'Le', 'Pham', 'Hoang', 'Huynh', 'Phan', 'Vu', 'Vo', 'Dang'];
   const lastNames = ['Van A', 'Thi B', 'Minh C', 'Quang D', 'Thanh E', 'Duc F', 'Ngoc G', 'Tuan H', 'Huy I', 'Lan K'];
 
   for (let i = 2; i <= 20; i++) {
-    const role = i <= 3 ? 'admin' : 'user'; // First 3 are admins
+    const role = i <= 3 ? 'admin' : 'user';
     const fname = firstNames[i % firstNames.length];
     const lname = lastNames[i % lastNames.length];
     
     users.push({
       id: `u${i}`,
       username: `user${i}`,
-      password: '123', // Mock password
+      password: '123',
       name: `${fname} ${lname}`,
       role: role as 'admin' | 'user',
       email: `user${i}@tatrach.vn`,
@@ -351,30 +353,26 @@ const defaultScenarios: FloodScenario[] = [
       maxLevel: 48.2,
       peakTime: 14,
       riskLevel: 'high',
-      timeSeries: [] // Mock data generated in component for display
+      timeSeries: []
     }
   }
 ];
 
-// Generate some sample water level data
 const now = new Date();
 const hourlyRecords: WaterLevelRecord[] = Array.from({length: 24}).map((_, i) => {
   const d = new Date(now);
   d.setHours(d.getHours() - (23 - i));
   d.setMinutes(0);
   d.setSeconds(0);
-  // Simulating a curve
   const level = 35 + Math.sin(i / 5) * 2 + (Math.random() * 0.2);
   return {
     id: `wl-${i}`,
-    time: d.toISOString().slice(0, 16), // Format YYYY-MM-DDTHH:mm
+    time: d.toISOString().slice(0, 16),
     level: parseFloat(level.toFixed(2))
   };
 });
 
-// Specific Data for 19/01/2026 and 20/01/2026
 const specific2026Records: WaterLevelRecord[] = [];
-// 19/01/2026
 for(let h=0; h<24; h++) {
   const level = 38.5 + Math.sin(h / 8) * 0.5 + Math.random() * 0.1;
   specific2026Records.push({
@@ -383,7 +381,6 @@ for(let h=0; h<24; h++) {
     level: parseFloat(level.toFixed(2))
   });
 }
-// 20/01/2026
 for(let h=0; h<24; h++) {
   const level = 39.0 + Math.cos(h / 8) * 0.6 + Math.random() * 0.1;
   specific2026Records.push({
@@ -465,15 +462,13 @@ export const db = {
       db.notifications.set(notifs.map(n => ({...n, read: true})));
     }
   },
-  // Current session user
   user: {
     get: () => db.get<UserProfile>(KEYS.CURRENT_USER, defaultAdminUser),
     set: (data: UserProfile) => db.set(KEYS.CURRENT_USER, data),
   },
-  // All Users Management
   users: {
     get: () => db.get<UserProfile[]>(KEYS.USERS_LIST, generateMockUsers()),
-    getAll: () => db.get<UserProfile[]>(KEYS.USERS_LIST, generateMockUsers()), // Alias
+    getAll: () => db.get<UserProfile[]>(KEYS.USERS_LIST, generateMockUsers()),
     add: (user: UserProfile) => {
       const users = db.users.get();
       db.set(KEYS.USERS_LIST, [user, ...users]);
@@ -481,7 +476,6 @@ export const db = {
     update: (user: UserProfile) => {
       const users = db.users.get();
       db.set(KEYS.USERS_LIST, users.map(u => u.id === user.id ? user : u));
-      // Update current user if it matches
       const currentUser = db.user.get();
       if(currentUser.id === user.id) {
           db.user.set(user);

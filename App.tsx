@@ -24,7 +24,7 @@ import { LoginView } from './views/LoginView';
 import { UIProvider, useUI } from './components/GlobalUI';
 import { AIAssistant } from './components/AIAssistant'; 
 import { AppNotification, UserProfile, SystemSettings } from './types';
-import { Menu, Bell, Check, LogOut, User, Settings as SettingsIcon, X } from 'lucide-react';
+import { Menu, Bell, Check, LogOut, User, Settings as SettingsIcon, X, AlertTriangle, AlertCircle, Info, Clock, ChevronLeft } from 'lucide-react';
 import { db } from './utils/db';
 
 // Extract the main layout to a separate component to use the UI Context
@@ -33,6 +33,10 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   
+  // Notification States
+  const [viewNotification, setViewNotification] = useState<AppNotification | null>(null);
+  const [showAllNotifications, setShowAllNotifications] = useState(false);
+
   // Sidebar Collapse State (Desktop)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     return localStorage.getItem('sidebarCollapsed') === 'true';
@@ -83,6 +87,9 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
     const handleClickOutside = (event: MouseEvent) => {
       if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
         setIsNotifOpen(false);
+        // Reset detail view when closing dropdown
+        // Use timeout to allow fade out animation if desired, or immediate
+        // setViewNotification(null); 
       }
       if (userRef.current && !userRef.current.contains(event.target as Node)) {
         setIsUserMenuOpen(false);
@@ -103,13 +110,45 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
     db.notifications.markAllRead();
   };
 
+  const handleMarkAsRead = (id: string) => {
+    const updated = notifications.map(n => n.id === id ? { ...n, read: true } : n);
+    db.notifications.set(updated);
+  };
+
   const handleLogoutClick = () => {
     setIsUserMenuOpen(false);
     // Direct logout without confirmation
     onLogout();
   };
 
+  const openNotificationDetail = (notif: AppNotification) => {
+    setViewNotification(notif);
+    // Do NOT close dropdown, just switch view
+    handleMarkAsRead(notif.id);
+  };
+
+  const closeNotificationDetail = () => {
+    setViewNotification(null);
+  };
+
   const unreadCount = notifications.filter(n => !n.read).length;
+
+  const getNotifIcon = (type: string) => {
+    switch(type) {
+      case 'alert': return <AlertCircle size={18} className="text-red-500" />;
+      case 'warning': return <AlertTriangle size={18} className="text-amber-500" />;
+      default: return <Info size={18} className="text-blue-500" />;
+    }
+  };
+
+  const getNotifBg = (type: string, read: boolean) => {
+    if (read) return 'hover:bg-slate-50 dark:hover:bg-slate-700/30';
+    switch(type) {
+      case 'alert': return 'bg-red-50/50 dark:bg-red-900/10 hover:bg-red-50 dark:hover:bg-red-900/20';
+      case 'warning': return 'bg-amber-50/50 dark:bg-amber-900/10 hover:bg-amber-50 dark:hover:bg-amber-900/20';
+      default: return 'bg-blue-50/50 dark:bg-blue-900/10 hover:bg-blue-50 dark:hover:bg-blue-900/20';
+    }
+  };
 
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden font-sans transition-colors duration-200">
@@ -136,7 +175,10 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
              {/* Notifications */}
              <div className="relative" ref={notifRef}>
                <button 
-                onClick={() => setIsNotifOpen(!isNotifOpen)}
+                onClick={() => {
+                    setIsNotifOpen(!isNotifOpen);
+                    if (isNotifOpen) setViewNotification(null); // Reset detail view when closing dropdown
+                }}
                 className={`relative p-2 transition-colors ${isNotifOpen ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 rounded-lg' : 'text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400'}`}
                >
                  <Bell size={20} />
@@ -148,36 +190,107 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                  )}
                </button>
 
-               {/* Notification Dropdown */}
+               {/* Notification Dropdown with Slide Effect */}
                {isNotifOpen && (
-                 <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
-                   <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
-                     <h3 className="font-semibold text-slate-800 dark:text-slate-100">Thông báo</h3>
-                     {unreadCount > 0 && (
-                       <button onClick={handleMarkAllRead} className="text-xs text-blue-600 hover:underline flex items-center gap-1 dark:text-blue-400">
-                         <Check size={12} /> Đánh dấu đã đọc
-                       </button>
-                     )}
-                   </div>
-                   <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
-                     {notifications.length === 0 ? (
-                       <div className="p-6 text-center text-slate-400 text-sm">Không có thông báo mới</div>
-                     ) : (
-                       notifications.map(notif => (
-                         <div key={notif.id} className={`p-4 border-b border-slate-50 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors ${!notif.read ? 'bg-blue-50/30 dark:bg-blue-900/10' : ''}`}>
-                            <div className="flex justify-between items-start mb-1">
-                              <span className={`text-sm font-medium ${notif.type === 'alert' ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-slate-200'}`}>
-                                {notif.type === 'alert' && '⚠️ '}{notif.title}
-                              </span>
-                              <span className="text-[10px] text-slate-400 whitespace-nowrap ml-2">{notif.time}</span>
-                            </div>
-                            <p className={`text-xs ${notif.read ? 'text-slate-400' : 'text-slate-600 dark:text-slate-300'}`}>{notif.message}</p>
-                         </div>
-                       ))
-                     )}
-                   </div>
-                   <div className="p-2 border-t border-slate-100 dark:border-slate-700 text-center">
-                     <button className="text-xs text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 font-medium w-full py-1">Xem tất cả</button>
+                 <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                   
+                   {/* Container with fixed height for smooth sliding */}
+                   <div className="relative overflow-hidden h-[450px]">
+                       <div 
+                          className="flex h-full transition-transform duration-300 ease-in-out"
+                          style={{ transform: viewNotification ? 'translateX(-100%)' : 'translateX(0)' }}
+                       >
+                          {/* PAGE 1: LIST VIEW */}
+                          <div className="w-full h-full shrink-0 flex flex-col">
+                             <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50 flex-none">
+                               <h3 className="font-semibold text-slate-800 dark:text-slate-100">Thông báo</h3>
+                               {unreadCount > 0 && (
+                                 <button onClick={handleMarkAllRead} className="text-xs text-blue-600 hover:underline flex items-center gap-1 dark:text-blue-400">
+                                   <Check size={12} /> Đánh dấu đã đọc
+                                 </button>
+                               )}
+                             </div>
+                             
+                             <div className="flex-1 overflow-y-auto custom-scrollbar">
+                               {notifications.length === 0 ? (
+                                 <div className="h-full flex flex-col items-center justify-center text-slate-400 text-sm">
+                                    <Bell size={32} className="mb-2 opacity-20"/>
+                                    Không có thông báo mới
+                                 </div>
+                               ) : (
+                                 notifications.slice(0, 5).map(notif => (
+                                   <div 
+                                      key={notif.id} 
+                                      onClick={() => openNotificationDetail(notif)}
+                                      className={`p-4 border-b border-slate-50 dark:border-slate-700 transition-colors cursor-pointer group ${getNotifBg(notif.type, notif.read)}`}
+                                   >
+                                      <div className="flex justify-between items-start mb-1 gap-2">
+                                        <div className="flex items-center gap-2">
+                                          {getNotifIcon(notif.type)}
+                                          <span className={`text-sm font-medium line-clamp-1 ${notif.read ? 'text-slate-600 dark:text-slate-400' : 'text-slate-900 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400'}`}>
+                                            {notif.title}
+                                          </span>
+                                        </div>
+                                        <span className="text-[10px] text-slate-400 whitespace-nowrap">{notif.time}</span>
+                                      </div>
+                                      <p className={`text-xs ml-6 line-clamp-2 ${notif.read ? 'text-slate-400' : 'text-slate-600 dark:text-slate-300'}`}>{notif.message}</p>
+                                   </div>
+                                 ))
+                               )}
+                             </div>
+                             
+                             <div className="p-2 border-t border-slate-100 dark:border-slate-700 text-center bg-slate-50/50 dark:bg-slate-800/50 flex-none">
+                               <button 
+                                  onClick={() => { setIsNotifOpen(false); setShowAllNotifications(true); }}
+                                  className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-bold w-full py-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
+                               >
+                                  Xem tất cả thông báo
+                               </button>
+                             </div>
+                          </div>
+
+                          {/* PAGE 2: DETAIL VIEW */}
+                          <div className="w-full h-full shrink-0 flex flex-col bg-slate-50/30 dark:bg-slate-900/10">
+                             {viewNotification && (
+                               <>
+                                 <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 bg-white dark:bg-slate-800 shadow-sm flex-none z-10">
+                                    <button 
+                                      onClick={closeNotificationDetail}
+                                      className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors text-slate-500 dark:text-slate-400"
+                                      title="Quay lại danh sách"
+                                    >
+                                      <ChevronLeft size={20}/>
+                                    </button>
+                                    <div className="flex-1 min-w-0">
+                                       <h3 className="font-bold text-sm text-slate-800 dark:text-white truncate">Chi tiết thông báo</h3>
+                                    </div>
+                                 </div>
+                                 
+                                 <div className="p-5 overflow-y-auto flex-1 custom-scrollbar bg-white dark:bg-slate-800">
+                                    <div className={`mb-4 p-3 rounded-lg flex items-start gap-3 ${
+                                       viewNotification.type === 'alert' ? 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200' : 
+                                       viewNotification.type === 'warning' ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200' : 
+                                       'bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200'
+                                    }`}>
+                                       <div className="mt-0.5 shrink-0">
+                                          {getNotifIcon(viewNotification.type)}
+                                       </div>
+                                       <div>
+                                          <h4 className="font-bold text-sm mb-1">{viewNotification.title}</h4>
+                                          <span className="text-[10px] opacity-80 flex items-center gap-1">
+                                             <Clock size={10}/> {viewNotification.time}
+                                          </span>
+                                       </div>
+                                    </div>
+                                    
+                                    <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                                       {viewNotification.message}
+                                    </div>
+                                 </div>
+                               </>
+                             )}
+                          </div>
+                       </div>
                    </div>
                  </div>
                )}
@@ -302,20 +415,93 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
 
         {/* AI Assistant Overlay - Conditionally Rendered */}
         {settings.features.enableAIAssistant && <AIAssistant />}
+
+        {/* === ALL NOTIFICATIONS MODAL === */}
+        {showAllNotifications && (
+          <div className="fixed inset-0 z-[5000] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+             <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl h-[80vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-slate-700">
+                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
+                   <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                      <Bell size={20} className="text-blue-600 dark:text-blue-400"/> Trung tâm thông báo
+                   </h3>
+                   <div className="flex items-center gap-2">
+                      {unreadCount > 0 && (
+                         <button 
+                            onClick={handleMarkAllRead} 
+                            className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-3 py-1.5 rounded-lg transition-colors mr-2"
+                         >
+                            Đánh dấu tất cả đã đọc
+                         </button>
+                      )}
+                      <button onClick={() => setShowAllNotifications(false)} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors text-slate-500">
+                         <X size={20}/>
+                      </button>
+                   </div>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50 dark:bg-slate-900/20 custom-scrollbar">
+                   {notifications.length === 0 ? (
+                      <div className="h-full flex flex-col items-center justify-center text-slate-400">
+                         <Bell size={48} className="mb-4 opacity-20"/>
+                         <p>Không có thông báo nào</p>
+                      </div>
+                   ) : (
+                      notifications.map(notif => (
+                         <div 
+                            key={notif.id} 
+                            onClick={() => {
+                               // Just expand in all notifications view for now, or could trigger slide in dropdown
+                               handleMarkAsRead(notif.id);
+                            }}
+                            className={`p-4 rounded-xl border transition-all cursor-default flex gap-4 ${
+                               notif.read 
+                                  ? 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700' 
+                                  : 'bg-blue-50/30 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/30'
+                            }`}
+                         >
+                            <div className={`mt-1 p-2 rounded-full h-fit ${
+                               notif.type === 'alert' ? 'bg-red-100 dark:bg-red-900/30 text-red-600' : 
+                               notif.type === 'warning' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600' : 
+                               'bg-blue-100 dark:bg-blue-900/30 text-blue-600'
+                            }`}>
+                               {getNotifIcon(notif.type)}
+                            </div>
+                            <div className="flex-1">
+                               <div className="flex justify-between items-start mb-1">
+                                  <h4 className={`text-sm font-bold ${notif.read ? 'text-slate-700 dark:text-slate-300' : 'text-slate-900 dark:text-white'}`}>
+                                     {notif.title}
+                                  </h4>
+                                  <span className="text-xs text-slate-400 whitespace-nowrap ml-2">{notif.time}</span>
+                               </div>
+                               <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                                  {notif.message}
+                               </p>
+                            </div>
+                            {!notif.read && (
+                               <div className="w-2 h-2 rounded-full bg-blue-500 mt-2"></div>
+                            )}
+                         </div>
+                      ))
+                   )}
+                </div>
+             </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
 };
 
 // Route Guard Component
-const ProtectedRoute = ({ children, role }: { children: React.ReactElement, role: 'admin' }) => {
+const ProtectedRoute = ({ children, role }: { children?: React.ReactNode, role: 'admin' }) => {
   const user = db.user.get();
   
   if (user.role !== role) {
     return <Navigate to="/" replace />;
   }
   
-  return children;
+  return <>{children}</>;
 };
 
 const App: React.FC = () => {
