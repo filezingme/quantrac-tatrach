@@ -19,9 +19,10 @@ import { DemoChartsView } from './views/DemoChartsView';
 import { UserProfileView } from './views/UserProfileView';
 import { SystemSettingsView } from './views/SystemSettingsView';
 import { UserManagementView } from './views/UserManagementView';
+import { AISafetyView } from './views/AISafetyView'; // New Import
 import { LoginView } from './views/LoginView';
 import { UIProvider, useUI } from './components/GlobalUI';
-import { AIAssistant } from './components/AIAssistant'; // Imported AI Assistant
+import { AIAssistant } from './components/AIAssistant'; 
 import { AppNotification, UserProfile, SystemSettings } from './types';
 import { Menu, Bell, Check, LogOut, User, Settings as SettingsIcon, X } from 'lucide-react';
 import { db } from './utils/db';
@@ -241,6 +242,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             <Route path="/" element={<DashboardView />} />
             <Route path="/dashboard" element={<DashboardView />} />
             <Route path="/map" element={<MapView />} />
+            <Route path="/ai-safety" element={<AISafetyView />} /> {/* New Route */}
             <Route path="/water-level" element={<WaterLevelView />} />
             <Route path="/forecast" element={<ForecastView />} />
             <Route path="/documents" element={<DocumentsView />} />
