@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Camera, Plus, Trash2, Radio, ExternalLink, X } from 'lucide-react';
+import { Camera, Plus, Trash2, ExternalLink, X, Grid, LayoutGrid, Monitor } from 'lucide-react';
 import { db } from '../utils/db';
 import { CameraInfo } from '../types';
 import { useUI } from '../components/GlobalUI';
@@ -7,6 +7,10 @@ import { useUI } from '../components/GlobalUI';
 export const CameraView: React.FC = () => {
   const [cameras, setCameras] = useState<CameraInfo[]>(db.cameras.get());
   const [selectedCamera, setSelectedCamera] = useState<CameraInfo | null>(null);
+  
+  // Grid View State (2, 3, or 4 columns)
+  const [gridCols, setGridCols] = useState<2 | 3 | 4>(2);
+  
   const ui = useUI();
 
   const handleAddCamera = () => {
@@ -86,6 +90,18 @@ export const CameraView: React.FC = () => {
     );
   };
 
+  // Dynamic Grid Class Calculation
+  const getGridClass = () => {
+    switch (gridCols) {
+      case 3:
+        return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
+      case 4:
+        return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
+      default: // 2 cols
+        return 'grid-cols-1 md:grid-cols-2';
+    }
+  };
+
   return (
     <>
       <div className="space-y-6 pb-10 animate-fade-in">
@@ -94,15 +110,46 @@ export const CameraView: React.FC = () => {
             <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Hệ thống Camera giám sát</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400">Kết nối trực tiếp với các camera tại hiện trường</p>
           </div>
-          <button 
-            onClick={handleAddCamera}
-            className="bg-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-700 flex items-center gap-2 shadow-md shadow-blue-200 dark:shadow-blue-900/50 transition-all"
-          >
-            <Plus size={18} /> Thêm Camera
-          </button>
+          
+          <div className="flex items-center gap-3 self-end md:self-auto">
+             {/* Grid View Controls (Hidden on mobile) */}
+             <div className="hidden md:flex items-center bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-1 shadow-sm">
+                <button 
+                  onClick={() => setGridCols(2)}
+                  className={`p-2 rounded-lg transition-all flex items-center gap-1.5 ${gridCols === 2 ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+                  title="2 Camera / Hàng"
+                >
+                   <Grid size={18} />
+                   <span className="text-xs font-bold">2</span>
+                </button>
+                <button 
+                  onClick={() => setGridCols(3)}
+                  className={`p-2 rounded-lg transition-all flex items-center gap-1.5 ${gridCols === 3 ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+                  title="3 Camera / Hàng"
+                >
+                   <LayoutGrid size={18} />
+                   <span className="text-xs font-bold">3</span>
+                </button>
+                <button 
+                  onClick={() => setGridCols(4)}
+                  className={`p-2 rounded-lg transition-all flex items-center gap-1.5 ${gridCols === 4 ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+                  title="4 Camera / Hàng"
+                >
+                   <Monitor size={18} />
+                   <span className="text-xs font-bold">4</span>
+                </button>
+             </div>
+
+             <button 
+               onClick={handleAddCamera}
+               className="bg-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-700 flex items-center gap-2 shadow-md shadow-blue-200 dark:shadow-blue-900/50 transition-all"
+             >
+               <Plus size={18} /> <span className="hidden sm:inline">Thêm Camera</span>
+             </button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className={`grid ${getGridClass()} gap-6 transition-all duration-300`}>
           {cameras.map((cam) => (
             <div key={cam.id} className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700 relative group flex flex-col hover:shadow-lg transition-all">
               <div className="relative aspect-video bg-slate-100 dark:bg-black">
@@ -130,21 +177,21 @@ export const CameraView: React.FC = () => {
               </div>
 
               <div className="p-4 border-t border-slate-100 dark:border-slate-700 flex justify-between items-center z-10 bg-white dark:bg-slate-800">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-50 dark:bg-slate-700/50 rounded-full">
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <div className="p-2 bg-blue-50 dark:bg-slate-700/50 rounded-full shrink-0">
                       <Camera size={18} className="text-blue-600 dark:text-blue-400" />
                   </div>
-                  <div>
-                      <span className="text-slate-800 dark:text-slate-200 font-bold block">{cam.name}</span>
-                      <span className="text-[10px] text-slate-500 font-mono uppercase">ID: {cam.id.slice(-6)}</span>
+                  <div className="min-w-0">
+                      <span className="text-slate-800 dark:text-slate-200 font-bold block truncate">{cam.name}</span>
+                      <span className="text-[10px] text-slate-500 font-mono uppercase truncate block">ID: {cam.id.slice(-6)}</span>
                   </div>
                 </div>
                 
                 <button 
                   onClick={() => setSelectedCamera(cam)}
-                  className="text-xs text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-300 flex items-center gap-1 transition-colors font-medium"
+                  className="text-xs text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-300 flex items-center gap-1 transition-colors font-medium shrink-0"
                 >
-                  Mở rộng <ExternalLink size={12}/>
+                  <span className="hidden sm:inline">Mở rộng</span> <ExternalLink size={12}/>
                 </button>
               </div>
             </div>
