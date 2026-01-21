@@ -15,6 +15,9 @@ export const ImageView: React.FC = () => {
   
   // File Input Ref for uploading
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Touch Handling Refs
+  const touchStartRef = useRef<{x: number, y: number} | null>(null);
 
   const activeGroup = groups.find(g => g.id === activeGroupId);
 
@@ -47,6 +50,51 @@ export const ImageView: React.FC = () => {
     if (newIndex >= count) newIndex = 0;
     
     setSelectedIndex(newIndex);
+  };
+
+  // --- Touch Handlers ---
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartRef.current = {
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY
+    };
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+    
+    const touchEnd = {
+      x: e.changedTouches[0].clientX,
+      y: e.changedTouches[0].clientY
+    };
+
+    const diffX = touchStartRef.current.x - touchEnd.x;
+    const diffY = touchStartRef.current.y - touchEnd.y;
+    const absDiffX = Math.abs(diffX);
+    const absDiffY = Math.abs(diffY);
+    const threshold = 50; // Minimum distance to be considered a swipe
+
+    // Ignore taps/small movements
+    if (Math.max(absDiffX, absDiffY) < threshold) {
+        touchStartRef.current = null;
+        return;
+    }
+
+    if (absDiffX > absDiffY) {
+      // Horizontal Swipe
+      if (diffX > 0) {
+        // Swiped Left -> Next Image
+        navigateImage(1);
+      } else {
+        // Swiped Right -> Previous Image
+        navigateImage(-1);
+      }
+    } else {
+      // Vertical Swipe -> Close Modal
+      setSelectedIndex(null);
+    }
+    
+    touchStartRef.current = null;
   };
 
   // --- Group Management ---
@@ -288,6 +336,8 @@ export const ImageView: React.FC = () => {
         <div 
           className="fixed inset-0 z-[5000] bg-slate-900/80 backdrop-blur-md flex flex-col animate-in fade-in duration-200"
           style={{ marginTop: 0 }}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
         >
            
            {/* Top Controls (Overlay) */}
@@ -308,10 +358,10 @@ export const ImageView: React.FC = () => {
              className="flex-1 w-full h-full flex items-center justify-center relative group select-none"
              onClick={() => setSelectedIndex(null)} // Click outside to close
            >
-              {/* Previous Button */}
+              {/* Previous Button - Hidden on Mobile */}
               <button 
                 onClick={(e) => { e.stopPropagation(); navigateImage(-1); }}
-                className="absolute left-4 top-1/2 -translate-y-1/2 p-3 text-white/50 hover:text-white bg-black/20 hover:bg-black/50 rounded-full backdrop-blur-md transition-all z-40 opacity-0 group-hover:opacity-100"
+                className="hidden md:block absolute left-4 top-1/2 -translate-y-1/2 p-3 text-white/50 hover:text-white bg-black/20 hover:bg-black/50 rounded-full backdrop-blur-md transition-all z-40 opacity-0 group-hover:opacity-100"
               >
                 <ChevronLeft size={32} />
               </button>
@@ -324,20 +374,24 @@ export const ImageView: React.FC = () => {
                 onClick={(e) => e.stopPropagation()} 
               />
 
-              {/* Next Button */}
+              {/* Next Button - Hidden on Mobile */}
               <button 
                 onClick={(e) => { e.stopPropagation(); navigateImage(1); }}
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-3 text-white/50 hover:text-white bg-black/20 hover:bg-black/50 rounded-full backdrop-blur-md transition-all z-40 opacity-0 group-hover:opacity-100"
+                className="hidden md:block absolute right-4 top-1/2 -translate-y-1/2 p-3 text-white/50 hover:text-white bg-black/20 hover:bg-black/50 rounded-full backdrop-blur-md transition-all z-40 opacity-0 group-hover:opacity-100"
               >
                 <ChevronRight size={32} />
               </button>
            </div>
 
            {/* Caption Footer (Overlay) */}
-           <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent text-center pb-8 z-40 pointer-events-none">
+           <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent text-center pb-8 z-40 pointer-events-none flex flex-col items-center gap-2">
               <h3 className="text-white font-bold text-lg pointer-events-auto inline-block drop-shadow-md">
                 {activeGroup.images[selectedIndex].title}
               </h3>
+              {/* Mobile Interaction Hint */}
+              <p className="text-white/60 text-xs md:hidden animate-pulse">
+                Vuốt ngang để chuyển ảnh • Vuốt dọc để đóng
+              </p>
            </div>
         </div>
       )}
