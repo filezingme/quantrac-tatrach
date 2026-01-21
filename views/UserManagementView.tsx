@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, Plus, Filter, MoreVertical, Edit, Trash2, Shield, User, 
-  CheckCircle, XCircle, Key, ChevronLeft, ChevronRight, Lock
+  CheckCircle, XCircle, Key, ChevronLeft, ChevronRight, Lock, AlertCircle
 } from 'lucide-react';
 import { db } from '../utils/db';
 import { UserProfile } from '../types';
@@ -27,6 +27,10 @@ export const UserManagementView: React.FC = () => {
   const [newUserForm, setNewUserForm] = useState({ username: '', name: '', email: '', role: 'user', password: '' });
   const [passForm, setPassForm] = useState({ new: '', confirm: '' });
 
+  // Inline Errors
+  const [addError, setAddError] = useState('');
+  const [passError, setPassError] = useState('');
+
   const ui = useUI();
 
   useEffect(() => {
@@ -48,14 +52,15 @@ export const UserManagementView: React.FC = () => {
   const paginatedUsers = filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleAddUser = () => {
+    setAddError('');
     if(!newUserForm.username || !newUserForm.password || !newUserForm.name) {
-        ui.showToast('error', 'Vui lòng điền đầy đủ thông tin bắt buộc');
+        setAddError('Vui lòng điền đầy đủ thông tin bắt buộc');
         return;
     }
 
     // Check duplicate
     if(users.some(u => u.username === newUserForm.username)) {
-        ui.showToast('error', 'Tên đăng nhập đã tồn tại');
+        setAddError('Tên đăng nhập đã tồn tại');
         return;
     }
 
@@ -96,8 +101,9 @@ export const UserManagementView: React.FC = () => {
   };
 
   const handleChangePassword = () => {
+     setPassError('');
      if(!passForm.new || passForm.new !== passForm.confirm) {
-         ui.showToast('error', 'Mật khẩu không khớp hoặc để trống');
+         setPassError('Mật khẩu không khớp hoặc để trống');
          return;
      }
      if(selectedUser) {
@@ -112,9 +118,15 @@ export const UserManagementView: React.FC = () => {
   };
 
   const openPassModal = (user: UserProfile) => {
+      setPassError('');
       setSelectedUser(user);
       setIsPassModalOpen(true);
   };
+
+  const openAddModal = () => {
+      setAddError('');
+      setIsAddModalOpen(true);
+  }
 
   return (
     <div className="space-y-6 animate-fade-in pb-10">
@@ -124,7 +136,7 @@ export const UserManagementView: React.FC = () => {
              <p className="text-sm text-slate-500 dark:text-slate-400">Quản lý tài khoản và phân quyền truy cập hệ thống</p>
          </div>
          <button 
-           onClick={() => setIsAddModalOpen(true)}
+           onClick={openAddModal}
            className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-blue-200 dark:shadow-blue-900/50 hover:bg-blue-700 transition-all flex items-center gap-2"
          >
            <Plus size={18}/> Thêm người dùng
@@ -282,13 +294,22 @@ export const UserManagementView: React.FC = () => {
 
       {/* Add User Modal */}
       {isAddModalOpen && (
-          <div className="fixed inset-0 z-[1000] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[5000] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4" style={{ marginTop: 0 }}>
               <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
                   <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
                       <h3 className="font-bold text-slate-800 dark:text-white">Thêm người dùng mới</h3>
                       <button onClick={() => setIsAddModalOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><XCircle size={20}/></button>
                   </div>
+                  
                   <div className="p-6 space-y-4">
+                      {/* Inline Error */}
+                      {addError && (
+                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm flex items-start gap-2">
+                           <AlertCircle size={18} className="shrink-0 mt-0.5"/>
+                           <span>{addError}</span>
+                        </div>
+                      )}
+
                       <div>
                           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tên đăng nhập *</label>
                           <input 
@@ -353,13 +374,22 @@ export const UserManagementView: React.FC = () => {
 
       {/* Change Password Modal */}
       {isPassModalOpen && selectedUser && (
-          <div className="fixed inset-0 z-[1000] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[5000] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4" style={{ marginTop: 0 }}>
               <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
                   <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
                       <h3 className="font-bold text-slate-800 dark:text-white">Đổi mật khẩu: {selectedUser.username}</h3>
                       <button onClick={() => setIsPassModalOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><XCircle size={20}/></button>
                   </div>
+                  
                   <div className="p-6 space-y-4">
+                      {/* Inline Error */}
+                      {passError && (
+                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm flex items-start gap-2">
+                           <AlertCircle size={18} className="shrink-0 mt-0.5"/>
+                           <span>{passError}</span>
+                        </div>
+                      )}
+
                       <div>
                           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Mật khẩu mới</label>
                           <div className="relative">
