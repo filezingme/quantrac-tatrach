@@ -4,55 +4,35 @@ import { db } from '../utils/db';
 import { CameraInfo } from '../types';
 import { useUI } from '../components/GlobalUI';
 
-// Custom Icons for precise grid visualization (CCTV Style with padding)
+// Custom Icons for grid visualization (Line style, no padding)
+
+// 2 Rows - 2 Columns
 const IconGrid2 = ({ size = 18, className = "" }: { size?: number, className?: string }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <rect x="3.5" y="3.5" width="7" height="7" rx="1" />
-    <rect x="13.5" y="3.5" width="7" height="7" rx="1" />
-    <rect x="3.5" y="13.5" width="7" height="7" rx="1" />
-    <rect x="13.5" y="13.5" width="7" height="7" rx="1" />
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <line x1="3" y1="12" x2="21" y2="12" />
+    <line x1="12" y1="3" x2="12" y2="21" />
   </svg>
 );
 
+// 2 Rows - 3 Columns
 const IconGrid3 = ({ size = 18, className = "" }: { size?: number, className?: string }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    {/* Row 1 */}
-    <rect x="2.5" y="2.5" width="5" height="5" rx="1" />
-    <rect x="9.5" y="2.5" width="5" height="5" rx="1" />
-    <rect x="16.5" y="2.5" width="5" height="5" rx="1" />
-    {/* Row 2 */}
-    <rect x="2.5" y="9.5" width="5" height="5" rx="1" />
-    <rect x="9.5" y="9.5" width="5" height="5" rx="1" />
-    <rect x="16.5" y="9.5" width="5" height="5" rx="1" />
-    {/* Row 3 */}
-    <rect x="2.5" y="16.5" width="5" height="5" rx="1" />
-    <rect x="9.5" y="16.5" width="5" height="5" rx="1" />
-    <rect x="16.5" y="16.5" width="5" height="5" rx="1" />
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <line x1="3" y1="12" x2="21" y2="12" />
+    <line x1="9" y1="3" x2="9" y2="21" />
+    <line x1="15" y1="3" x2="15" y2="21" />
   </svg>
 );
 
+// 2 Rows - 4 Columns
 const IconGrid4 = ({ size = 18, className = "" }: { size?: number, className?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    {/* Row 1 */}
-    <rect x="2.5" y="2.5" width="4" height="4" rx="0.5" />
-    <rect x="8" y="2.5" width="4" height="4" rx="0.5" />
-    <rect x="13.5" y="2.5" width="4" height="4" rx="0.5" />
-    <rect x="19" y="2.5" width="4" height="4" rx="0.5" />
-    {/* Row 2 */}
-    <rect x="2.5" y="8" width="4" height="4" rx="0.5" />
-    <rect x="8" y="8" width="4" height="4" rx="0.5" />
-    <rect x="13.5" y="8" width="4" height="4" rx="0.5" />
-    <rect x="19" y="8" width="4" height="4" rx="0.5" />
-    {/* Row 3 */}
-    <rect x="2.5" y="13.5" width="4" height="4" rx="0.5" />
-    <rect x="8" y="13.5" width="4" height="4" rx="0.5" />
-    <rect x="13.5" y="13.5" width="4" height="4" rx="0.5" />
-    <rect x="19" y="13.5" width="4" height="4" rx="0.5" />
-    {/* Row 4 */}
-    <rect x="2.5" y="19" width="4" height="4" rx="0.5" />
-    <rect x="8" y="19" width="4" height="4" rx="0.5" />
-    <rect x="13.5" y="19" width="4" height="4" rx="0.5" />
-    <rect x="19" y="19" width="4" height="4" rx="0.5" />
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="2" y="3" width="20" height="18" rx="2" />
+    <line x1="2" y1="12" x2="22" y2="12" />
+    <line x1="7" y1="3" x2="7" y2="21" />
+    <line x1="12" y1="3" x2="12" y2="21" />
+    <line x1="17" y1="3" x2="17" y2="21" />
   </svg>
 );
 
