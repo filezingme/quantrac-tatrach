@@ -88,8 +88,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
       if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
         setIsNotifOpen(false);
         // Reset detail view when closing dropdown
-        // Use timeout to allow fade out animation if desired, or immediate
-        // setViewNotification(null); 
+        if (isNotifOpen) setViewNotification(null);
       }
       if (userRef.current && !userRef.current.contains(event.target as Node)) {
         setIsUserMenuOpen(false);
@@ -97,7 +96,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [isNotifOpen]);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
@@ -123,7 +122,6 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
 
   const openNotificationDetail = (notif: AppNotification) => {
     setViewNotification(notif);
-    // Do NOT close dropdown, just switch view
     handleMarkAsRead(notif.id);
   };
 
@@ -211,7 +209,8 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                                )}
                              </div>
                              
-                             <div className="flex-1 overflow-y-auto custom-scrollbar">
+                             {/* Use custom hover-scrollbar class */}
+                             <div className="flex-1 hover-scrollbar">
                                {notifications.length === 0 ? (
                                  <div className="h-full flex flex-col items-center justify-center text-slate-400 text-sm">
                                     <Bell size={32} className="mb-2 opacity-20"/>
@@ -249,7 +248,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                              </div>
                           </div>
 
-                          {/* PAGE 2: DETAIL VIEW */}
+                          {/* PAGE 2: DETAIL VIEW (Dropdown) */}
                           <div className="w-full h-full shrink-0 flex flex-col bg-slate-50/30 dark:bg-slate-900/10">
                              {viewNotification && (
                                <>
@@ -266,7 +265,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                                     </div>
                                  </div>
                                  
-                                 <div className="p-5 overflow-y-auto flex-1 custom-scrollbar bg-white dark:bg-slate-800">
+                                 <div className="p-5 overflow-y-auto flex-1 hover-scrollbar bg-white dark:bg-slate-800">
                                     <div className={`mb-4 p-3 rounded-lg flex items-start gap-3 ${
                                        viewNotification.type === 'alert' ? 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200' : 
                                        viewNotification.type === 'warning' ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200' : 
@@ -416,73 +415,134 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
         {/* AI Assistant Overlay - Conditionally Rendered */}
         {settings.features.enableAIAssistant && <AIAssistant />}
 
-        {/* === ALL NOTIFICATIONS MODAL === */}
+        {/* === ALL NOTIFICATIONS MODAL (SLIDING) === */}
         {showAllNotifications && (
           <div className="fixed inset-0 z-[5000] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl h-[80vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-slate-700">
-                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
-                   <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                      <Bell size={20} className="text-blue-600 dark:text-blue-400"/> Trung tâm thông báo
-                   </h3>
-                   <div className="flex items-center gap-2">
-                      {unreadCount > 0 && (
-                         <button 
-                            onClick={handleMarkAllRead} 
-                            className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-3 py-1.5 rounded-lg transition-colors mr-2"
-                         >
-                            Đánh dấu tất cả đã đọc
-                         </button>
-                      )}
-                      <button onClick={() => setShowAllNotifications(false)} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors text-slate-500">
-                         <X size={20}/>
-                      </button>
-                   </div>
-                </div>
-                
-                <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50 dark:bg-slate-900/20 custom-scrollbar">
-                   {notifications.length === 0 ? (
-                      <div className="h-full flex flex-col items-center justify-center text-slate-400">
-                         <Bell size={48} className="mb-4 opacity-20"/>
-                         <p>Không có thông báo nào</p>
-                      </div>
-                   ) : (
-                      notifications.map(notif => (
-                         <div 
-                            key={notif.id} 
-                            onClick={() => {
-                               // Just expand in all notifications view for now, or could trigger slide in dropdown
-                               handleMarkAsRead(notif.id);
-                            }}
-                            className={`p-4 rounded-xl border transition-all cursor-default flex gap-4 ${
-                               notif.read 
-                                  ? 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700' 
-                                  : 'bg-blue-50/30 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/30'
-                            }`}
-                         >
-                            <div className={`mt-1 p-2 rounded-full h-fit ${
-                               notif.type === 'alert' ? 'bg-red-100 dark:bg-red-900/30 text-red-600' : 
-                               notif.type === 'warning' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600' : 
-                               'bg-blue-100 dark:bg-blue-900/30 text-blue-600'
-                            }`}>
-                               {getNotifIcon(notif.type)}
+                {/* Sliding Container for Modal */}
+                <div className="relative overflow-hidden flex-1 flex flex-col">
+                   <div 
+                      className="flex h-full w-full transition-transform duration-300 ease-in-out"
+                      style={{ transform: viewNotification ? 'translateX(-100%)' : 'translateX(0)' }}
+                   >
+                      {/* PANE 1: LIST VIEW */}
+                      <div className="w-full h-full shrink-0 flex flex-col">
+                         <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 flex-none">
+                            <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                               <Bell size={20} className="text-blue-600 dark:text-blue-400"/> Trung tâm thông báo
+                            </h3>
+                            <div className="flex items-center gap-2">
+                               {unreadCount > 0 && (
+                                  <button 
+                                     onClick={handleMarkAllRead} 
+                                     className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-3 py-1.5 rounded-lg transition-colors mr-2"
+                                  >
+                                     Đánh dấu tất cả đã đọc
+                                  </button>
+                               )}
+                               <button 
+                                  onClick={() => { setShowAllNotifications(false); setViewNotification(null); }} 
+                                  className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors text-slate-500"
+                               >
+                                  <X size={20}/>
+                               </button>
                             </div>
-                            <div className="flex-1">
-                               <div className="flex justify-between items-start mb-1">
-                                  <h4 className={`text-sm font-bold ${notif.read ? 'text-slate-700 dark:text-slate-300' : 'text-slate-900 dark:text-white'}`}>
-                                     {notif.title}
-                                  </h4>
-                                  <span className="text-xs text-slate-400 whitespace-nowrap ml-2">{notif.time}</span>
+                         </div>
+                         
+                         <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50 dark:bg-slate-900/20 hover-scrollbar">
+                            {notifications.length === 0 ? (
+                               <div className="h-full flex flex-col items-center justify-center text-slate-400">
+                                  <Bell size={48} className="mb-4 opacity-20"/>
+                                  <p>Không có thông báo nào</p>
                                </div>
-                               <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                                  {notif.message}
-                               </p>
-                            </div>
-                            {!notif.read && (
-                               <div className="w-2 h-2 rounded-full bg-blue-500 mt-2"></div>
+                            ) : (
+                               notifications.map(notif => (
+                                  <div 
+                                     key={notif.id} 
+                                     onClick={() => openNotificationDetail(notif)}
+                                     className={`p-4 rounded-xl border transition-all cursor-pointer hover:shadow-md flex gap-4 ${
+                                        notif.read 
+                                           ? 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700' 
+                                           : 'bg-blue-50/30 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/30'
+                                     }`}
+                                  >
+                                     <div className={`mt-1 p-2 rounded-full h-fit ${
+                                        notif.type === 'alert' ? 'bg-red-100 dark:bg-red-900/30 text-red-600' : 
+                                        notif.type === 'warning' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600' : 
+                                        'bg-blue-100 dark:bg-blue-900/30 text-blue-600'
+                                     }`}>
+                                        {getNotifIcon(notif.type)}
+                                     </div>
+                                     <div className="flex-1">
+                                        <div className="flex justify-between items-start mb-1">
+                                           <h4 className={`text-sm font-bold ${notif.read ? 'text-slate-700 dark:text-slate-300' : 'text-slate-900 dark:text-white'}`}>
+                                              {notif.title}
+                                           </h4>
+                                           <span className="text-xs text-slate-400 whitespace-nowrap ml-2">{notif.time}</span>
+                                        </div>
+                                        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-2">
+                                           {notif.message}
+                                        </p>
+                                     </div>
+                                     {!notif.read && (
+                                        <div className="w-2 h-2 rounded-full bg-blue-500 mt-2"></div>
+                                     )}
+                                  </div>
+                               ))
                             )}
                          </div>
-                      ))
-                   )}
+                      </div>
+
+                      {/* PANE 2: DETAIL VIEW */}
+                      <div className="w-full h-full shrink-0 flex flex-col bg-slate-50/30 dark:bg-slate-900/10">
+                         {viewNotification && (
+                            <>
+                               <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 bg-white dark:bg-slate-800 shadow-sm flex-none z-10">
+                                  <button 
+                                    onClick={closeNotificationDetail}
+                                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors text-slate-500 dark:text-slate-400"
+                                    title="Quay lại danh sách"
+                                  >
+                                    <ChevronLeft size={24}/>
+                                  </button>
+                                  <div className="flex-1 min-w-0">
+                                     <h3 className="font-bold text-lg text-slate-800 dark:text-white truncate">Chi tiết thông báo</h3>
+                                  </div>
+                                  <button 
+                                     onClick={() => { setShowAllNotifications(false); setViewNotification(null); }}
+                                     className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors text-slate-500"
+                                  >
+                                     <X size={20}/>
+                                  </button>
+                               </div>
+                               
+                               <div className="p-8 overflow-y-auto flex-1 hover-scrollbar bg-white dark:bg-slate-800">
+                                  <div className={`mb-6 p-4 rounded-xl flex items-start gap-4 ${
+                                     viewNotification.type === 'alert' ? 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200' : 
+                                     viewNotification.type === 'warning' ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200' : 
+                                     'bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200'
+                                  }`}>
+                                     <div className="mt-1 shrink-0 p-2 bg-white/50 dark:bg-black/10 rounded-full">
+                                        {getNotifIcon(viewNotification.type)}
+                                     </div>
+                                     <div className="flex-1">
+                                        <h4 className="font-bold text-lg mb-2">{viewNotification.title}</h4>
+                                        <span className="text-xs opacity-80 flex items-center gap-1.5 font-medium">
+                                           <Clock size={12}/> {viewNotification.time}
+                                        </span>
+                                     </div>
+                                  </div>
+                                  
+                                  <div className="prose dark:prose-invert max-w-none">
+                                     <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap text-base">
+                                        {viewNotification.message}
+                                     </p>
+                                  </div>
+                               </div>
+                            </>
+                         )}
+                      </div>
+                   </div>
                 </div>
              </div>
           </div>
