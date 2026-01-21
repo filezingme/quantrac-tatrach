@@ -129,14 +129,14 @@ export const OperationView: React.FC = () => {
                            <input 
                              value={row.col1} 
                              onChange={e => handleUpdateCell(activeTable.id, row.id, 'col1', e.target.value)} 
-                             className="w-full bg-transparent outline-none focus:border-blue-500 border-b border-transparent transition-colors text-slate-700 dark:text-slate-300"
+                             className="w-full bg-transparent outline-none focus:border-blue-500 border-b border-transparent transition-colors text-slate-600 dark:text-slate-400 focus:text-slate-800 dark:focus:text-slate-200"
                            />
                          </td>
                          <td className="px-6 py-2">
                            <input 
                              value={row.col2} 
                              onChange={e => handleUpdateCell(activeTable.id, row.id, 'col2', e.target.value)} 
-                             className="w-full bg-transparent outline-none focus:border-blue-500 border-b border-transparent transition-colors text-slate-700 dark:text-slate-300"
+                             className="w-full bg-transparent outline-none focus:border-blue-500 border-b border-transparent transition-colors text-slate-600 dark:text-slate-400 focus:text-slate-800 dark:focus:text-slate-200"
                            />
                          </td>
                          {row.col3 !== undefined && (
@@ -144,7 +144,7 @@ export const OperationView: React.FC = () => {
                               <input 
                                 value={row.col3} 
                                 onChange={e => handleUpdateCell(activeTable.id, row.id, 'col3', e.target.value)} 
-                                className="w-full bg-transparent outline-none focus:border-blue-500 border-b border-transparent transition-colors font-medium text-slate-800 dark:text-slate-200"
+                                className="w-full bg-transparent outline-none focus:border-blue-500 border-b border-transparent transition-colors font-medium text-slate-600 dark:text-slate-300 focus:text-slate-800 dark:focus:text-slate-100"
                               />
                            </td>
                          )}

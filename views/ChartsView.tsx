@@ -95,15 +95,15 @@ export const ChartsView: React.FC = () => {
                </tr>
              </thead>
              <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-               <tr className="border-b dark:border-slate-700">
-                 <td className="px-4 py-2"><input defaultValue="01/01" className="w-full bg-transparent text-slate-700 dark:text-slate-300 outline-none"/></td>
-                 <td className="px-4 py-2"><input defaultValue="15/04" className="w-full bg-transparent text-slate-700 dark:text-slate-300 outline-none"/></td>
-                 <td className="px-4 py-2"><input defaultValue="25.0" className="w-full bg-transparent font-medium text-slate-800 dark:text-white outline-none"/></td>
+               <tr className="border-b dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                 <td className="px-4 py-2"><input defaultValue="01/01" className="w-full bg-transparent text-slate-600 dark:text-slate-400 outline-none focus:text-slate-800 dark:focus:text-slate-200 transition-colors"/></td>
+                 <td className="px-4 py-2"><input defaultValue="15/04" className="w-full bg-transparent text-slate-600 dark:text-slate-400 outline-none focus:text-slate-800 dark:focus:text-slate-200 transition-colors"/></td>
+                 <td className="px-4 py-2"><input defaultValue="25.0" className="w-full bg-transparent font-medium text-slate-600 dark:text-slate-300 outline-none focus:text-slate-800 dark:focus:text-slate-100 transition-colors"/></td>
                </tr>
-                <tr>
-                 <td className="px-4 py-2"><input defaultValue="16/04" className="w-full bg-transparent text-slate-700 dark:text-slate-300 outline-none"/></td>
-                 <td className="px-4 py-2"><input defaultValue="31/08" className="w-full bg-transparent text-slate-700 dark:text-slate-300 outline-none"/></td>
-                 <td className="px-4 py-2"><input defaultValue="23.0" className="w-full bg-transparent font-medium text-slate-800 dark:text-white outline-none"/></td>
+                <tr className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                 <td className="px-4 py-2"><input defaultValue="16/04" className="w-full bg-transparent text-slate-600 dark:text-slate-400 outline-none focus:text-slate-800 dark:focus:text-slate-200 transition-colors"/></td>
+                 <td className="px-4 py-2"><input defaultValue="31/08" className="w-full bg-transparent text-slate-600 dark:text-slate-400 outline-none focus:text-slate-800 dark:focus:text-slate-200 transition-colors"/></td>
+                 <td className="px-4 py-2"><input defaultValue="23.0" className="w-full bg-transparent font-medium text-slate-600 dark:text-slate-300 outline-none focus:text-slate-800 dark:focus:text-slate-100 transition-colors"/></td>
                </tr>
              </tbody>
            </table>

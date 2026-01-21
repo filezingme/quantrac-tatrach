@@ -289,7 +289,7 @@ export const DemoChartsView: React.FC = () => {
           </ResponsiveContainer>
          );
       
-      case 'percent-area': // New Percent Area
+      case 'percent-area': { // Added block scope
          const toPercent = (decimal: number, fixed = 0) => `${(decimal * 100).toFixed(fixed)}%`;
          const getPercent = (value: number, total: number) => {
             const ratio = total > 0 ? value / total : 0;
@@ -323,6 +323,7 @@ export const DemoChartsView: React.FC = () => {
             </AreaChart>
           </ResponsiveContainer>
          );
+      }
       
       case 'synchronized': // New Sync Charts
          return (
@@ -554,7 +555,10 @@ export const DemoChartsView: React.FC = () => {
 
       {/* FULLSCREEN MODAL */}
       {fullScreenChart && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+        <div 
+          className="fixed inset-0 z-[5000] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+          style={{ marginTop: 0 }}
+        >
           <div className="bg-white dark:bg-slate-800 w-full h-full max-w-[95vw] max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
             <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
               <h3 className="text-lg font-bold text-slate-800 dark:text-white uppercase flex items-center gap-2">

@@ -422,7 +422,7 @@ export const WaterLevelView: React.FC = () => {
                       </td>
                       <td className="px-6 py-2">
                          <div className="flex items-center justify-between">
-                            <span className="font-medium text-slate-700 dark:text-slate-300">{formattedDisplayTime}</span>
+                            <span className="font-medium text-slate-600 dark:text-slate-400">{formattedDisplayTime}</span>
                             <input 
                               type="datetime-local"
                               value={formatForInput(d)}
@@ -439,7 +439,7 @@ export const WaterLevelView: React.FC = () => {
                              step="0.01"
                              value={row.level}
                              onChange={(e) => handleUpdateRecord(row.id, 'level', e.target.value)}
-                             className="w-full font-bold text-blue-700 dark:text-blue-400 bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-slate-600 focus:border-blue-500 focus:bg-white dark:focus:bg-slate-700 rounded px-3 py-1.5 outline-none transition-all pl-3"
+                             className="w-full font-bold text-blue-600 dark:text-blue-400 bg-transparent border border-transparent hover:border-slate-300 dark:hover:border-slate-600 focus:border-blue-500 focus:bg-white dark:focus:bg-slate-700 rounded px-3 py-1.5 outline-none transition-all pl-3"
                            />
                            <span className="absolute right-8 top-1.5 text-xs text-slate-400 pointer-events-none group-hover:opacity-0">m</span>
                         </div>

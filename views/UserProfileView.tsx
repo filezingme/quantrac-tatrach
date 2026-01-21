@@ -160,7 +160,7 @@ export const UserProfileView: React.FC = () => {
                                         setPasswordForm({...passwordForm, current: e.target.value});
                                         if(passwordError) setPasswordError('');
                                     }}
-                                    className={`w-full border rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white ${passwordError ? 'border-red-300 dark:border-red-800' : 'border-slate-200 dark:border-slate-600'}`}
+                                    className={`w-full border rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 focus:text-slate-900 dark:focus:text-white transition-colors ${passwordError ? 'border-red-300 dark:border-red-800' : 'border-slate-200 dark:border-slate-600'}`}
                                     placeholder="••••••••"
                                 />
                                 <Lock className="absolute left-3 top-2.5 text-slate-400" size={16} />
@@ -176,7 +176,7 @@ export const UserProfileView: React.FC = () => {
                                         setPasswordForm({...passwordForm, new: e.target.value});
                                         if(passwordError) setPasswordError('');
                                     }}
-                                    className={`w-full border rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white ${passwordError ? 'border-red-300 dark:border-red-800' : 'border-slate-200 dark:border-slate-600'}`}
+                                    className={`w-full border rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 focus:text-slate-900 dark:focus:text-white transition-colors ${passwordError ? 'border-red-300 dark:border-red-800' : 'border-slate-200 dark:border-slate-600'}`}
                                     placeholder="••••••••"
                                 />
                                 <Lock className="absolute left-3 top-2.5 text-slate-400" size={16} />
@@ -192,7 +192,7 @@ export const UserProfileView: React.FC = () => {
                                         setPasswordForm({...passwordForm, confirm: e.target.value});
                                         if(passwordError) setPasswordError('');
                                     }}
-                                    className={`w-full border rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white ${passwordError ? 'border-red-300 dark:border-red-800' : 'border-slate-200 dark:border-slate-600'}`}
+                                    className={`w-full border rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 focus:text-slate-900 dark:focus:text-white transition-colors ${passwordError ? 'border-red-300 dark:border-red-800' : 'border-slate-200 dark:border-slate-600'}`}
                                     placeholder="••••••••"
                                 />
                                 <Lock className="absolute left-3 top-2.5 text-slate-400" size={16} />
@@ -221,7 +221,7 @@ const InputGroup = ({ label, value, onChange, icon, type = "text" }: { label: st
                 type={type} 
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                className="w-full border border-slate-200 dark:border-slate-600 rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-slate-800 dark:text-white font-medium bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 transition-colors"
+                className="w-full border border-slate-200 dark:border-slate-600 rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-slate-600 dark:text-slate-300 font-medium bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 focus:text-slate-900 dark:focus:text-white transition-colors"
             />
             <div className="absolute left-3 top-2.5 text-slate-400">
                 {icon}

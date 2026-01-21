@@ -110,7 +110,7 @@ export const SystemSettingsView: React.FC = () => {
                                         type="text" 
                                         value={settings.appName}
                                         onChange={(e) => handleChange('appName', e.target.value)}
-                                        className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-slate-700 dark:text-white"
+                                        className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 focus:text-slate-900 dark:focus:text-white"
                                     />
                                 </div>
                                 <div>
@@ -118,7 +118,7 @@ export const SystemSettingsView: React.FC = () => {
                                     <select 
                                         value={settings.dateFormat}
                                         onChange={(e) => handleChange('dateFormat', e.target.value)}
-                                        className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-700 dark:text-white"
+                                        className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 focus:text-slate-900 dark:focus:text-white"
                                     >
                                         <option value="DD/MM/YYYY">DD/MM/YYYY (Việt Nam)</option>
                                         <option value="MM/DD/YYYY">MM/DD/YYYY (US)</option>
@@ -240,7 +240,7 @@ export const SystemSettingsView: React.FC = () => {
                                         type="number" 
                                         value={settings.notifications.alertThresholdLevel}
                                         onChange={(e) => setSettings(prev => ({...prev, notifications: {...prev.notifications, alertThresholdLevel: parseFloat(e.target.value)}}))}
-                                        className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 outline-none font-bold text-red-600 dark:bg-slate-700"
+                                        className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 outline-none font-bold text-red-600/80 dark:bg-slate-700 focus:text-red-600"
                                     />
                                     <span className="flex items-center text-slate-500 dark:text-slate-400 text-sm">m</span>
                                 </div>
@@ -265,7 +265,7 @@ export const SystemSettingsView: React.FC = () => {
                                     <select 
                                         value={settings.backupFrequency}
                                         onChange={(e) => handleChange('backupFrequency', e.target.value)}
-                                        className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-700 dark:text-white"
+                                        className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 focus:text-slate-900 dark:focus:text-white"
                                     >
                                         <option value="daily">Hàng ngày (00:00)</option>
                                         <option value="weekly">Hàng tuần (Chủ nhật)</option>

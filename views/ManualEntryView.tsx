@@ -104,7 +104,7 @@ export const ManualEntryView: React.FC = () => {
                   type="number" 
                   value={formData.waterLevel}
                   onChange={(e) => handleChange('waterLevel', parseFloat(e.target.value))}
-                  className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white dark:bg-slate-700 text-slate-900 dark:text-white" 
+                  className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 focus:text-slate-900 dark:focus:text-white" 
                 />
               </div>
               <div>
@@ -113,7 +113,7 @@ export const ManualEntryView: React.FC = () => {
                   type="number" 
                    value={formData.capacity}
                   onChange={(e) => handleChange('capacity', parseFloat(e.target.value))}
-                  className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white dark:bg-slate-700 text-slate-900 dark:text-white" 
+                  className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 focus:text-slate-900 dark:focus:text-white" 
                 />
               </div>
               <div>
@@ -122,7 +122,7 @@ export const ManualEntryView: React.FC = () => {
                   type="number" 
                    value={formData.downstream[0]?.level || 0}
                   onChange={(e) => handleDownstreamChange(parseFloat(e.target.value))}
-                  className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white dark:bg-slate-700 text-slate-900 dark:text-white" 
+                  className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 focus:text-slate-900 dark:focus:text-white" 
                 />
                 {formData.downstream[0] && <p className="text-xs text-slate-400 mt-1">{formData.downstream[0].name}</p>}
               </div>
@@ -132,7 +132,7 @@ export const ManualEntryView: React.FC = () => {
                   type="number" 
                    value={formData.inflow}
                   onChange={(e) => handleChange('inflow', parseFloat(e.target.value))}
-                  className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all bg-emerald-50/30 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-slate-900 dark:text-white" 
+                  className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all bg-emerald-50/30 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-slate-600 dark:text-slate-300 focus:text-slate-900 dark:focus:text-white" 
                 />
               </div>
               <div>
@@ -141,7 +141,7 @@ export const ManualEntryView: React.FC = () => {
                   type="number" 
                    value={formData.outflow}
                   onChange={(e) => handleChange('outflow', parseFloat(e.target.value))}
-                  className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all bg-amber-50/30 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-slate-900 dark:text-white" 
+                  className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all bg-amber-50/30 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-slate-600 dark:text-slate-300 focus:text-slate-900 dark:focus:text-white" 
                 />
               </div>
             </div>
@@ -160,7 +160,7 @@ export const ManualEntryView: React.FC = () => {
                     type="number" 
                     value={station.data.current}
                     onChange={(e) => handleRainfallChange(station.id, e.target.value)}
-                    className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-center font-medium bg-white dark:bg-slate-700 text-slate-900 dark:text-white" 
+                    className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-center font-medium bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 focus:text-slate-900 dark:focus:text-white" 
                   />
                 </div>
               ))}
