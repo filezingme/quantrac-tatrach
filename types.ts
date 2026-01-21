@@ -15,7 +15,8 @@ export enum ViewMode {
   WATER_LEVEL = 'water_level',
   DEMO_CHARTS = 'demo_charts',
   USER_PROFILE = 'user_profile',
-  SYSTEM_SETTINGS = 'system_settings'
+  SYSTEM_SETTINGS = 'system_settings',
+  USER_MANAGEMENT = 'user_management'
 }
 
 export interface WaterLevelRecord {
@@ -182,10 +183,15 @@ export interface AppNotification {
 }
 
 export interface UserProfile {
+  id: string;
+  username: string; // Login ID
+  password?: string; // Stored (mock only, plain text for this demo)
   name: string;
-  role: string;
+  role: 'admin' | 'user';
   email: string;
-  avatar: string;
+  avatar: string; // Initials
+  status: 'active' | 'inactive';
+  lastActive: string;
   phone?: string;
   department?: string;
   address?: string;

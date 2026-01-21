@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
@@ -17,6 +18,7 @@ import { WaterLevelView } from './views/WaterLevelView';
 import { DemoChartsView } from './views/DemoChartsView';
 import { UserProfileView } from './views/UserProfileView';
 import { SystemSettingsView } from './views/SystemSettingsView';
+import { UserManagementView } from './views/UserManagementView';
 import { LoginView } from './views/LoginView';
 import { UIProvider, useUI } from './components/GlobalUI';
 import { AIAssistant } from './components/AIAssistant'; // Imported AI Assistant
@@ -209,12 +211,14 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                        >
                          <User size={16} /> Hồ sơ cá nhân
                        </button>
-                       <button 
-                         onClick={() => { navigate('/settings'); setIsUserMenuOpen(false); }}
-                         className="w-full text-left px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg flex items-center gap-2 transition-colors"
-                       >
-                         <SettingsIcon size={16} /> Cài đặt hệ thống
-                       </button>
+                       {user.role === 'admin' && (
+                         <button 
+                           onClick={() => { navigate('/settings'); setIsUserMenuOpen(false); }}
+                           className="w-full text-left px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg flex items-center gap-2 transition-colors"
+                         >
+                           <SettingsIcon size={16} /> Cài đặt hệ thống
+                         </button>
+                       )}
                     </div>
                     <div className="p-2 border-t border-slate-100 dark:border-slate-700">
                       <button 
@@ -233,23 +237,63 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
         {/* Main Content Scrollable Area */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50/50 dark:bg-slate-900 transition-colors duration-200">
           <Routes>
+            {/* Common Routes */}
             <Route path="/" element={<DashboardView />} />
             <Route path="/dashboard" element={<DashboardView />} />
             <Route path="/map" element={<MapView />} />
             <Route path="/water-level" element={<WaterLevelView />} />
             <Route path="/forecast" element={<ForecastView />} />
-            <Route path="/specs" element={<TechnicalSpecsView />} />
-            <Route path="/operation" element={<OperationView />} />
             <Route path="/documents" element={<DocumentsView />} />
             <Route path="/records" element={<ChartsView />} />
             <Route path="/images" element={<ImageView />} />
             <Route path="/flood-forecast" element={<FloodForecastView />} />
-            <Route path="/manual-entry" element={<ManualEntryView />} />
             <Route path="/general-info" element={<GeneralInfoView />} />
             <Route path="/camera" element={<CameraView />} />
             <Route path="/demo-charts" element={<DemoChartsView />} />
             <Route path="/profile" element={<UserProfileView />} />
-            <Route path="/settings" element={<SystemSettingsView />} />
+            
+            {/* Admin Restricted Routes */}
+            <Route 
+              path="/users" 
+              element={
+                <ProtectedRoute role="admin">
+                  <UserManagementView />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/settings" 
+              element={
+                <ProtectedRoute role="admin">
+                  <SystemSettingsView />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/manual-entry" 
+              element={
+                <ProtectedRoute role="admin">
+                  <ManualEntryView />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/specs" 
+              element={
+                <ProtectedRoute role="admin">
+                  <TechnicalSpecsView />
+                </ProtectedRoute>
+              } 
+            />
+             <Route 
+              path="/operation" 
+              element={
+                <ProtectedRoute role="admin">
+                  <OperationView />
+                </ProtectedRoute>
+              } 
+            />
+
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
@@ -261,6 +305,17 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   );
 };
 
+// Route Guard Component
+const ProtectedRoute = ({ children, role }: { children: React.ReactElement, role: 'admin' }) => {
+  const user = db.user.get();
+  
+  if (user.role !== role) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return children;
+};
+
 const App: React.FC = () => {
   // --- AUTHENTICATION STATE ---
   // Initialize from localStorage to persist login across reloads
@@ -268,14 +323,17 @@ const App: React.FC = () => {
     return localStorage.getItem('isAuthenticated') === 'true';
   });
 
-  const handleLogin = () => {
+  const handleLogin = (user: UserProfile) => {
     setIsAuthenticated(true);
     localStorage.setItem('isAuthenticated', 'true');
+    // Save current session user
+    db.user.set(user);
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
     localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('app_current_user');
   };
 
   return (

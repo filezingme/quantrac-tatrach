@@ -24,7 +24,8 @@ const KEYS = {
   CAMERAS: 'app_cameras',
   SCENARIOS: 'app_scenarios',
   NOTIFICATIONS: 'app_notifications',
-  USER: 'app_user',
+  CURRENT_USER: 'app_current_user',
+  USERS_LIST: 'app_users_list',
   WATER_LEVEL_RECORDS: 'app_water_level_records',
   SETTINGS: 'app_settings'
 };
@@ -285,14 +286,51 @@ const defaultNotifications: AppNotification[] = [
   { id: 'n1', title: 'Cảnh báo lũ', message: 'Mực nước đang tiến sát mức báo động I.', time: '10 phút trước', read: false, type: 'alert' },
 ];
 
-const defaultUser: UserProfile = {
-  name: 'Admin User',
-  role: 'Quản trị viên',
+const defaultAdminUser: UserProfile = {
+  id: 'u1',
+  username: 'admin',
+  password: '123',
+  name: 'Quản trị viên',
+  role: 'admin',
   email: 'admin@tatrach.vn',
   avatar: 'AD',
+  status: 'active',
+  lastActive: new Date().toISOString(),
   phone: '0912.345.678',
-  department: 'Phòng Kỹ thuật & Quản lý nước',
+  department: 'Ban Giám đốc',
   address: 'Hương Thủy, Thừa Thiên Huế'
+};
+
+// Generate Mock Users List (20 users)
+const generateMockUsers = (): UserProfile[] => {
+  const users: UserProfile[] = [defaultAdminUser];
+  
+  // Add 19 more users
+  const depts = ['Phòng Kỹ thuật', 'Phòng Hành chính', 'Tổ Bảo vệ', 'Tổ Vận hành', 'Ban Giám đốc'];
+  const firstNames = ['Nguyen', 'Tran', 'Le', 'Pham', 'Hoang', 'Huynh', 'Phan', 'Vu', 'Vo', 'Dang'];
+  const lastNames = ['Van A', 'Thi B', 'Minh C', 'Quang D', 'Thanh E', 'Duc F', 'Ngoc G', 'Tuan H', 'Huy I', 'Lan K'];
+
+  for (let i = 2; i <= 20; i++) {
+    const role = i <= 3 ? 'admin' : 'user'; // First 3 are admins
+    const fname = firstNames[i % firstNames.length];
+    const lname = lastNames[i % lastNames.length];
+    
+    users.push({
+      id: `u${i}`,
+      username: `user${i}`,
+      password: '123', // Mock password
+      name: `${fname} ${lname}`,
+      role: role as 'admin' | 'user',
+      email: `user${i}@tatrach.vn`,
+      avatar: `${fname[0]}${lname[lname.length-1]}`,
+      status: Math.random() > 0.8 ? 'inactive' : 'active',
+      lastActive: new Date(Date.now() - Math.floor(Math.random() * 1000000000)).toISOString(),
+      phone: `09${Math.floor(Math.random() * 90000000)}`,
+      department: depts[i % depts.length],
+      address: 'Thừa Thiên Huế'
+    });
+  }
+  return users;
 };
 
 const defaultScenarios: FloodScenario[] = [
@@ -427,9 +465,32 @@ export const db = {
       db.notifications.set(notifs.map(n => ({...n, read: true})));
     }
   },
+  // Current session user
   user: {
-    get: () => db.get<UserProfile>(KEYS.USER, defaultUser),
-    set: (data: UserProfile) => db.set(KEYS.USER, data),
+    get: () => db.get<UserProfile>(KEYS.CURRENT_USER, defaultAdminUser),
+    set: (data: UserProfile) => db.set(KEYS.CURRENT_USER, data),
+  },
+  // All Users Management
+  users: {
+    get: () => db.get<UserProfile[]>(KEYS.USERS_LIST, generateMockUsers()),
+    getAll: () => db.get<UserProfile[]>(KEYS.USERS_LIST, generateMockUsers()), // Alias
+    add: (user: UserProfile) => {
+      const users = db.users.get();
+      db.set(KEYS.USERS_LIST, [user, ...users]);
+    },
+    update: (user: UserProfile) => {
+      const users = db.users.get();
+      db.set(KEYS.USERS_LIST, users.map(u => u.id === user.id ? user : u));
+      // Update current user if it matches
+      const currentUser = db.user.get();
+      if(currentUser.id === user.id) {
+          db.user.set(user);
+      }
+    },
+    delete: (id: string) => {
+      const users = db.users.get();
+      db.set(KEYS.USERS_LIST, users.filter(u => u.id !== id));
+    }
   },
   scenarios: {
     get: () => db.get<FloodScenario[]>(KEYS.SCENARIOS, defaultScenarios),

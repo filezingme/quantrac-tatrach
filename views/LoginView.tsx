@@ -1,8 +1,11 @@
+
 import React, { useState } from 'react';
 import { Waves, ArrowRight, Lock, User, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { db } from '../utils/db';
+import { UserProfile } from '../types';
 
 interface LoginViewProps {
-  onLogin: () => void;
+  onLogin: (user: UserProfile) => void;
 }
 
 export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
@@ -19,8 +22,20 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
 
     // Simulate network delay for effect
     setTimeout(() => {
-      if (username === 'admin' && password === '123') {
-        onLogin();
+      const users = db.users.getAll();
+      const foundUser = users.find(u => u.username === username && u.password === password);
+
+      if (foundUser) {
+        if (foundUser.status === 'inactive') {
+            setError('Tài khoản đã bị vô hiệu hóa');
+            setIsLoading(false);
+            return;
+        }
+        // Update last active
+        const updatedUser = { ...foundUser, lastActive: new Date().toISOString() };
+        db.users.update(updatedUser);
+        
+        onLogin(updatedUser);
       } else {
         setError('Tên đăng nhập hoặc mật khẩu không chính xác');
         setIsLoading(false);
@@ -116,7 +131,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
             <ShieldCheck size={14} className="text-green-500" />
             <span>Bảo mật & An toàn dữ liệu</span>
           </div>
-          <p className="text-[10px] text-slate-400">Version 3.0.1 © 2026 Ta Trach Management System</p>
+          <p className="text-[10px] text-slate-400">Version 3.1.0 © 2026 Ta Trach Management System</p>
         </div>
       </div>
     </div>

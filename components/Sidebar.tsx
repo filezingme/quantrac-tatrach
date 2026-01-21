@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -16,8 +17,11 @@ import {
   TrendingUp,
   PieChart,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Users
 } from 'lucide-react';
+import { db } from '../utils/db';
+import { UserProfile } from '../types';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -26,26 +30,39 @@ interface SidebarProps {
   toggleCollapse: () => void;
 }
 
-const menuItems = [
-  { path: '/dashboard', label: 'Quan trắc & Giám sát', icon: LayoutDashboard },
-  { path: '/map', label: 'Bản đồ GIS', icon: MapIcon },
-  { path: '/water-level', label: 'Giám sát Mực nước', icon: TrendingUp },
-  { path: '/forecast', label: 'Thông tin Dự báo', icon: CloudRain },
-  { path: '/flood-forecast', label: 'Dự báo Lũ & Kịch bản', icon: Waves },
-  { path: '/operation', label: 'Quy trình vận hành', icon: Activity },
-  { path: '/documents', label: 'Văn bản & Quy định', icon: BookOpen },
-  { path: '/camera', label: 'Camera', icon: Camera },
-  { path: '/images', label: 'Thư viện Hình ảnh', icon: ImageIcon },
-  { path: '/records', label: 'Hồ sơ & Biểu đồ', icon: FileText },
-  { path: '/demo-charts', label: 'Thư viện Biểu đồ Demo', icon: PieChart },
-  { path: '/specs', label: 'Thông số kỹ thuật', icon: Settings },
-  { path: '/general-info', label: 'Thông tin chung', icon: Info },
-  { path: '/manual-entry', label: 'Nhập liệu thủ công', icon: Edit3 },
-];
-
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isCollapsed, toggleCollapse }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [userRole, setUserRole] = useState<'admin' | 'user'>('user');
+
+  useEffect(() => {
+    // Check role initially and on storage change (if user updates profile)
+    const updateUserRole = () => {
+      const user = db.user.get();
+      setUserRole(user.role);
+    };
+    updateUserRole();
+    window.addEventListener('db-change', updateUserRole);
+    return () => window.removeEventListener('db-change', updateUserRole);
+  }, []);
+
+  const menuItems = [
+    { path: '/dashboard', label: 'Quan trắc & Giám sát', icon: LayoutDashboard, roles: ['admin', 'user'] },
+    { path: '/map', label: 'Bản đồ GIS', icon: MapIcon, roles: ['admin', 'user'] },
+    { path: '/water-level', label: 'Giám sát Mực nước', icon: TrendingUp, roles: ['admin', 'user'] },
+    { path: '/forecast', label: 'Thông tin Dự báo', icon: CloudRain, roles: ['admin', 'user'] },
+    { path: '/flood-forecast', label: 'Dự báo Lũ & Kịch bản', icon: Waves, roles: ['admin', 'user'] },
+    { path: '/operation', label: 'Quy trình vận hành', icon: Activity, roles: ['admin'] }, // Admin only
+    { path: '/documents', label: 'Văn bản & Quy định', icon: BookOpen, roles: ['admin', 'user'] },
+    { path: '/camera', label: 'Camera', icon: Camera, roles: ['admin', 'user'] },
+    { path: '/images', label: 'Thư viện Hình ảnh', icon: ImageIcon, roles: ['admin', 'user'] },
+    { path: '/records', label: 'Hồ sơ & Biểu đồ', icon: FileText, roles: ['admin', 'user'] },
+    { path: '/demo-charts', label: 'Thư viện Biểu đồ Demo', icon: PieChart, roles: ['admin', 'user'] },
+    { path: '/specs', label: 'Thông số kỹ thuật', icon: Settings, roles: ['admin'] }, // Admin only
+    { path: '/general-info', label: 'Thông tin chung', icon: Info, roles: ['admin', 'user'] },
+    { path: '/manual-entry', label: 'Nhập liệu thủ công', icon: Edit3, roles: ['admin'] }, // Admin only
+    { path: '/users', label: 'Quản lý người dùng', icon: Users, roles: ['admin'] }, // Admin only
+  ];
 
   return (
     <>
@@ -100,7 +117,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
         {/* Navigation */}
         <nav className="flex-1 py-6 sidebar-scrollbar">
           <ul className="space-y-1.5 px-3">
-            {menuItems.map((item) => {
+            {menuItems.filter(item => item.roles.includes(userRole)).map((item) => {
               // Check if active (dashboard is also root)
               const isActive = location.pathname === item.path || (item.path === '/dashboard' && location.pathname === '/');
               
