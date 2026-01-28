@@ -1,6 +1,7 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenAI } from "@google/genai";
-import { MessageSquare, X, Send, Sparkles, BarChart2, HelpCircle, ChevronRight, Loader2, Maximize2, Minimize2, Key } from 'lucide-react';
+import { MessageSquare, X, Send, Sparkles, BarChart2, HelpCircle, ChevronRight, Loader2, Maximize2, Minimize2, Scaling, Key } from 'lucide-react';
 import { db } from '../utils/db';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, LineChart, Line } from 'recharts';
 
@@ -33,6 +34,7 @@ const SAMPLE_PROMPTS = [
 export const AIAssistant: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false); // New state for Full Screen
   const [showGuide, setShowGuide] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([
@@ -61,14 +63,13 @@ export const AIAssistant: React.FC = () => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, isOpen, isExpanded]);
+  }, [messages, isOpen, isExpanded, isFullScreen]);
 
   const handleSelectKey = async () => {
     const aistudio = (window as any).aistudio;
     if (aistudio) {
       try {
         await aistudio.openSelectKey();
-        // Assuming success allows us to proceed in the next request
         alert("Đã chọn API Key thành công. Vui lòng thử lại câu hỏi của bạn.");
       } catch (e) {
         console.error("Failed to select key", e);
@@ -130,15 +131,7 @@ export const AIAssistant: React.FC = () => {
 
       // 3. Call Gemini API
       let responseText = "";
-      
-      // Get API Key from process.env
       let apiKey = process.env.API_KEY;
-      
-      // Attempt to force key selection if available and key is missing
-      if (!apiKey && (window as any).aistudio) {
-         // Note: We can't await this inside the render loop, so we assume user might have clicked the button
-         // Or we proceed to simulation
-      }
       
       if (apiKey) {
         const ai = new GoogleGenAI({ apiKey: apiKey });
@@ -233,9 +226,10 @@ export const AIAssistant: React.FC = () => {
   // --- RENDER HELPERS ---
   const renderChart = (config: ChartConfig) => {
     const ChartComponent = config.type === 'bar' ? BarChart : config.type === 'line' ? LineChart : AreaChart;
-    
+    const height = isFullScreen ? 450 : 256; // Taller chart in full screen
+
     return (
-      <div className="mt-3 bg-white dark:bg-slate-900 rounded-lg p-2 border border-slate-200 dark:border-slate-700 h-64 w-full">
+      <div className={`mt-3 bg-white dark:bg-slate-900 rounded-lg p-2 border border-slate-200 dark:border-slate-700 w-full`} style={{ height: `${height}px` }}>
         <p className="text-xs font-bold text-center text-slate-500 mb-2">{config.title}</p>
         <ResponsiveContainer width="100%" height="90%">
           <ChartComponent data={config.data} margin={{top: 5, right: 0, left: -20, bottom: 0}}>
@@ -280,13 +274,16 @@ export const AIAssistant: React.FC = () => {
     );
   }
 
+  // Calculate container classes based on state priority: FullScreen > Expanded > Default
+  const containerClasses = isFullScreen 
+    ? 'inset-0 z-[4000] rounded-none' // Full Screen mode
+    : isExpanded 
+      ? 'inset-4 md:inset-20 z-[3000] rounded-2xl' // Expanded mode
+      : 'bottom-6 right-6 w-[90vw] md:w-[400px] h-[600px] z-[3000] rounded-2xl'; // Default mode
+
   return (
-    <div className={`fixed z-[3000] transition-all duration-300 ease-in-out shadow-2xl flex flex-col bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden
-      ${isExpanded 
-        ? 'inset-4 md:inset-20 rounded-2xl' // Mobile: inset-4 (padding from edges), Desktop: inset-20
-        : 'bottom-6 right-6 w-[90vw] md:w-[400px] h-[600px] rounded-2xl'
-      }
-    `}>
+    <div className={`fixed transition-all duration-300 ease-in-out shadow-2xl flex flex-col bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden ${containerClasses}`}>
+      
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-600 to-blue-600 text-white shrink-0">
         <div className="flex items-center gap-2">
@@ -311,9 +308,27 @@ export const AIAssistant: React.FC = () => {
           <button onClick={() => setShowGuide(!showGuide)} className="p-1.5 hover:bg-white/20 rounded-lg transition-colors" title="Hướng dẫn">
             <HelpCircle size={18} />
           </button>
-          <button onClick={() => setIsExpanded(!isExpanded)} className="p-1.5 hover:bg-white/20 rounded-lg transition-colors hidden md:block" title="Mở rộng">
-            {isExpanded ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+          
+          {/* Full Screen Toggle */}
+          <button 
+            onClick={() => setIsFullScreen(!isFullScreen)} 
+            className="p-1.5 hover:bg-white/20 rounded-lg transition-colors" 
+            title={isFullScreen ? "Thu nhỏ" : "Toàn màn hình"}
+          >
+            {isFullScreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
           </button>
+
+          {/* Expand/Collapse (Hide in FullScreen) */}
+          {!isFullScreen && (
+            <button 
+              onClick={() => setIsExpanded(!isExpanded)} 
+              className="p-1.5 hover:bg-white/20 rounded-lg transition-colors hidden md:block" 
+              title={isExpanded ? "Thu gọn" : "Mở rộng"}
+            >
+              {isExpanded ? <ChevronRight size={20} /> : <Scaling size={18} />}
+            </button>
+          )}
+          
           <button onClick={() => setIsOpen(false)} className="p-1.5 hover:bg-white/20 rounded-lg transition-colors" title="Đóng">
             <X size={18} />
           </button>

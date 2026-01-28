@@ -100,16 +100,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
           {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </button>
 
-        {/* Header */}
-        <div className={`flex items-center h-16 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 transition-all duration-300 overflow-hidden ${isCollapsed ? 'px-0 justify-center' : 'px-6 justify-between'}`}>
-          <div className="flex items-center gap-3">
-            <div className="bg-blue-600 p-2 rounded-lg text-white shadow-blue-200 dark:shadow-none shadow-md shrink-0">
+        {/* Header - Strictly aligned */}
+        <div className={`flex items-center h-16 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 transition-all duration-300 overflow-hidden ${isCollapsed ? 'justify-center px-0' : 'justify-between px-6'}`}>
+          <div className={`flex items-center ${isCollapsed ? 'justify-center w-full' : 'gap-3'}`}>
+            <div className="bg-blue-600 p-2 rounded-lg text-white shadow-blue-200 dark:shadow-none shadow-md shrink-0 flex items-center justify-center">
               <Waves size={20} />
             </div>
-            <div className={`transition-opacity duration-200 ${isCollapsed ? 'opacity-0 w-0 hidden' : 'opacity-100 w-auto'}`}>
-              <h1 className="font-bold text-lg text-slate-800 dark:text-white leading-tight whitespace-nowrap">Hồ Tả Trạch</h1>
-              <p className="text-xs text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap">Hệ thống quản lý</p>
-            </div>
+            {!isCollapsed && (
+              <div className="transition-opacity duration-200 opacity-100 w-auto">
+                <h1 className="font-bold text-lg text-slate-800 dark:text-white leading-tight whitespace-nowrap">Hồ Tả Trạch</h1>
+                <p className="text-xs text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap">Hệ thống quản lý</p>
+              </div>
+            )}
           </div>
           <button onClick={toggleSidebar} className="md:hidden text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
             ✕
@@ -117,8 +119,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 py-6 sidebar-scrollbar">
-          <ul className="space-y-1.5 px-3">
+        <nav className={`flex-1 py-6 sidebar-scrollbar ${isCollapsed ? 'pr-0' : ''}`}>
+          <ul className={`space-y-1.5 ${isCollapsed ? 'pl-[13px] pr-0' : 'px-3'}`}>
             {menuItems.filter(item => item.roles.includes(userRole)).map((item) => {
               // Check if active (dashboard is also root)
               const isActive = location.pathname === item.path || (item.path === '/dashboard' && location.pathname === '/');
