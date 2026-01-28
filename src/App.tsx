@@ -30,22 +30,28 @@ import { db } from './utils/db';
 
 const ProtectedRoute = ({ children, role }: { children?: React.ReactNode; role?: 'admin' | 'user' }) => {
   const user = db.user.get();
+  // If role is specified and user role doesn't match, redirect to dashboard (or login/error page)
+  // Here we just redirect to home/dashboard if unauthorized for admin routes
   if (role && user.role !== role) {
     return <Navigate to="/" replace />;
   }
   return <>{children}</>;
 };
 
+// Extract the main layout to a separate component to use the UI Context
 const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   
+  // Search State
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   
+  // Notification States
   const [viewNotification, setViewNotification] = useState<AppNotification | null>(null);
   const [showAllNotifications, setShowAllNotifications] = useState(false);
 
+  // Sidebar Collapse State (Desktop)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     return localStorage.getItem('sidebarCollapsed') === 'true';
   });
@@ -57,12 +63,15 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Global UI hook
   const ui = useUI();
 
+  // Refs for click outside
   const notifRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Check local storage for theme preference
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       document.documentElement.classList.add('dark');
@@ -72,10 +81,12 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   }, []);
 
   useEffect(() => {
+    // Initial load
     setNotifications(db.notifications.get());
     setUser(db.user.get());
     setSettings(db.settings.get());
 
+    // Listen for DB changes
     const handleDbChange = () => {
       setNotifications(db.notifications.get());
       setUser(db.user.get());
@@ -85,6 +96,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
     return () => window.removeEventListener('db-change', handleDbChange);
   }, []);
 
+  // Keyboard Shortcut for Search (Cmd+K or Ctrl+K)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -96,10 +108,12 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Click outside handler
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
         setIsNotifOpen(false);
+        // Reset detail view when closing dropdown
         if (isNotifOpen) setViewNotification(null);
       }
       if (userRef.current && !userRef.current.contains(event.target as Node)) {
@@ -130,12 +144,14 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
     e?.stopPropagation();
     const updated = notifications.map(n => n.id === id ? { ...n, read: false } : n);
     db.notifications.set(updated);
+    // Return to list view
     setViewNotification(null);
     ui.showToast('info', 'Đã đánh dấu chưa đọc');
   };
 
   const handleLogoutClick = () => {
     setIsUserMenuOpen(false);
+    // Direct logout without confirmation
     onLogout();
   };
 
@@ -177,6 +193,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
       />
 
       <div className="flex-1 flex flex-col min-w-0 relative">
+        {/* Header - Increased z-index to 500 to stay above Map controls (z-400) */}
         <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 h-16 flex items-center justify-between px-4 sm:px-6 z-[500] shadow-sm relative transition-colors duration-200">
           <div className="flex items-center gap-4">
             <button onClick={toggleSidebar} className="md:hidden text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200">
@@ -188,6 +205,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
           </div>
           
           <div className="flex items-center gap-2 sm:gap-4">
+             {/* Search Button */}
              <button 
                 onClick={() => setIsSearchOpen(true)}
                 className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 text-sm transition-colors border border-transparent hover:border-slate-300 dark:hover:border-slate-600"
@@ -196,7 +214,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                 <span className="hidden lg:inline">Tìm kiếm...</span>
                 <div className="flex items-center gap-0.5 ml-2">
                    <kbd className="hidden lg:inline-flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded px-2 py-0.5 text-[10px] font-bold shadow-sm text-slate-500 dark:text-slate-400">
-                      <span className="text-xs">Ctrl</span> K
+                      Ctrl + K
                    </kbd>
                 </div>
              </button>
@@ -207,11 +225,12 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                 <Search size={20} />
              </button>
 
+             {/* Notifications */}
              <div className="relative" ref={notifRef}>
                <button 
                 onClick={() => {
                     setIsNotifOpen(!isNotifOpen);
-                    if (isNotifOpen) setViewNotification(null);
+                    if (isNotifOpen) setViewNotification(null); // Reset detail view when closing dropdown
                 }}
                 className={`relative p-2 transition-colors ${isNotifOpen ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 rounded-lg' : 'text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400'}`}
                >
@@ -224,15 +243,19 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                  )}
                </button>
 
+               {/* Notification Dropdown */}
                {isNotifOpen && (
                  <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                   
+                   {/* Container with fixed height for smooth sliding */}
                    <div className="relative overflow-hidden h-[450px]">
                        <div 
                           className="flex h-full transition-transform duration-300 ease-in-out"
                           style={{ transform: viewNotification ? 'translateX(-100%)' : 'translateX(0)' }}
                        >
+                          {/* PAGE 1: LIST VIEW */}
                           <div className="w-full h-full shrink-0 flex flex-col">
-                             <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50 flex-none">
+                             <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 flex-none">
                                <h3 className="font-semibold text-slate-800 dark:text-slate-100">Thông báo</h3>
                                {unreadCount > 0 && (
                                  <button onClick={handleMarkAllRead} className="text-xs text-blue-600 hover:underline flex items-center gap-1 dark:text-blue-400">
@@ -279,6 +302,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                              </div>
                           </div>
 
+                          {/* PAGE 2: DETAIL VIEW (Dropdown) */}
                           <div className="w-full h-full shrink-0 flex flex-col bg-slate-50/30 dark:bg-slate-900/10">
                              {viewNotification && (
                                <>
@@ -332,6 +356,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                )}
              </div>
 
+             {/* User Profile */}
              <div className="relative pl-4 border-l border-slate-200 dark:border-slate-700" ref={userRef}>
                 <button 
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
@@ -346,6 +371,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                   </div>
                 </button>
 
+                {/* User Dropdown */}
                 {isUserMenuOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
                     <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
@@ -382,10 +408,13 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
           </div>
         </header>
 
+        {/* Global Search Component */}
         <GlobalSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
 
+        {/* Main Content Scrollable Area */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50/50 dark:bg-slate-900 transition-colors duration-200">
           <Routes>
+            {/* Common Routes */}
             <Route path="/" element={<DashboardView />} />
             <Route path="/dashboard" element={<DashboardView />} />
             <Route path="/map" element={<MapView />} />
@@ -401,6 +430,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             <Route path="/demo-charts" element={<DemoChartsView />} />
             <Route path="/profile" element={<UserProfileView />} />
             
+            {/* Admin Restricted Routes */}
             <Route 
               path="/users" 
               element={
@@ -446,16 +476,20 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
           </Routes>
         </main>
 
+        {/* AI Assistant Overlay - Conditionally Rendered */}
         {settings.features.enableAIAssistant && <AIAssistant />}
 
+        {/* === ALL NOTIFICATIONS MODAL (SLIDING) === */}
         {showAllNotifications && (
           <div className="fixed inset-0 z-[5000] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl h-[80vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-slate-700">
+                {/* Sliding Container for Modal */}
                 <div className="relative overflow-hidden flex-1 flex flex-col">
                    <div 
                       className="flex h-full w-full transition-transform duration-300 ease-in-out"
                       style={{ transform: viewNotification ? 'translateX(-100%)' : 'translateX(0)' }}
                    >
+                      {/* PANE 1: LIST VIEW */}
                       <div className="w-full h-full shrink-0 flex flex-col">
                          <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 flex-none">
                             <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
@@ -523,6 +557,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                          </div>
                       </div>
 
+                      {/* PANE 2: DETAIL VIEW */}
                       <div className="w-full h-full shrink-0 flex flex-col bg-slate-50/30 dark:bg-slate-900/10">
                          {viewNotification && (
                             <>

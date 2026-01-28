@@ -1,5 +1,6 @@
+
 import React, { useState, useRef, useEffect } from 'react';
-import { Folder, Plus, ExternalLink, Image as ImageIcon, ArrowLeft, Upload, Grid, Maximize2, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Folder, Plus, ExternalLink, Image as ImageIcon, ArrowLeft, Upload, Grid, Maximize2, X, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import { db } from '../utils/db';
 import { ImageGroup, ImageItem } from '../types';
 import { useUI } from '../components/GlobalUI';
@@ -123,6 +124,21 @@ export const ImageView: React.FC = () => {
     });
   };
 
+  const handleDeleteGroup = (e: React.MouseEvent, groupId: string, groupTitle: string) => {
+    e.stopPropagation(); // Prevent opening the group when clicking delete
+    ui.confirm({
+      title: 'Xóa Album',
+      message: `Bạn có chắc chắn muốn xóa album "${groupTitle}" và toàn bộ ảnh bên trong?`,
+      type: 'danger',
+      onConfirm: () => {
+        const updated = groups.filter(g => g.id !== groupId);
+        setGroups(updated);
+        db.images.set(updated);
+        ui.showToast('success', 'Đã xóa album thành công');
+      }
+    });
+  };
+
   // --- Image Management ---
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -191,6 +207,28 @@ export const ImageView: React.FC = () => {
     });
   }
 
+  const handleDeleteImage = (e: React.MouseEvent, imageId: string) => {
+    e.stopPropagation(); // Prevent opening lightbox
+    if (!activeGroupId) return;
+
+    ui.confirm({
+      message: 'Bạn có chắc chắn muốn xóa hình ảnh này?',
+      type: 'danger',
+      onConfirm: () => {
+        const updated = groups.map(g => {
+          if (g.id !== activeGroupId) return g;
+          return {
+            ...g,
+            images: g.images.filter(img => img.id !== imageId)
+          };
+        });
+        setGroups(updated);
+        db.images.set(updated);
+        ui.showToast('success', 'Đã xóa ảnh');
+      }
+    });
+  };
+
   return (
     <>
       <div className="space-y-6 pb-10 animate-fade-in h-[calc(100vh-8rem)] flex flex-col">
@@ -256,10 +294,23 @@ export const ImageView: React.FC = () => {
                                className="group relative bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden aspect-square cursor-pointer hover:shadow-md transition-all"
                              >
                                  <img src={img.url} alt={img.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"/>
+                                 
+                                 {/* Hover Overlay */}
                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
-                                     <p className="text-white text-sm font-medium truncate">{img.title}</p>
-                                     <div className="absolute top-2 right-2 text-white/80 hover:text-white bg-black/20 hover:bg-black/50 p-1.5 rounded-full backdrop-blur-sm">
-                                        <Maximize2 size={16}/>
+                                     <p className="text-white text-sm font-medium truncate pr-16">{img.title}</p>
+                                     
+                                     {/* Action Buttons */}
+                                     <div className="absolute top-2 right-2 flex gap-2">
+                                        <button 
+                                          onClick={(e) => handleDeleteImage(e, img.id)}
+                                          className="text-white/80 hover:text-white bg-red-500/80 hover:bg-red-600 p-1.5 rounded-full backdrop-blur-sm transition-colors"
+                                          title="Xóa ảnh"
+                                        >
+                                          <Trash2 size={16}/>
+                                        </button>
+                                        <div className="text-white/80 hover:text-white bg-black/20 hover:bg-black/50 p-1.5 rounded-full backdrop-blur-sm">
+                                            <Maximize2 size={16}/>
+                                        </div>
                                      </div>
                                  </div>
                              </div>
@@ -289,8 +340,19 @@ export const ImageView: React.FC = () => {
                   <div 
                       key={group.id} 
                       onClick={() => setActiveGroupId(group.id)}
-                      className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col h-full hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group"
+                      className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col h-full hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group relative"
                   >
+                      {/* Delete Group Button (Visible on Hover) */}
+                      <div className="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={(e) => handleDeleteGroup(e, group.id, group.title)}
+                          className="p-2 bg-white/90 dark:bg-slate-800/90 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full shadow-sm backdrop-blur-sm transition-all border border-slate-200 dark:border-slate-600"
+                          title="Xóa Album"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+
                       <div className="relative aspect-[4/3] bg-slate-100 dark:bg-slate-700 overflow-hidden">
                       {group.images.length > 0 ? (
                           <>

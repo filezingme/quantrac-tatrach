@@ -221,3 +221,13 @@ export interface SystemSettings {
   // Data
   backupFrequency: 'daily' | 'weekly' | 'monthly' | 'manual';
 }
+
+export interface DocumentItem {
+  id: string;
+  number: string;
+  date: string;
+  title: string;
+  signer: string;
+  type: string;
+  category: 'legal' | 'internal' | 'emergency' | 'reports';
+}

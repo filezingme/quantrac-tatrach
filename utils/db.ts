@@ -11,7 +11,8 @@ import {
   UserProfile, 
   ForecastData, 
   WaterLevelRecord, 
-  SystemSettings 
+  SystemSettings,
+  DocumentItem
 } from '../types';
 
 // CHANGED: Version bump to v3 to force fresh data load for all users
@@ -28,7 +29,8 @@ const KEYS = {
   CURRENT_USER: 'app_current_user_v3',
   USERS_LIST: 'app_users_list_v3',
   WATER_LEVEL_RECORDS: 'app_water_level_records_v3',
-  SETTINGS: 'app_settings_v3'
+  SETTINGS: 'app_settings_v3',
+  DOCUMENTS: 'app_documents_v3'
 };
 
 // --- Default Data ---
@@ -292,6 +294,18 @@ const defaultNotifications: AppNotification[] = [
   { id: 'n6', title: 'Dự báo mưa lớn', message: 'Đài KTTV cảnh báo mưa lớn diện rộng trong 24h tới tại lưu vực sông Hương.', time: '1 ngày trước', read: true, type: 'alert' },
 ];
 
+const defaultDocuments: DocumentItem[] = [
+  { id: '1', number: '114/2018/NĐ-CP', date: '04/09/2018', title: 'Nghị định về quản lý an toàn đập, hồ chứa nước', signer: 'Chính phủ', type: 'Nghị định', category: 'legal' },
+  { id: '2', number: '03/2022/TT-BNNPTNT', date: '15/04/2022', title: 'Quy định kỹ thuật về vận hành hồ chứa', signer: 'Bộ NN&PTNT', type: 'Thông tư', category: 'legal' },
+  { id: '3', number: '15/2023/QĐ-UBND', date: '20/10/2023', title: 'Quyết định phê duyệt quy trình vận hành liên hồ chứa', signer: 'UBND Tỉnh', type: 'Quyết định', category: 'legal' },
+  { id: '4', number: 'NB-01/2024', date: '01/01/2024', title: 'Quy trình kiểm tra đập hàng ngày', signer: 'Giám đốc', type: 'Nội bộ', category: 'internal' },
+  { id: '5', number: 'NB-05/2023', date: '15/12/2023', title: 'Quy định về an toàn lao động tại nhà máy', signer: 'Giám đốc', type: 'Nội bộ', category: 'internal' },
+  { id: '6', number: 'PA-PCTT-2024', date: '01/05/2024', title: 'Phương án ứng phó thiên tai năm 2024', signer: 'BCH PCTT Tỉnh', type: 'Phương án', category: 'emergency' },
+  { id: '7', number: 'PA-XALU-24', date: '05/09/2024', title: 'Kịch bản xả lũ khẩn cấp', signer: 'Công ty', type: 'Phương án', category: 'emergency' },
+  { id: '8', number: 'BC-Q1-2024', date: '30/03/2024', title: 'Báo cáo tình hình thủy văn Quý I/2024', signer: 'Phòng Kỹ thuật', type: 'Báo cáo', category: 'reports' },
+  { id: '9', number: 'BC-NAM-2023', date: '31/12/2023', title: 'Báo cáo tổng kết công tác vận hành năm 2023', signer: 'Giám đốc', type: 'Báo cáo', category: 'reports' },
+];
+
 const defaultAdminUser: UserProfile = {
   id: 'u1',
   username: 'admin',
@@ -454,6 +468,10 @@ export const db = {
   cameras: {
     get: () => db.get<CameraInfo[]>(KEYS.CAMERAS, defaultCameras),
     set: (data: CameraInfo[]) => db.set(KEYS.CAMERAS, data),
+  },
+  documents: {
+    get: () => db.get<DocumentItem[]>(KEYS.DOCUMENTS, defaultDocuments),
+    set: (data: DocumentItem[]) => db.set(KEYS.DOCUMENTS, data),
   },
   notifications: {
     get: () => db.get<AppNotification[]>(KEYS.NOTIFICATIONS, defaultNotifications),

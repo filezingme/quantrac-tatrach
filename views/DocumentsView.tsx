@@ -1,15 +1,8 @@
+
 import React, { useState } from 'react';
 import { Search, Download, FileText, Filter, Calendar, ShieldCheck, Book, AlertTriangle, User, ChevronRight } from 'lucide-react';
-
-// Types for local use
-interface Document {
-  id: string;
-  number: string;
-  date: string;
-  title: string;
-  signer: string;
-  type: string;
-}
+import { db } from '../utils/db';
+import { DocumentItem } from '../types';
 
 const docCategories = [
   { id: 'legal', label: 'Văn bản pháp quy', icon: ShieldCheck },
@@ -18,31 +11,14 @@ const docCategories = [
   { id: 'reports', label: 'Báo cáo định kỳ', icon: FileText },
 ];
 
-const mockDocuments: Record<string, Document[]> = {
-  legal: [
-    { id: '1', number: '114/2018/NĐ-CP', date: '04/09/2018', title: 'Nghị định về quản lý an toàn đập, hồ chứa nước', signer: 'Chính phủ', type: 'Nghị định' },
-    { id: '2', number: '03/2022/TT-BNNPTNT', date: '15/04/2022', title: 'Quy định kỹ thuật về vận hành hồ chứa', signer: 'Bộ NN&PTNT', type: 'Thông tư' },
-    { id: '3', number: '15/2023/QĐ-UBND', date: '20/10/2023', title: 'Quyết định phê duyệt quy trình vận hành liên hồ chứa', signer: 'UBND Tỉnh', type: 'Quyết định' },
-  ],
-  internal: [
-    { id: '4', number: 'NB-01/2024', date: '01/01/2024', title: 'Quy trình kiểm tra đập hàng ngày', signer: 'Giám đốc', type: 'Nội bộ' },
-    { id: '5', number: 'NB-05/2023', date: '15/12/2023', title: 'Quy định về an toàn lao động tại nhà máy', signer: 'Giám đốc', type: 'Nội bộ' },
-  ],
-  emergency: [
-    { id: '6', number: 'PA-PCTT-2024', date: '01/05/2024', title: 'Phương án ứng phó thiên tai năm 2024', signer: 'BCH PCTT Tỉnh', type: 'Phương án' },
-    { id: '7', number: 'PA-XALU-24', date: '05/09/2024', title: 'Kịch bản xả lũ khẩn cấp', signer: 'Công ty', type: 'Phương án' },
-  ],
-  reports: [
-    { id: '8', number: 'BC-Q1-2024', date: '30/03/2024', title: 'Báo cáo tình hình thủy văn Quý I/2024', signer: 'Phòng Kỹ thuật', type: 'Báo cáo' },
-    { id: '9', number: 'BC-NAM-2023', date: '31/12/2023', title: 'Báo cáo tổng kết công tác vận hành năm 2023', signer: 'Giám đốc', type: 'Báo cáo' },
-  ]
-};
-
 export const DocumentsView: React.FC = () => {
   const [activeTab, setActiveTab] = useState('legal');
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Fetch from DB
+  const allDocs = db.documents.get();
 
-  const currentDocs = mockDocuments[activeTab] || [];
+  const currentDocs = allDocs.filter(doc => doc.category === activeTab);
   const filteredDocs = currentDocs.filter(doc => 
     doc.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
     doc.number.toLowerCase().includes(searchTerm.toLowerCase())
