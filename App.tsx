@@ -196,7 +196,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                 <span className="hidden lg:inline">Tìm kiếm...</span>
                 <div className="flex items-center gap-0.5 ml-2">
                    <kbd className="hidden lg:inline-flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded px-2 py-0.5 text-[10px] font-bold shadow-sm text-slate-500 dark:text-slate-400">
-                      <span className="text-xs">Ctrl</span> K
+                      Ctrl + K
                    </kbd>
                 </div>
              </button>
