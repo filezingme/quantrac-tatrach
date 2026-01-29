@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, X, FileText, Image as ImageIcon, LayoutDashboard, Settings, Droplets, ArrowRight } from 'lucide-react';
+import { Search, X, FileText, Image as ImageIcon, LayoutDashboard, Settings, Droplets, ArrowRight, Camera, Waves, Activity, Table as TableIcon, CloudRain } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../utils/db';
 
@@ -11,7 +11,7 @@ interface GlobalSearchProps {
 
 interface SearchResult {
   id: string;
-  type: 'page' | 'document' | 'spec' | 'data' | 'image';
+  type: 'page' | 'document' | 'spec' | 'data' | 'image' | 'camera' | 'scenario' | 'operation';
   title: string;
   subtitle?: string;
   url?: string; // For navigation
@@ -57,6 +57,9 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
       { path: '/camera', label: 'Camera giám sát' },
       { path: '/specs', label: 'Thông số kỹ thuật' },
       { path: '/flood-forecast', label: 'Dự báo lũ & Điều hành' },
+      { path: '/operation', label: 'Quy trình vận hành' },
+      { path: '/manual-entry', label: 'Nhập liệu thủ công' },
+      { path: '/ai-safety', label: 'Giám sát An toàn AI' },
     ];
 
     pages.forEach(page => {
@@ -74,17 +77,17 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
     // 2. SEARCH DATA (Observation)
     const obs = db.observation.get();
     if (removeAccents('mực nước').includes(lowerQuery) || removeAccents('water level').includes(lowerQuery)) {
-      searchResults.push({ id: 'data-wl', type: 'data', title: 'Mực nước hồ hiện tại', value: `${obs.waterLevel} m`, icon: <Droplets size={16}/> });
+      searchResults.push({ id: 'data-wl', type: 'data', title: 'Mực nước hồ hiện tại', value: `${obs.waterLevel} m`, icon: <Droplets size={16}/>, url: '/dashboard' });
     }
     if (removeAccents('dung tích').includes(lowerQuery) || removeAccents('capacity').includes(lowerQuery)) {
-      searchResults.push({ id: 'data-cap', type: 'data', title: 'Dung tích hiện tại', value: `${obs.capacity} tr.m³`, icon: <Droplets size={16}/> });
+      searchResults.push({ id: 'data-cap', type: 'data', title: 'Dung tích hiện tại', value: `${obs.capacity} tr.m³`, icon: <Droplets size={16}/>, url: '/dashboard' });
     }
     if (removeAccents('lưu lượng đến').includes(lowerQuery) || removeAccents('inflow').includes(lowerQuery)) {
-      searchResults.push({ id: 'data-in', type: 'data', title: 'Lưu lượng đến', value: `${obs.inflow} m³/s`, icon: <Droplets size={16}/> });
+      searchResults.push({ id: 'data-in', type: 'data', title: 'Lưu lượng đến', value: `${obs.inflow} m³/s`, icon: <Droplets size={16}/>, url: '/dashboard' });
     }
     obs.rainfall.forEach(r => {
         if(removeAccents(r.name).includes(lowerQuery)) {
-            searchResults.push({ id: `rain-${r.id}`, type: 'data', title: `Mưa tại ${r.name}`, value: `${r.data.current} mm`, icon: <Droplets size={16}/> });
+            searchResults.push({ id: `rain-${r.id}`, type: 'data', title: `Mưa tại ${r.name}`, value: `${r.data.current} mm`, icon: <Droplets size={16}/>, url: '/dashboard' });
         }
     });
 
@@ -97,7 +100,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
           type: 'document',
           title: doc.title,
           subtitle: doc.number,
-          url: '/documents', // In real app, could link to specific doc viewer
+          url: '/documents',
           icon: <FileText size={16} />
         });
       }
@@ -154,7 +157,82 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
         }
     });
 
-    setResults(searchResults.slice(0, 8)); // Limit results
+    // 6. SEARCH CAMERAS
+    const cameras = db.cameras.get();
+    cameras.forEach(cam => {
+        if (removeAccents(cam.name).includes(lowerQuery)) {
+            searchResults.push({
+                id: `cam-${cam.id}`,
+                type: 'camera',
+                title: cam.name,
+                subtitle: cam.status === 'online' ? 'Trực tuyến' : 'Ngoại tuyến',
+                url: '/camera',
+                icon: <Camera size={16} />
+            });
+        }
+    });
+
+    // 7. SEARCH FLOOD SCENARIOS
+    const scenarios = db.scenarios.get();
+    scenarios.forEach(sc => {
+        if (removeAccents(sc.name).includes(lowerQuery) || removeAccents(sc.description).includes(lowerQuery)) {
+             searchResults.push({
+                id: `sc-${sc.id}`,
+                type: 'scenario',
+                title: sc.name,
+                subtitle: 'Kịch bản lũ',
+                url: '/flood-forecast',
+                icon: <Waves size={16} />
+            });
+        }
+    });
+
+    // 8. SEARCH OPERATION PROCEDURES (Deep Search)
+    const opTables = db.operationTables.get();
+    opTables.forEach(table => {
+        // Search table name
+        if (removeAccents(table.name).includes(lowerQuery)) {
+             searchResults.push({
+                id: `opt-${table.id}`,
+                type: 'operation',
+                title: table.name,
+                subtitle: 'Quy trình vận hành',
+                url: '/operation',
+                icon: <Activity size={16} />
+            });
+        }
+        // Deep search in rows
+        table.data.forEach(row => {
+             const content = `${row.col1} ${row.col2} ${row.col3 || ''}`;
+             if (removeAccents(content).includes(lowerQuery)) {
+                 searchResults.push({
+                    id: `opt-row-${row.id}`,
+                    type: 'operation',
+                    title: `Quy trình: ${table.name}`,
+                    value: content, // Show the row content
+                    url: '/operation',
+                    icon: <TableIcon size={16} />
+                });
+             }
+        });
+    });
+
+    // 9. SEARCH FORECAST RAINFALL
+    const forecast = db.forecast.get();
+    forecast.rainfall.forEach(r => {
+         if(removeAccents(r.name).includes(lowerQuery)) {
+            searchResults.push({ 
+                id: `fc-rain-${r.id}`, 
+                type: 'data', 
+                title: `Dự báo mưa: ${r.name}`, 
+                value: `24h tới: ${r.data.day1} mm`, 
+                url: '/forecast',
+                icon: <CloudRain size={16}/> 
+            });
+        }
+    });
+
+    setResults(searchResults.slice(0, 10)); // Limit results
   }, [query]);
 
   const handleSelect = (result: SearchResult) => {
@@ -179,7 +257,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
             ref={inputRef}
             type="text"
             className="flex-1 bg-transparent outline-none text-lg text-slate-800 dark:text-white placeholder-slate-400 font-medium"
-            placeholder="Tìm kiếm dữ liệu, văn bản, thông số..."
+            placeholder="Tìm kiếm dữ liệu, văn bản, camera, quy trình..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {
@@ -191,7 +269,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
         </div>
 
         {/* Results List */}
-        <div className="max-h-[60vh] overflow-y-auto">
+        <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
           {results.length > 0 ? (
             <div className="py-2">
               <div className="px-4 py-2 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Kết quả phù hợp nhất</div>
@@ -210,6 +288,9 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
                         ${result.type === 'page' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400' : 
                           result.type === 'data' ? 'bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-400' :
                           result.type === 'document' ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400' :
+                          result.type === 'camera' ? 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400' :
+                          result.type === 'scenario' ? 'bg-cyan-100 text-cyan-600 dark:bg-cyan-900/40 dark:text-cyan-400' :
+                          result.type === 'operation' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-400' :
                           'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'}
                     `}>
                         {result.icon}
@@ -221,7 +302,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
                   </div>
 
                   {result.value ? (
-                      <div className="font-bold text-slate-800 dark:text-white bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-sm whitespace-nowrap">
+                      <div className="font-bold text-slate-800 dark:text-white bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-sm whitespace-nowrap ml-2">
                           {result.value}
                       </div>
                   ) : (
@@ -236,11 +317,13 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
             </div>
           ) : (
             <div className="py-12 text-center text-slate-400 dark:text-slate-500 text-sm">
-                <p>Gõ để tìm kiếm điều hướng, văn bản, thông số...</p>
-                <div className="flex gap-2 justify-center mt-4">
-                    <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded">Mực nước</span>
-                    <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded">Văn bản</span>
-                    <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded">Bản đồ</span>
+                <p>Gõ để tìm kiếm...</p>
+                <div className="flex flex-wrap gap-2 justify-center mt-4 px-8">
+                    <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded text-xs">Mực nước</span>
+                    <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded text-xs">Cam Tràn</span>
+                    <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded text-xs">Quy trình</span>
+                    <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded text-xs">Kịch bản</span>
+                    <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded text-xs">Hồ sơ</span>
                 </div>
             </div>
           )}
