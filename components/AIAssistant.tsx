@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenAI } from "@google/genai";
-import { MessageSquare, X, Send, Sparkles, BarChart2, HelpCircle, ChevronRight, Loader2, Maximize2, Minimize2, Scaling, Key, Mic, MicOff } from 'lucide-react';
+import { MessageSquare, X, Send, Sparkles, BarChart2, HelpCircle, ChevronRight, Loader2, Maximize2, Minimize2, Scaling, Key, Mic, MicOff, AlertTriangle } from 'lucide-react';
 import { db } from '../utils/db';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, LineChart, Line } from 'recharts';
 import { useUI } from './GlobalUI';
@@ -170,7 +170,23 @@ export const AIAssistant: React.FC = () => {
         Bạn là Trợ lý AI chuyên gia của Hệ thống Quản lý Hồ chứa Tả Trạch.
         DỮ LIỆU HIỆN TẠI: ${JSON.stringify(contextData)}
         NHIỆM VỤ: Trả lời câu hỏi dựa trên dữ liệu.
-        QUY TẮC: Trả về JSON: { "type": "text"|"chart", "content": "...", "chartConfig": {...} }
+        QUY TẮC AN TOÀN: 
+        1. Nếu người dùng yêu cầu vẽ biểu đồ, hãy trả về JSON với "type": "chart" và cấu trúc "chartConfig" đầy đủ (keys, data, xAxisKey).
+        2. Nếu không vẽ biểu đồ, trả về JSON với "type": "text".
+        3. Luôn đảm bảo JSON hợp lệ.
+        
+        Cấu trúc JSON mong đợi:
+        { 
+          "type": "text" | "chart", 
+          "content": "Nội dung trả lời text...", 
+          "chartConfig": {
+             "title": "Tiêu đề biểu đồ",
+             "type": "area" | "bar" | "line",
+             "xAxisKey": "time",
+             "keys": [{ "key": "level", "color": "#8884d8", "name": "Mực nước" }],
+             "data": [...]
+          } 
+        }
       `;
 
       let responseText = "";
@@ -218,11 +234,24 @@ export const AIAssistant: React.FC = () => {
         }
       }
 
-      let parsedRes;
+      let parsedRes: any;
       try {
-        const cleanJson = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+        // Find JSON block if wrapped in markdown
+        const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/) || responseText.match(/```([\s\S]*?)```/);
+        const cleanJson = jsonMatch ? jsonMatch[1].trim() : responseText.trim();
+        
         parsedRes = JSON.parse(cleanJson);
+
+        // Sanitize chart config to prevent crashes
+        if (parsedRes.type === 'chart') {
+            if (!parsedRes.chartConfig || !Array.isArray(parsedRes.chartConfig.data) || !Array.isArray(parsedRes.chartConfig.keys)) {
+                console.warn("Invalid chart config from AI", parsedRes.chartConfig);
+                parsedRes.type = 'text'; // Fallback to text
+                parsedRes.content += "\n\n(Lưu ý: Không thể vẽ biểu đồ do dữ liệu AI trả về không đúng định dạng)";
+            }
+        }
       } catch (e) {
+        // If JSON parse fails, treat whole response as text
         parsedRes = { type: 'text', content: responseText };
       }
 
@@ -256,38 +285,57 @@ export const AIAssistant: React.FC = () => {
   };
 
   const renderChart = (config: ChartConfig) => {
+    // Robust safety check to prevent white screen crashes
+    if (!config || !Array.isArray(config.data) || config.data.length === 0 || !Array.isArray(config.keys) || config.keys.length === 0) {
+        return (
+            <div className="mt-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 text-red-600 dark:text-red-400 text-xs flex items-center gap-2">
+                <AlertTriangle size={16} />
+                <span>Không thể hiển thị biểu đồ: Dữ liệu không hợp lệ.</span>
+            </div>
+        );
+    }
+
     const ChartComponent = config.type === 'bar' ? BarChart : config.type === 'line' ? LineChart : AreaChart;
     const height = isFullScreen ? 450 : 256;
 
-    return (
-      <div className={`mt-3 bg-white dark:bg-slate-900 rounded-lg p-2 border border-slate-200 dark:border-slate-700 w-full`} style={{ height: `${height}px` }}>
-        <p className="text-xs font-bold text-center text-slate-500 mb-2">{config.title}</p>
-        <ResponsiveContainer width="100%" height="90%">
-          <ChartComponent data={config.data} margin={{top: 5, right: 0, left: -20, bottom: 0}}>
-            <defs>
-              {config.keys.map((k, i) => (
-                <linearGradient key={k.key} id={`grad-${i}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={k.color} stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor={k.color} stopOpacity={0}/>
-                </linearGradient>
-              ))}
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.3} />
-            <XAxis dataKey={config.xAxisKey} style={{fontSize: '10px'}} tick={{fill: '#94a3b8'}} />
-            <YAxis style={{fontSize: '10px'}} tick={{fill: '#94a3b8'}} />
-            <Tooltip contentStyle={{fontSize: '12px', borderRadius: '8px'}} />
-            <Legend wrapperStyle={{fontSize: '10px'}}/>
-            {config.keys.map((k, i) => (
-              config.type === 'bar' ? 
-                <Bar key={k.key} dataKey={k.key} fill={k.color} name={k.name} radius={[4,4,0,0]} /> :
-              config.type === 'line' ?
-                <Line key={k.key} type="monotone" dataKey={k.key} stroke={k.color} name={k.name} dot={false} strokeWidth={2} /> :
-                <Area key={k.key} type="monotone" dataKey={k.key} stroke={k.color} fill={`url(#grad-${i})`} name={k.name} strokeWidth={2} />
-            ))}
-          </ChartComponent>
-        </ResponsiveContainer>
-      </div>
-    );
+    try {
+        return (
+        <div className={`mt-3 bg-white dark:bg-slate-900 rounded-lg p-2 border border-slate-200 dark:border-slate-700 w-full`} style={{ height: `${height}px` }}>
+            <p className="text-xs font-bold text-center text-slate-500 mb-2">{config.title}</p>
+            <ResponsiveContainer width="100%" height="90%">
+            <ChartComponent data={config.data} margin={{top: 5, right: 0, left: -20, bottom: 0}}>
+                <defs>
+                {config.keys.map((k, i) => (
+                    <linearGradient key={k.key || i} id={`grad-${i}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={k.color} stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor={k.color} stopOpacity={0}/>
+                    </linearGradient>
+                ))}
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.3} />
+                <XAxis dataKey={config.xAxisKey} style={{fontSize: '10px'}} tick={{fill: '#94a3b8'}} />
+                <YAxis style={{fontSize: '10px'}} tick={{fill: '#94a3b8'}} />
+                <Tooltip contentStyle={{fontSize: '12px', borderRadius: '8px'}} />
+                <Legend wrapperStyle={{fontSize: '10px'}}/>
+                {config.keys.map((k, i) => (
+                config.type === 'bar' ? 
+                    <Bar key={k.key || i} dataKey={k.key} fill={k.color} name={k.name} radius={[4,4,0,0]} /> :
+                config.type === 'line' ?
+                    <Line key={k.key || i} type="monotone" dataKey={k.key} stroke={k.color} name={k.name} dot={false} strokeWidth={2} /> :
+                    <Area key={k.key || i} type="monotone" dataKey={k.key} stroke={k.color} fill={`url(#grad-${i})`} name={k.name} strokeWidth={2} />
+                ))}
+            </ChartComponent>
+            </ResponsiveContainer>
+        </div>
+        );
+    } catch (renderError) {
+        console.error("Chart Render Error:", renderError);
+        return (
+            <div className="mt-3 bg-amber-50 border border-amber-200 rounded p-2 text-amber-700 text-xs">
+                Lỗi render biểu đồ.
+            </div>
+        );
+    }
   };
 
   const handleToggleSize = () => {
@@ -400,7 +448,7 @@ export const AIAssistant: React.FC = () => {
               <div className="text-sm whitespace-pre-wrap leading-relaxed">
                 {msg.content}
               </div>
-              {msg.type === 'chart' && msg.chartData && renderChart(msg.chartData)}
+              {msg.type === 'chart' && renderChart(msg.chartData!)}
               <div className={`text-[10px] mt-1 opacity-60 ${msg.role === 'user' ? 'text-white text-right' : 'text-slate-500'}`}>
                 {msg.role === 'model' ? 'Trợ lý AI' : 'Bạn'} • {new Date(parseInt(msg.id) || Date.now()).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})}
               </div>
