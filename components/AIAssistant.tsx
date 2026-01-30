@@ -290,6 +290,20 @@ export const AIAssistant: React.FC = () => {
     );
   };
 
+  const handleToggleSize = () => {
+    if (isFullScreen) {
+        // From FullScreen -> Default (Small)
+        setIsFullScreen(false);
+        setIsExpanded(false);
+    } else if (isExpanded) {
+        // From Expanded -> FullScreen
+        setIsFullScreen(true);
+    } else {
+        // From Default -> Expanded
+        setIsExpanded(true);
+    }
+  };
+
   if (!isOpen) {
     return (
       <button 
@@ -338,14 +352,16 @@ export const AIAssistant: React.FC = () => {
           <button onClick={() => setShowGuide(!showGuide)} className="p-1.5 hover:bg-white/20 rounded-lg transition-colors" title="Hướng dẫn">
             <HelpCircle size={18} />
           </button>
-          <button onClick={() => setIsFullScreen(!isFullScreen)} className="p-1.5 hover:bg-white/20 rounded-lg transition-colors" title="Toàn màn hình">
-            {isFullScreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+          
+          {/* Unified Size Toggle Button */}
+          <button 
+            onClick={handleToggleSize}
+            className="p-1.5 hover:bg-white/20 rounded-lg transition-colors" 
+            title={isFullScreen ? "Thu nhỏ về mặc định" : (isExpanded ? "Chế độ toàn màn hình" : "Mở rộng cửa sổ")}
+          >
+            {isFullScreen ? <Minimize2 size={18} /> : (isExpanded ? <Maximize2 size={18} /> : <Scaling size={18} />)}
           </button>
-          {!isFullScreen && (
-            <button onClick={() => setIsExpanded(!isExpanded)} className="p-1.5 hover:bg-white/20 rounded-lg transition-colors hidden md:block" title="Mở rộng">
-              {isExpanded ? <ChevronRight size={20} /> : <Scaling size={18} />}
-            </button>
-          )}
+
           <button onClick={() => setIsOpen(false)} className="p-1.5 hover:bg-white/20 rounded-lg transition-colors" title="Đóng">
             <X size={18} />
           </button>
