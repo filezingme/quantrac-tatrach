@@ -1,9 +1,12 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { ExternalLink, Table, Download } from 'lucide-react';
+import { ExternalLink, Table, Download, Maximize2, X } from 'lucide-react';
 import { exportToExcel } from '../utils/excel';
 
 export const ChartsView: React.FC = () => {
+  const [fullScreenChart, setFullScreenChart] = useState<'capacity' | 'area' | null>(null);
+
   const data = [
     { level: 23, capacity: 50, area: 10 },
     { level: 30, capacity: 120, area: 15 },
@@ -25,8 +28,38 @@ export const ChartsView: React.FC = () => {
     exportToExcel(exportData, 'Duong_han_che_cap_nuoc');
   };
 
+  const renderChart = (type: 'capacity' | 'area', isFullScreen = false) => {
+    const isCapacity = type === 'capacity';
+    const dataKey = isCapacity ? 'capacity' : 'area';
+    const color = isCapacity ? '#3b82f6' : '#10b981';
+    const gradientId = isCapacity ? 'colorCap' : 'colorArea';
+    const name = isCapacity ? 'Dung tích (W)' : 'Diện tích (F)';
+
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+          <defs>
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={color} stopOpacity={0.8}/>
+              <stop offset="95%" stopColor={color} stopOpacity={0}/>
+            </linearGradient>
+          </defs>
+          <XAxis 
+            dataKey="level" 
+            label={{ value: 'Z (m)', position: 'insideBottomRight', offset: -5, fill: '#64748b' }} 
+            tick={{fill: '#64748b'}} 
+          />
+          <YAxis tick={{fill: '#64748b'}} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" strokeOpacity={0.5} vertical={true} />
+          <Tooltip contentStyle={{backgroundColor: '#fff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'}} />
+          <Area type="monotone" dataKey={dataKey} stroke={color} fill={`url(#${gradientId})`} name={name} />
+        </AreaChart>
+      </ResponsiveContainer>
+    );
+  };
+
   return (
-    <div className="space-y-6 pb-10">
+    <div className="space-y-6 pb-10 animate-fade-in relative">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Hồ sơ & Biểu đồ</h2>
         <a 
@@ -40,35 +73,37 @@ export const ChartsView: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-          <h3 className="font-bold text-slate-800 dark:text-white mb-4">QH Mực nước (Z) ~ Dung tích (W)</h3>
+        {/* Capacity Chart Card */}
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-bold text-slate-800 dark:text-white">QH Mực nước (Z) ~ Dung tích (W)</h3>
+            <button 
+              onClick={() => setFullScreenChart('capacity')}
+              className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+              title="Phóng to"
+            >
+              <Maximize2 size={18} />
+            </button>
+          </div>
           <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data}>
-                <defs><linearGradient id="colorCap" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/><stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/></linearGradient></defs>
-                <XAxis dataKey="level" label={{ value: 'Z (m)', position: 'insideBottomRight', offset: -5, fill: '#64748b' }} tick={{fill: '#64748b'}} />
-                <YAxis tick={{fill: '#64748b'}} />
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" strokeOpacity={0.5} vertical={true} />
-                <Tooltip contentStyle={{backgroundColor: '#fff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'}} />
-                <Area type="monotone" dataKey="capacity" stroke="#3b82f6" fill="url(#colorCap)" />
-              </AreaChart>
-            </ResponsiveContainer>
+            {renderChart('capacity')}
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-          <h3 className="font-bold text-slate-800 dark:text-white mb-4">QH Mực nước (Z) ~ Diện tích (F)</h3>
+        {/* Area Chart Card */}
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-bold text-slate-800 dark:text-white">QH Mực nước (Z) ~ Diện tích (F)</h3>
+            <button 
+              onClick={() => setFullScreenChart('area')}
+              className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+              title="Phóng to"
+            >
+              <Maximize2 size={18} />
+            </button>
+          </div>
           <div className="h-[300px]">
-             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data}>
-                <defs><linearGradient id="colorArea" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/><stop offset="95%" stopColor="#10b981" stopOpacity={0}/></linearGradient></defs>
-                <XAxis dataKey="level" label={{ value: 'Z (m)', position: 'insideBottomRight', offset: -5, fill: '#64748b' }} tick={{fill: '#64748b'}} />
-                <YAxis tick={{fill: '#64748b'}} />
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" strokeOpacity={0.5} vertical={true} />
-                <Tooltip contentStyle={{backgroundColor: '#fff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'}} />
-                <Area type="monotone" dataKey="area" stroke="#10b981" fill="url(#colorArea)" />
-              </AreaChart>
-            </ResponsiveContainer>
+             {renderChart('area')}
           </div>
         </div>
       </div>
@@ -109,6 +144,32 @@ export const ChartsView: React.FC = () => {
            </table>
         </div>
       </div>
+
+      {/* Fullscreen Modal */}
+      {fullScreenChart && (
+        <div 
+          className="fixed inset-0 z-[5000] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+          style={{ marginTop: 0 }}
+        >
+          <div className="bg-white dark:bg-slate-800 w-full h-full max-w-[95vw] max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
+              <h3 className="text-lg font-bold text-slate-800 dark:text-white uppercase flex items-center gap-2">
+                 <Maximize2 size={18} className="text-blue-600 dark:text-blue-400"/> 
+                 {fullScreenChart === 'capacity' ? 'QH Mực nước (Z) ~ Dung tích (W)' : 'QH Mực nước (Z) ~ Diện tích (F)'}
+              </h3>
+              <button 
+                onClick={() => setFullScreenChart(null)}
+                className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 rounded-full transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="flex-1 p-6 bg-white dark:bg-slate-800 overflow-hidden">
+              {renderChart(fullScreenChart, true)}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
