@@ -1,4 +1,5 @@
 
+// ... (imports remain the same, ensure X is imported)
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Search, X, FileText, Image as ImageIcon, LayoutDashboard, Settings, 
@@ -9,6 +10,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { db } from '../utils/db';
 import { useUI } from './GlobalUI';
+
+// ... (interfaces and helpers remain the same)
 
 interface GlobalSearchProps {
   isOpen: boolean;
@@ -49,6 +52,7 @@ const removeAccents = (str: string) => {
 };
 
 export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) => {
+  // ... (state remains the same)
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -82,6 +86,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
     }
   }, [isOpen]);
 
+  // ... (voice search logic remains the same)
   // Voice Search Handler
   const toggleListening = () => {
     if (isListening) {
@@ -169,12 +174,15 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
           const currentIdx = filters.indexOf(activeFilter);
           const nextIdx = (currentIdx + 1) % filters.length;
           setActiveFilter(filters[nextIdx]);
+      } else if (e.key === 'Escape') {
+          e.preventDefault();
+          onClose();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, results, selectedIndex, activeFilter, filteredResults]);
+  }, [isOpen, results, selectedIndex, activeFilter, filteredResults, onClose]);
 
   // Ensure selected item is visible
   useEffect(() => {
@@ -186,6 +194,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
     }
   }, [selectedIndex]);
 
+  // ... (Main Search Logic remains the same)
   // Main Search Logic
   useEffect(() => {
     if (!query.trim()) {
@@ -266,6 +275,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
     setSelectedIndex(0);
   }, [query]);
 
+  // ... (History and Select helpers remain the same)
   const addToHistory = (text: string) => {
       const newHistory = [text, ...searchHistory.filter(h => h !== text)].slice(0, 5);
       setSearchHistory(newHistory);
@@ -315,13 +325,20 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
              >
                 {isListening ? <MicOff size={20} /> : <Mic size={20} />}
              </button>
-             <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1"></div>
-             <button onClick={onClose} className="p-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-md text-xs font-bold text-slate-500 px-2 transition-colors">
-                ESC
+             
+             {/* Close Button (X) replacing the old ESC text button */}
+             <button 
+                onClick={onClose} 
+                className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                title="Đóng (ESC)"
+             >
+                <X size={20} />
              </button>
           </div>
         </div>
 
+        {/* ... (Rest of the component remains largely the same) */}
+        
         {/* 2. Smart Tabs (Filters) */}
         {results.length > 0 && (
             <div className="flex items-center gap-2 px-4 py-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 overflow-x-auto no-scrollbar">
