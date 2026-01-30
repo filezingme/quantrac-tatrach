@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
@@ -190,10 +189,10 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
           <div className="flex items-center gap-2 sm:gap-4">
              <button 
                 onClick={() => setIsSearchOpen(true)}
-                className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 text-sm transition-colors border border-transparent hover:border-slate-300 dark:hover:border-slate-600"
+                className="hidden md:flex items-center w-full max-w-[200px] lg:max-w-[320px] gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 text-sm transition-colors border border-transparent hover:border-slate-300 dark:hover:border-slate-600"
              >
                 <Search size={16} />
-                <span className="hidden lg:inline">Tìm kiếm...</span>
+                <span className="flex-1 text-left truncate">Tìm kiếm...</span>
                 <div className="flex items-center gap-0.5 ml-2">
                    <kbd className="hidden lg:inline-flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded px-2 py-0.5 text-[10px] font-bold shadow-sm text-slate-500 dark:text-slate-400">
                       Ctrl + K
@@ -295,10 +294,11 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                                     </div>
                                     <button
                                       onClick={(e) => handleMarkAsUnread(viewNotification.id, e)}
-                                      className="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors"
+                                      className="relative p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors group"
                                       title="Đánh dấu chưa đọc"
                                     >
                                         <Mail size={18} />
+                                        <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-red-500 rounded-full border border-white dark:border-slate-800"></span>
                                     </button>
                                  </div>
                                  
@@ -539,10 +539,11 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                                   </div>
                                   <button
                                       onClick={(e) => handleMarkAsUnread(viewNotification.id, e)}
-                                      className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors"
+                                      className="relative p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors group"
                                       title="Đánh dấu chưa đọc"
                                   >
                                       <Mail size={20} />
+                                      <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-slate-800"></span>
                                   </button>
                                   <button 
                                      onClick={() => { setShowAllNotifications(false); setViewNotification(null); }}
@@ -590,33 +591,29 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
 };
 
 export const App: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  useEffect(() => {
-    const isAuth = sessionStorage.getItem('isAuthenticated') === 'true';
-    setIsAuthenticated(isAuth);
-  }, []);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return sessionStorage.getItem('isAuthenticated') === 'true';
+  });
 
   const handleLogin = (user: UserProfile) => {
-    db.user.set(user);
-    setIsAuthenticated(true);
     sessionStorage.setItem('isAuthenticated', 'true');
+    setIsAuthenticated(true);
   };
 
   const handleLogout = () => {
-    setIsAuthenticated(false);
     sessionStorage.removeItem('isAuthenticated');
+    setIsAuthenticated(false);
   };
 
   return (
-    <UIProvider>
-      <HashRouter>
-        {!isAuthenticated ? (
-          <LoginView onLogin={handleLogin} />
-        ) : (
+    <HashRouter>
+      <UIProvider>
+        {isAuthenticated ? (
           <MainLayout onLogout={handleLogout} />
+        ) : (
+          <LoginView onLogin={handleLogin} />
         )}
-      </HashRouter>
-    </UIProvider>
+      </UIProvider>
+    </HashRouter>
   );
 };
