@@ -131,7 +131,12 @@ export const AIAssistant: React.FC = () => {
             console.error('Speech error', event.error);
             setIsListening(false);
             if (event.error === 'not-allowed') {
-                ui.showToast('error', 'Vui lòng cấp quyền Microphone.');
+                ui.showToast('error', 'Truy cập Microphone bị từ chối. Vui lòng kiểm tra cài đặt trình duyệt.');
+            } else if (event.error === 'no-speech') {
+                // Ignore no-speech errors usually, or just stop listening quietly
+                // ui.showToast('info', 'Không nghe thấy giọng nói.');
+            } else {
+               ui.showToast('error', 'Lỗi nhận diện giọng nói: ' + event.error);
             }
         };
 
@@ -144,6 +149,7 @@ export const AIAssistant: React.FC = () => {
     } catch (e) {
         console.error(e);
         setIsListening(false);
+        ui.showToast('error', 'Không thể khởi động Microphone.');
     }
   };
 
@@ -487,27 +493,4 @@ export const AIAssistant: React.FC = () => {
              {/* Microphone Button (Inside Input) */}
              <button 
                 onClick={toggleListening}
-                className={`absolute right-1 p-1.5 rounded-full transition-all ${isListening ? 'bg-red-500 text-white animate-pulse' : 'text-slate-400 hover:text-indigo-600 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
-                title={isListening ? "Dừng nghe" : "Nói để nhập liệu"}
-             >
-                {isListening ? <MicOff size={16} /> : <Mic size={16} />}
-             </button>
-          </div>
-
-          <button 
-            onClick={handleSend}
-            disabled={!input.trim() || isLoading}
-            className="p-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-full transition-all shadow-md"
-          >
-            <Send size={18} />
-          </button>
-        </div>
-        <div className="text-center mt-2">
-           <p className="text-[10px] text-slate-400 dark:text-slate-500">
-             {!process.env.API_KEY ? 'Chế độ mô phỏng (Chưa cấu hình API Key)' : 'AI có thể đưa ra thông tin không chính xác.'}
-           </p>
-        </div>
-      </div>
-    </div>
-  );
-};
+                className={`absolute right-1 p-1.5
