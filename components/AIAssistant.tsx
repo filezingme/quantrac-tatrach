@@ -1,9 +1,10 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenAI } from "@google/genai";
-import { MessageSquare, X, Send, Sparkles, BarChart2, HelpCircle, ChevronRight, Loader2, Maximize2, Minimize2, Scaling, Key } from 'lucide-react';
+import { MessageSquare, X, Send, Sparkles, BarChart2, HelpCircle, ChevronRight, Loader2, Maximize2, Minimize2, Scaling, Key, Mic, MicOff } from 'lucide-react';
 import { db } from '../utils/db';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, LineChart, Line } from 'recharts';
+import { useUI } from './GlobalUI';
 
 // --- TYPES ---
 interface Message {
@@ -46,7 +47,13 @@ export const AIAssistant: React.FC = () => {
     }
   ]);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Voice Input State
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
   const scrollRef = useRef<HTMLDivElement>(null);
+  const ui = useUI(); // Access Global UI for toasts
   
   // Check for AI Studio environment support
   const [canSelectKey, setCanSelectKey] = useState(false);
@@ -65,6 +72,15 @@ export const AIAssistant: React.FC = () => {
     }
   }, [messages, isOpen, isExpanded, isFullScreen]);
 
+  // Cleanup voice recognition on unmount/close
+  useEffect(() => {
+    return () => {
+        if (recognitionRef.current) {
+            recognitionRef.current.stop();
+        }
+    };
+  }, []);
+
   const handleSelectKey = async () => {
     const aistudio = (window as any).aistudio;
     if (aistudio) {
@@ -74,6 +90,60 @@ export const AIAssistant: React.FC = () => {
       } catch (e) {
         console.error("Failed to select key", e);
       }
+    }
+  };
+
+  // --- VOICE LOGIC ---
+  const toggleListening = () => {
+    if (isListening) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+        setIsListening(false);
+      }
+      return;
+    }
+
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        ui.showToast('warning', 'Trình duyệt không hỗ trợ nhận diện giọng nói.');
+        return;
+    }
+
+    try {
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        
+        recognition.lang = 'vi-VN';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onstart = () => {
+            setIsListening(true);
+        };
+
+        recognition.onresult = (event: any) => {
+            const transcript = event.results[0][0].transcript;
+            // Append to existing input if user pauses and speaks again, or replace if empty
+            setInput(prev => prev ? `${prev} ${transcript}` : transcript);
+            setIsListening(false);
+        };
+
+        recognition.onerror = (event: any) => {
+            console.error('Speech error', event.error);
+            setIsListening(false);
+            if (event.error === 'not-allowed') {
+                ui.showToast('error', 'Vui lòng cấp quyền Microphone.');
+            }
+        };
+
+        recognition.onend = () => {
+            setIsListening(false);
+        };
+
+        recognitionRef.current = recognition;
+        recognition.start();
+    } catch (e) {
+        console.error(e);
+        setIsListening(false);
     }
   };
 
@@ -394,6 +464,7 @@ export const AIAssistant: React.FC = () => {
       {/* Input Area */}
       <div className="p-3 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 shrink-0">
         <div className="relative flex items-center gap-2">
+          {/* Toggle Guide Button */}
           <button 
             onClick={() => setShowGuide(!showGuide)}
             className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-700 rounded-full transition-colors"
@@ -401,15 +472,28 @@ export const AIAssistant: React.FC = () => {
           >
             <BarChart2 size={20} />
           </button>
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyPress}
-            placeholder="Nhập câu hỏi hoặc yêu cầu vẽ biểu đồ..."
-            className="flex-1 bg-slate-100 dark:bg-slate-700 border-0 rounded-full px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
-            autoFocus
-          />
+
+          {/* Input Wrapper */}
+          <div className="flex-1 relative flex items-center">
+             <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyPress}
+                placeholder={isListening ? "Đang nghe..." : "Nhập câu hỏi hoặc nói..."}
+                className="w-full bg-slate-100 dark:bg-slate-700 border-0 rounded-full pl-4 pr-10 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white transition-all"
+                autoFocus
+             />
+             {/* Microphone Button (Inside Input) */}
+             <button 
+                onClick={toggleListening}
+                className={`absolute right-1 p-1.5 rounded-full transition-all ${isListening ? 'bg-red-500 text-white animate-pulse' : 'text-slate-400 hover:text-indigo-600 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
+                title={isListening ? "Dừng nghe" : "Nói để nhập liệu"}
+             >
+                {isListening ? <MicOff size={16} /> : <Mic size={16} />}
+             </button>
+          </div>
+
           <button 
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
