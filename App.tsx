@@ -335,13 +335,17 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
              <div className="relative pl-4 border-l border-slate-200 dark:border-slate-700" ref={userRef}>
                 <button 
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center gap-2 group outline-none"
+                  className="flex items-center gap-3 group outline-none pl-2"
                 >
-                  <div className="text-right hidden sm:block">
-                    <p className="text-xs font-bold text-slate-700 dark:text-slate-200 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">{user.name}</p>
-                    <p className="text-[10px] text-slate-400">{user.role}</p>
+                  <div className="flex flex-col items-end hidden sm:flex mr-1">
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors whitespace-nowrap leading-tight">
+                      {user.name}
+                    </span>
+                    <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide whitespace-nowrap">
+                      {user.role === 'admin' ? 'Quản trị viên' : 'Nhân viên'}
+                    </span>
                   </div>
-                  <div className={`h-9 w-9 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-xs shadow-blue-200 shadow-md ring-2 ring-transparent group-hover:ring-blue-100 dark:group-hover:ring-blue-900 transition-all ${isUserMenuOpen ? 'ring-blue-200 dark:ring-blue-800' : ''}`}>
+                  <div className={`h-9 w-9 shrink-0 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-xs shadow-blue-200 shadow-md ring-2 ring-transparent group-hover:ring-blue-100 dark:group-hover:ring-blue-900 transition-all ${isUserMenuOpen ? 'ring-blue-200 dark:ring-blue-800' : ''}`}>
                     {user.avatar}
                   </div>
                 </button>
@@ -551,7 +555,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                                   >
                                      <X size={20}/>
                                   </button>
-                               </div>
+                                </div>
                                
                                <div className="p-8 overflow-y-auto flex-1 hover-scrollbar bg-white dark:bg-slate-800">
                                   <div className={`mb-6 p-4 rounded-xl flex items-start gap-4 ${
