@@ -120,7 +120,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
 
         {/* Navigation */}
         <nav className={`flex-1 py-6 sidebar-scrollbar ${isCollapsed ? 'pr-0' : ''}`}>
-          <ul className={`space-y-1.5 ${isCollapsed ? 'pl-[13px] pr-0' : 'px-3'}`}>
+          <ul className={`space-y-1.5 ${isCollapsed ? 'pl-[11px] pr-0' : 'px-3'}`}>
             {menuItems.filter(item => item.roles.includes(userRole)).map((item) => {
               // Check if active (dashboard is also root)
               const isActive = location.pathname === item.path || (item.path === '/dashboard' && location.pathname === '/');
