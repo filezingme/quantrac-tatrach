@@ -18,7 +18,7 @@ export enum ViewMode {
   SYSTEM_SETTINGS = 'system_settings',
   USER_MANAGEMENT = 'user_management',
   ALERTS = 'alerts',
-  SENSORS = 'sensors' // New View
+  SENSORS = 'sensors'
 }
 
 export interface WaterLevelRecord {
