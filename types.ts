@@ -16,7 +16,8 @@ export enum ViewMode {
   DEMO_CHARTS = 'demo_charts',
   USER_PROFILE = 'user_profile',
   SYSTEM_SETTINGS = 'system_settings',
-  USER_MANAGEMENT = 'user_management'
+  USER_MANAGEMENT = 'user_management',
+  ALERTS = 'alerts' // New View
 }
 
 export interface WaterLevelRecord {
@@ -180,6 +181,19 @@ export interface AppNotification {
   time: string;
   read: boolean;
   type: 'info' | 'warning' | 'alert';
+}
+
+// New Alert Log Interface
+export interface AlertLog {
+  id: string;
+  time: string; // Display time string
+  timestamp: string; // ISO for sorting
+  sensor: string;
+  type: string;
+  station: string;
+  severity: 'critical' | 'warning' | 'info';
+  message: string;
+  status: 'new' | 'acknowledged' | 'resolved';
 }
 
 export interface UserProfile {

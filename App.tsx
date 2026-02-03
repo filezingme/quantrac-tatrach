@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
@@ -19,6 +20,7 @@ import { UserProfileView } from './views/UserProfileView';
 import { SystemSettingsView } from './views/SystemSettingsView';
 import { UserManagementView } from './views/UserManagementView';
 import { AISafetyView } from './views/AISafetyView';
+import { AlertHistoryView } from './views/AlertHistoryView'; // New Import
 import { LoginView } from './views/LoginView';
 import { UIProvider, useUI } from './components/GlobalUI';
 import { AIAssistant } from './components/AIAssistant'; 
@@ -404,6 +406,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             <Route path="/camera" element={<CameraView />} />
             <Route path="/demo-charts" element={<DemoChartsView />} />
             <Route path="/profile" element={<UserProfileView />} />
+            <Route path="/alerts" element={<AlertHistoryView />} /> {/* New Route */}
             
             <Route 
               path="/users" 
@@ -610,14 +613,14 @@ export const App: React.FC = () => {
   };
 
   return (
-    <HashRouter>
-      <UIProvider>
+    <UIProvider>
+      <HashRouter>
         {isAuthenticated ? (
           <MainLayout onLogout={handleLogout} />
         ) : (
           <LoginView onLogin={handleLogin} />
         )}
-      </UIProvider>
-    </HashRouter>
+      </HashRouter>
+    </UIProvider>
   );
 };

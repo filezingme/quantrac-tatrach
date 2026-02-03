@@ -12,10 +12,11 @@ import {
   ForecastData, 
   WaterLevelRecord, 
   SystemSettings,
-  DocumentItem
+  DocumentItem,
+  AlertLog
 } from '../types';
 
-// CHANGED: Version bump to v3 to force fresh data load for all users
+// CHANGED: Version bump to v4
 const KEYS = {
   OBSERVATION: 'app_observation_v3',
   FORECAST: 'app_forecast_v3',
@@ -30,11 +31,12 @@ const KEYS = {
   USERS_LIST: 'app_users_list_v3',
   WATER_LEVEL_RECORDS: 'app_water_level_records_v3',
   SETTINGS: 'app_settings_v3',
-  DOCUMENTS: 'app_documents_v3'
+  DOCUMENTS: 'app_documents_v3',
+  ALERTS: 'app_alerts_v4' // New key
 };
 
-// --- Default Data ---
-
+// ... (Existing Default Data: defaultObservation, defaultForecast, defaultSpecs, etc.) ...
+// Preserve existing mock data functions/constants
 const defaultObservation: ObservationData = {
   waterLevel: 45.2,
   capacity: 340.5,
@@ -284,7 +286,6 @@ const defaultCameras: CameraInfo[] = [
   { id: 'c3', name: 'Camera Thượng Lưu', url: 'https://www.youtube.com/embed/N9ppshL89dA?autoplay=1&mute=1', status: 'online' },
 ];
 
-// --- MOCK NOTIFICATIONS ---
 const defaultNotifications: AppNotification[] = [
   { id: 'n1', title: 'Cảnh báo lũ', message: 'Mực nước đang tiến sát mức báo động I. Cần theo dõi sát sao.', time: '10 phút trước', read: false, type: 'alert' },
   { id: 'n2', title: 'Mất tín hiệu cảm biến', message: 'Cảm biến áp lực thấm tại vị trí P12 bị mất kết nối. Vui lòng kiểm tra.', time: '1 giờ trước', read: false, type: 'warning' },
@@ -426,6 +427,41 @@ const defaultSettings: SystemSettings = {
   backupFrequency: 'daily'
 };
 
+// Generate Mock Alerts
+const generateMockAlerts = (): AlertLog[] => {
+  const sensors = [
+    'Đo mực nước WL-01', 'Cảm biến áp lực P2-3', 'Quan trắc thấm KN4', 
+    'Nhiệt kế bê tông T-22', 'Cảm biến thấm T1', 'Trạm mưa Hương Sơn', 
+    'Hệ thống Camera', 'Máy biến áp T2', 'Cửa van cung số 1', 'Cảm biến dòng chảy F-02'
+  ];
+  const types = ['Mất kết nối', 'Lỗi thiết bị', 'Vượt ngưỡng', 'Cảnh báo', 'Mưa lớn', 'Bảo trì', 'Điện áp thấp', 'Nhiệt độ cao'];
+  const stations = ['Trạm đo đầu mối', 'Hành lang đập', 'Kênh xả', 'Khối K12', 'Đập chính (Vai phải)', 'Thượng lưu', 'Đập tràn', 'Nhà máy', 'Cửa lấy nước'];
+  
+  const alerts: AlertLog[] = [];
+  const baseTime = new Date('2026-02-03T09:30:02');
+
+  for (let i = 0; i < 25; i++) {
+    const t = new Date(baseTime.getTime() - i * Math.floor(Math.random() * 3600 * 1000 * 2)); // Spread over time
+    const severityRoll = Math.random();
+    const severity: 'critical' | 'warning' | 'info' = 
+        severityRoll > 0.85 ? 'critical' : severityRoll > 0.5 ? 'warning' : 'info';
+    
+    alerts.push({
+      id: `alert-${i}`,
+      time: t.toLocaleString('vi-VN'),
+      timestamp: t.toISOString(),
+      sensor: sensors[i % sensors.length],
+      type: types[i % types.length],
+      station: stations[i % stations.length],
+      severity,
+      message: `Chi tiết: ${types[i % types.length]} tại ${stations[i % stations.length]}. Giá trị đo ghi nhận bất thường.`,
+      status: i < 3 ? 'new' : i < 10 ? 'acknowledged' : 'resolved'
+    });
+  }
+  
+  return alerts;
+};
+
 // --- DB Operations ---
 
 export const db = {
@@ -479,6 +515,19 @@ export const db = {
     markAllRead: () => {
       const notifs = db.notifications.get();
       db.notifications.set(notifs.map(n => ({...n, read: true})));
+    }
+  },
+  // Added Alerts DB
+  alerts: {
+    get: () => db.get<AlertLog[]>(KEYS.ALERTS, generateMockAlerts()),
+    set: (data: AlertLog[]) => db.set(KEYS.ALERTS, data),
+    resolve: (id: string) => {
+        const alerts = db.alerts.get();
+        db.alerts.set(alerts.map(a => a.id === id ? { ...a, status: 'resolved' } : a));
+    },
+    acknowledge: (id: string) => {
+        const alerts = db.alerts.get();
+        db.alerts.set(alerts.map(a => a.id === id ? { ...a, status: 'acknowledged' } : a));
     }
   },
   user: {

@@ -1,18 +1,21 @@
+
 import React, { useEffect, useState, useMemo } from 'react';
-import { ObservationData } from '../types';
+import { ObservationData, AlertLog } from '../types';
 import { db } from '../utils/db';
 import { exportToExcel } from '../utils/excel';
 import { 
   Activity, RefreshCw, X, Maximize2, Minimize2,
   TrendingUp, TrendingDown, Calendar, Droplets,
   Table as TableIcon, Filter, Download, Check, ChevronDown, ChevronUp,
-  Radio, BarChart3, AlertCircle, CloudRain, Clock, Zap, ShieldCheck
+  Radio, BarChart3, AlertCircle, CloudRain, Clock, Zap, ShieldCheck,
+  Wifi, WifiOff, AlertTriangle, ArrowRight, Settings, MapPin
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend, BarChart, Bar, ComposedChart, Line
 } from 'recharts';
 import { useUI } from '../components/GlobalUI';
+import { useNavigate } from 'react-router-dom';
 
 // --- Types & Constants ---
 
@@ -69,15 +72,10 @@ const generateRainfallData = (isForecast: boolean) => {
   return data;
 };
 
-// Mock Data for New Widgets
-const alertData = [
-  { id: 1, time: '03/02/2026 09:30:02', sensor: 'Đo mực nước', type: 'Đo mực nước', station: 'Trạm đo mực nước', status: 'Mất kết nối' },
-  { id: 2, time: '03/02/2026 09:30:02', sensor: 'P2-3', type: 'Đo mực nước', station: 'Trạm đo mực nước', status: 'Mất kết nối' },
-  { id: 3, time: '03/02/2026 09:30:02', sensor: 'KN4', type: 'Đo mực nước', station: 'Trạm đo mực nước', status: 'Mất kết nối' },
-  { id: 4, time: '03/02/2026 09:30:02', sensor: 'KN2', type: 'Đo mực nước', station: 'Trạm đo mực nước', status: 'Mất kết nối' },
-  { id: 5, time: '03/02/2026 09:30:02', sensor: 'KN1', type: 'Đo mực nước', station: 'Trạm đo mực nước', status: 'Mất kết nối' },
-  { id: 6, time: '03/02/2026 08:15:00', sensor: 'Cảm biến thấm T1', type: 'Áp lực thấm', station: 'Đập chính', status: 'Cảnh báo' },
-  { id: 7, time: '03/02/2026 07:45:30', sensor: 'Trạm mưa Hương Sơn', type: 'Mưa lớn', station: 'Thượng lưu', status: 'Vượt ngưỡng' },
+const sensorHealthData = [
+  { name: 'Hoạt động', value: 10, color: '#22c55e' }, // Green
+  { name: 'Cảnh báo', value: 1, color: '#f59e0b' },   // Amber
+  { name: 'Mất tín hiệu', value: 1, color: '#ef4444' } // Red
 ];
 
 // Mock Data for Rainfall Widgets (Summary)
@@ -96,7 +94,9 @@ const forecastRainData = [
 
 export const DashboardView: React.FC = () => {
   const [data, setData] = useState<ObservationData>(db.observation.get());
+  const [alertData, setAlertData] = useState<AlertLog[]>([]); // State for alerts
   const ui = useUI();
+  const navigate = useNavigate();
   
   // Modal State
   const [selectedMetric, setSelectedMetric] = useState<MetricDetail | null>(null);
@@ -109,15 +109,25 @@ export const DashboardView: React.FC = () => {
   const [filterTo, setFilterTo] = useState(new Date().toISOString().slice(0, 16));
   const [selectedYears, setSelectedYears] = useState<number[]>([new Date().getFullYear()]);
   
+  // Alert Filter State
+  const [alertFilter, setAlertFilter] = useState<'all' | 'critical' | 'warning'>('all');
+
   // Comparison Data State
   const [comparisonData, setComparisonData] = useState<any[]>([]);
 
   const refreshData = () => {
       setData(db.observation.get());
+      setAlertData(db.alerts.get());
   };
 
   useEffect(() => {
-    const handleDbChange = () => setData(db.observation.get());
+    setData(db.observation.get());
+    setAlertData(db.alerts.get());
+
+    const handleDbChange = () => {
+        setData(db.observation.get());
+        setAlertData(db.alerts.get());
+    };
     window.addEventListener('db-change', handleDbChange);
     return () => window.removeEventListener('db-change', handleDbChange);
   }, []);
@@ -352,6 +362,14 @@ export const DashboardView: React.FC = () => {
      if (index === 0) return baseColor;
      return COMPARE_COLORS[(index - 1) % COMPARE_COLORS.length];
   };
+
+  // Filter alerts based on active tab
+  const filteredAlerts = alertData.filter(item => {
+      if (alertFilter === 'all') return true;
+      if (alertFilter === 'critical') return item.severity === 'critical';
+      if (alertFilter === 'warning') return item.severity === 'warning';
+      return true;
+  });
 
   return (
     <>
@@ -673,103 +691,171 @@ export const DashboardView: React.FC = () => {
 
         </div>
 
-        {/* Secondary Data Sections (Replaced with Sensor Alerts and Stats) */}
+        {/* Secondary Data Sections - REDESIGNED */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          {/* Latest Sensor Alerts */}
-          <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col">
-            <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-700/50 flex justify-between items-center">
-               <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                 <Radio className="text-indigo-600 dark:text-indigo-400" size={20} />
-                 Danh sách cảnh báo mới nhất
-               </h3>
-               <div className="flex gap-2 items-center">
-                  <span className="text-xs text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-2 py-1 border dark:border-slate-600 rounded hidden sm:inline-block">Cập nhật 10p trước</span>
+          {/* Latest Sensor Alerts -> REIMAGINED as Alert Center */}
+          <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col h-full overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-700/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+               <div className="flex items-center gap-2">
+                 <div className="p-1.5 bg-red-100 dark:bg-red-900/30 rounded-lg text-red-600 dark:text-red-400">
+                    <Radio size={20} className="animate-pulse" />
+                 </div>
+                 <div>
+                    <h3 className="font-bold text-slate-800 dark:text-white leading-tight">Trung tâm Cảnh báo</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Cập nhật thời gian thực</p>
+                 </div>
+               </div>
+               
+               {/* Custom Tab Filter */}
+               <div className="flex bg-slate-200 dark:bg-slate-700 rounded-lg p-1 text-xs font-bold w-full sm:w-auto">
                   <button 
-                    className="flex items-center gap-1 text-xs font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-2 py-1 rounded transition-colors"
+                    onClick={() => setAlertFilter('all')}
+                    className={`flex-1 sm:flex-none px-3 py-1.5 rounded-md transition-all ${alertFilter === 'all' ? 'bg-white dark:bg-slate-600 text-slate-800 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
                   >
-                    <Download size={14}/> Xuất Excel
+                    Tất cả
+                  </button>
+                  <button 
+                    onClick={() => setAlertFilter('critical')}
+                    className={`flex-1 sm:flex-none px-3 py-1.5 rounded-md transition-all ${alertFilter === 'critical' ? 'bg-white dark:bg-slate-600 text-red-600 dark:text-red-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-red-500'}`}
+                  >
+                    Nghiêm trọng
+                  </button>
+                  <button 
+                    onClick={() => setAlertFilter('warning')}
+                    className={`flex-1 sm:flex-none px-3 py-1.5 rounded-md transition-all ${alertFilter === 'warning' ? 'bg-white dark:bg-slate-600 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-amber-500'}`}
+                  >
+                    Cảnh báo
                   </button>
                </div>
             </div>
-            <div className="overflow-x-auto p-2">
-              <table className="w-full text-sm text-left border-collapse">
-                <thead className="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold">
-                  <tr>
-                    <th className="px-4 py-3 text-center">STT</th>
-                    <th className="px-4 py-3">THỜI GIAN</th>
-                    <th className="px-4 py-3 font-bold text-slate-600 dark:text-slate-300">TÊN CẢM BIẾN</th>
-                    <th className="px-4 py-3">LOẠI CẢNH BÁO</th>
-                    <th className="px-4 py-3">TRẠM ĐO</th>
-                    <th className="px-4 py-3 text-right">TRẠNG THÁI</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                  {alertData.map((row) => (
-                    <tr key={row.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-700/30 transition-colors">
-                      <td className="px-4 py-3 text-center text-slate-600 dark:text-slate-400">{row.id}</td>
-                      <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{row.time}</td>
-                      <td className="px-4 py-3 font-bold text-blue-600 dark:text-blue-400 cursor-pointer hover:underline">{row.sensor}</td>
-                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{row.type}</td>
-                      <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{row.station}</td>
-                      <td className="px-4 py-3 text-right text-slate-500 dark:text-slate-400">{row.status}</td>
-                    </tr>
+            
+            {/* Scrollable List - INCREASED HEIGHT FOR MORE RECORDS */}
+            <div className="flex-1 overflow-y-auto max-h-[400px] hover-scrollbar p-0">
+               <div className="divide-y divide-slate-50 dark:divide-slate-700/50">
+                  {filteredAlerts.slice(0, 8).map((row) => (
+                    <div key={row.id} className="p-4 flex items-start gap-4 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group relative border-l-4 border-transparent hover:border-l-blue-500">
+                       {/* Icon Column */}
+                       <div className={`mt-1 shrink-0 p-2 rounded-full ${
+                          row.severity === 'critical' ? 'bg-red-50 dark:bg-red-900/20 text-red-600' :
+                          row.severity === 'warning' ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-600' :
+                          'bg-blue-50 dark:bg-blue-900/20 text-blue-600'
+                       }`}>
+                          {row.severity === 'critical' ? <WifiOff size={18}/> : 
+                           row.severity === 'warning' ? <AlertTriangle size={18}/> : 
+                           <AlertCircle size={18}/>}
+                       </div>
+
+                       {/* Content Column */}
+                       <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start">
+                             <h4 className="font-bold text-sm text-slate-800 dark:text-slate-200 truncate pr-2">{row.sensor}</h4>
+                             <span className="text-[10px] text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 whitespace-nowrap font-mono">{row.time}</span>
+                          </div>
+                          
+                          {/* Main Message */}
+                          <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed line-clamp-1">{row.message}</p>
+
+                          <div className="flex items-center gap-2 mt-2">
+                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
+                                row.severity === 'critical' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' :
+                                row.severity === 'warning' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' :
+                                'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                             }`}>
+                                {row.type}
+                             </span>
+                             <span className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                                <MapPin size={10} /> {row.station}
+                             </span>
+                          </div>
+                       </div>
+
+                       {/* Action */}
+                       <button className="self-center p-2 text-slate-300 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-all">
+                          <ArrowRight size={18}/>
+                       </button>
+                    </div>
                   ))}
-                </tbody>
-              </table>
+                  {filteredAlerts.length === 0 && (
+                     <div className="py-12 flex flex-col items-center justify-center text-slate-400">
+                        <Check size={48} className="mb-2 opacity-20"/>
+                        <p>Không có cảnh báo nào trong danh mục này</p>
+                     </div>
+                  )}
+               </div>
+            </div>
+            
+            <div className="p-3 bg-slate-50 dark:bg-slate-900/30 border-t border-slate-100 dark:border-slate-700 text-center">
+               <button 
+                 onClick={() => navigate('/alerts')}
+                 className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+               >
+                 Xem lịch sử cảnh báo đầy đủ
+               </button>
             </div>
           </div>
 
-          {/* Sensor Stats */}
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-0 overflow-hidden flex flex-col">
-             <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-700/50">
+          {/* Sensor Stats -> REIMAGINED as Health Chart */}
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 flex flex-col h-full">
+             <div className="flex justify-between items-start mb-4">
                  <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
                   <BarChart3 className="text-purple-600 dark:text-purple-400" size={20} />
-                  Thống kê hiện trạng cảm biến
+                  Sức khỏe Hệ thống
                 </h3>
+                <button className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                   <Settings size={16}/>
+                </button>
              </div>
-             <div className="p-6 space-y-6 flex-1">
-                
-                {/* Block 1 */}
-                <div>
-                   <h4 className="font-bold text-slate-700 dark:text-slate-200 text-sm mb-3">Số cảm biến đang hoạt động/Tổng</h4>
-                   <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
-                         <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Hoạt động</div>
-                         <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">10</div>
-                      </div>
-                      <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3">
-                         <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Tổng số</div>
-                         <div className="text-2xl font-bold text-purple-700 dark:text-purple-400">12</div>
-                      </div>
-                   </div>
+             
+             {/* Donut Chart Centerpiece */}
+             <div className="flex-1 flex flex-col items-center justify-center relative min-h-[180px]">
+                <ResponsiveContainer width="100%" height={180}>
+                   <PieChart>
+                      <Pie
+                        data={sensorHealthData}
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                        stroke="none"
+                      >
+                        {sensorHealthData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                   </PieChart>
+                </ResponsiveContainer>
+                {/* Center Text */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                   <span className="text-3xl font-bold text-slate-800 dark:text-white">83%</span>
+                   <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wide">Health Score</span>
                 </div>
+             </div>
 
-                {/* Block 2 */}
-                <div>
-                   <h4 className="font-bold text-slate-700 dark:text-slate-200 text-sm mb-3">Số cảm biến hỏng / mất kết nối</h4>
-                   <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
-                         <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Hỏng</div>
-                         <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">1</div>
-                      </div>
-                      <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3">
-                         <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Mất kết nối</div>
-                         <div className="text-2xl font-bold text-purple-700 dark:text-purple-400">1</div>
-                      </div>
+             {/* Detailed Stats Legend */}
+             <div className="mt-6 space-y-3">
+                <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-700/30 border border-slate-100 dark:border-slate-700/50">
+                   <div className="flex items-center gap-2">
+                      <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                      <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Hoạt động tốt</span>
                    </div>
+                   <span className="text-sm font-bold text-green-600 dark:text-green-400">10</span>
                 </div>
-
-                {/* Block 3 */}
-                <div>
-                   <h4 className="font-bold text-slate-700 dark:text-slate-200 text-sm mb-3">Số điểm có cảnh báo vượt ngưỡng</h4>
-                   <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 w-full">
-                         <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Vượt ngưỡng</div>
-                         <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">1</div>
+                <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-700/30 border border-slate-100 dark:border-slate-700/50">
+                   <div className="flex items-center gap-2">
+                      <div className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></div>
+                      <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Cần kiểm tra</span>
                    </div>
+                   <span className="text-sm font-bold text-amber-600 dark:text-amber-400">1</span>
                 </div>
-
-            </div>
+                <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-700/30 border border-slate-100 dark:border-slate-700/50">
+                   <div className="flex items-center gap-2">
+                      <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                      <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Mất tín hiệu</span>
+                   </div>
+                   <span className="text-sm font-bold text-red-600 dark:text-red-400">1</span>
+                </div>
+             </div>
           </div>
         </div>
       </div>
