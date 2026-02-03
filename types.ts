@@ -207,6 +207,8 @@ export interface SensorItem {
   unit: string;
   limitInfo: string; // e.g., ">= 1314: Nguy hiem"
   status: 'online' | 'offline' | 'warning';
+  lastValue?: number; // Added for Modern UI
+  lastUpdated?: string; // Added for Modern UI
 }
 
 export interface UserProfile {

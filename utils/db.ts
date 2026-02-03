@@ -472,27 +472,32 @@ const generateMockSensors = (): SensorItem[] => {
     { name: 'Đo biến dạng khe hở', unit: 'mm', limit: '≥ 15: Nguy hiểm' },
     { name: 'Đo mưa', unit: 'mm', limit: '≥ 200: Cảnh báo' },
     { name: 'Đo mực nước', unit: 'm', limit: '> 45: Tràn' },
-    { name: 'Đo nhiệt độ bê tông', unit: '°C', limit: '> 40: Cảnh báo' }
+    // Removed Concrete Temperature as requested
   ];
 
-  // Manually add some to match the user's screenshot request
-  sensors.push({ id: 's1', code: 'P2-3', name: 'P2-3', type: 'Đo áp lực thấm', station: 'Trạm an toàn đập', unit: 'kPa', limitInfo: '≥ 1314: Nguy hiểm', status: 'offline' });
-  sensors.push({ id: 's2', code: 'P2-2', name: 'P2-2', type: 'Đo áp lực thấm', station: 'Trạm an toàn đập', unit: 'kPa', limitInfo: '≥ 1402: Nguy hiểm', status: 'offline' });
-  sensors.push({ id: 's3', code: 'P2-1', name: 'P2-1', type: 'Đo áp lực thấm', station: 'Trạm an toàn đập', unit: 'kPa', limitInfo: '≥ 1343: Nguy hiểm', status: 'offline' });
-  sensors.push({ id: 's4', code: 'P1-3', name: 'P1-3', type: 'Đo áp lực thấm', station: 'Trạm an toàn đập', unit: 'kPa', limitInfo: '≥ 1314: Nguy hiểm', status: 'offline' });
-  sensors.push({ id: 's5', code: 'P1-2', name: 'P1-2', type: 'Đo áp lực thấm', station: 'Trạm an toàn đập', unit: 'kPa', limitInfo: '≥ 1402: Nguy hiểm', status: 'offline' });
-  sensors.push({ id: 's6', code: 'P1-1', name: 'P1-1', type: 'Đo áp lực thấm', station: 'Trạm an toàn đập', unit: 'kPa', limitInfo: '≥ 1343: Nguy hiểm', status: 'offline' });
-  sensors.push({ id: 's7', code: 'KN4', name: 'KN4', type: 'Đo biến dạng khe hở', station: 'Trạm an toàn đập', unit: 'mm', limitInfo: '≥ 15: Nguy hiểm', status: 'offline' });
-  sensors.push({ id: 's8', code: 'KN3', name: 'KN3', type: 'Đo biến dạng khe hở', station: 'Trạm an toàn đập', unit: 'mm', limitInfo: '≥ 15: Nguy hiểm', status: 'offline' });
-  sensors.push({ id: 's9', code: 'KN2', name: 'KN2', type: 'Đo biến dạng khe hở', station: 'Trạm an toàn đập', unit: 'mm', limitInfo: '≥ 15: Nguy hiểm', status: 'offline' });
-  sensors.push({ id: 's10', code: 'KN1', name: 'KN1', type: 'Đo biến dạng khe hở', station: 'Trạm an toàn đập', unit: 'mm', limitInfo: '≥ 15: Nguy hiểm', status: 'offline' });
+  // Helper to get random time in past hour
+  const getRandomTime = () => {
+      const date = new Date();
+      date.setMinutes(date.getMinutes() - Math.floor(Math.random() * 60));
+      return date.toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'});
+  }
 
+  // Helper to get random value
+  const getRandomVal = (base: number) => parseFloat((base + (Math.random() * 10 - 5)).toFixed(2));
+
+  // Manually add some to match the user's screenshot request
+  sensors.push({ id: 's1', code: 'P2-3', name: 'P2-3', type: 'Đo áp lực thấm', station: 'Trạm an toàn đập', unit: 'kPa', limitInfo: '≥ 1314: Nguy hiểm', status: 'offline', lastValue: 0, lastUpdated: getRandomTime() });
+  sensors.push({ id: 's2', code: 'P2-2', name: 'P2-2', type: 'Đo áp lực thấm', station: 'Trạm an toàn đập', unit: 'kPa', limitInfo: '≥ 1402: Nguy hiểm', status: 'offline', lastValue: 0, lastUpdated: getRandomTime() });
+  sensors.push({ id: 's3', code: 'P2-1', name: 'P2-1', type: 'Đo áp lực thấm', station: 'Trạm an toàn đập', unit: 'kPa', limitInfo: '≥ 1343: Nguy hiểm', status: 'offline', lastValue: 0, lastUpdated: getRandomTime() });
+  sensors.push({ id: 's4', code: 'P1-3', name: 'P1-3', type: 'Đo áp lực thấm', station: 'Trạm an toàn đập', unit: 'kPa', limitInfo: '≥ 1314: Nguy hiểm', status: 'offline', lastValue: 0, lastUpdated: getRandomTime() });
+  
   // Add more random ones
   for (let i = 11; i <= 50; i++) {
     const type = types[i % types.length];
     const statusRoll = Math.random();
     const status = statusRoll > 0.8 ? 'offline' : statusRoll > 0.7 ? 'warning' : 'online';
-    
+    const val = status === 'offline' ? 0 : getRandomVal(1200);
+
     sensors.push({
       id: `s${i}`,
       code: `S-${100+i}`,
@@ -501,7 +506,9 @@ const generateMockSensors = (): SensorItem[] => {
       station: stations[i % stations.length],
       unit: type.unit,
       limitInfo: type.limit,
-      status: status as any
+      status: status as any,
+      lastValue: val,
+      lastUpdated: getRandomTime()
     });
   }
 

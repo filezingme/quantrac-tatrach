@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../utils/db';
 import { SensorItem } from '../types';
-import { Download, ChevronLeft, ChevronRight, CheckCircle, WifiOff, AlertTriangle, Search, Filter } from 'lucide-react';
+import { Download, ChevronLeft, ChevronRight, Filter, Search, Activity, Wifi, AlertTriangle, RefreshCw, BarChart2 } from 'lucide-react';
 import { useUI } from '../components/GlobalUI';
 import { exportToExcel } from '../utils/excel';
 
@@ -10,14 +10,14 @@ export const SensorListView: React.FC = () => {
   const [sensors, setSensors] = useState<SensorItem[]>([]);
   const [stationFilter, setStationFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
-  // Type Filters (Checkbox logic)
+  // Removed "Đo nhiệt độ bê tông" as requested
   const [typeFilters, setTypeFilters] = useState<{ id: string; label: string; checked: boolean }[]>([
     { id: 'tham', label: 'Đo áp lực thấm', checked: false },
     { id: 'kheho', label: 'Đo biến dạng khe hở', checked: false },
     { id: 'mua', label: 'Đo mưa', checked: false },
     { id: 'mucnuoc', label: 'Đo mực nước', checked: false },
-    { id: 'nhietdo', label: 'Đo nhiệt độ bê tông', checked: false },
   ]);
 
   // Pagination
@@ -29,6 +29,16 @@ export const SensorListView: React.FC = () => {
   useEffect(() => {
     setSensors(db.sensors.get());
   }, []);
+
+  const handleRefresh = () => {
+      setIsRefreshing(true);
+      // Simulate fetch
+      setTimeout(() => {
+          setSensors(db.sensors.get());
+          setIsRefreshing(false);
+          ui.showToast('success', 'Đã cập nhật dữ liệu cảm biến mới nhất');
+      }, 800);
+  };
 
   // Handler for checkboxes
   const handleTypeCheck = (id: string) => {
@@ -59,6 +69,11 @@ export const SensorListView: React.FC = () => {
     return true;
   });
 
+  // Calculate Statistics
+  const totalSensors = sensors.length;
+  const onlineSensors = sensors.filter(s => s.status === 'online').length;
+  const warningSensors = sensors.filter(s => s.status === 'warning' || s.status === 'offline').length;
+
   // Pagination Logic
   const totalPages = Math.ceil(filteredSensors.length / itemsPerPage);
   const paginatedSensors = filteredSensors.slice(
@@ -71,9 +86,9 @@ export const SensorListView: React.FC = () => {
       'STT': index + 1,
       'Tên Cảm biến': s.name,
       'Loại': s.type,
-      'Trạm đo': s.station,
+      'Giá trị': s.lastValue || 0,
       'Đơn vị': s.unit,
-      'Giới hạn': s.limitInfo,
+      'Cập nhật': s.lastUpdated || '',
       'Trạng thái': s.status === 'online' ? 'Kết nối' : s.status === 'offline' ? 'Mất kết nối' : 'Cảnh báo'
     }));
     exportToExcel(data, 'Danh_sach_cam_bien');
@@ -85,14 +100,54 @@ export const SensorListView: React.FC = () => {
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
            <div>
                <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Danh sách Cảm biến</h2>
-               <p className="text-sm text-slate-500 dark:text-slate-400">Quản lý và giám sát trạng thái các điểm đo</p>
+               <p className="text-sm text-slate-500 dark:text-slate-400">Giám sát trạng thái và dữ liệu thời gian thực</p>
            </div>
-           <button 
-             onClick={handleExport}
-             className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-blue-600 dark:text-blue-400 px-4 py-2 rounded-xl text-sm font-bold shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center gap-2"
-           >
-             <Download size={18}/> Xuất danh sách
-           </button>
+           <div className="flex gap-2">
+             <button 
+                onClick={handleRefresh}
+                className={`p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all ${isRefreshing ? 'animate-spin' : ''}`}
+                title="Làm mới dữ liệu"
+             >
+                <RefreshCw size={20}/>
+             </button>
+             <button 
+                onClick={handleExport}
+                className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-blue-600 dark:text-blue-400 px-4 py-2 rounded-xl text-sm font-bold shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center gap-2"
+             >
+                <Download size={18}/> Xuất danh sách
+             </button>
+           </div>
+        </div>
+
+        {/* --- NEW: KPI CARDS --- */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
+                <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                    <Activity size={24}/>
+                </div>
+                <div>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Tổng thiết bị</p>
+                    <p className="text-2xl font-bold text-slate-800 dark:text-white">{totalSensors}</p>
+                </div>
+            </div>
+            <div className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
+                <div className="p-3 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
+                    <Wifi size={24}/>
+                </div>
+                <div>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Hoạt động tốt</p>
+                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">{onlineSensors}</p>
+                </div>
+            </div>
+            <div className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
+                <div className="p-3 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
+                    <AlertTriangle size={24}/>
+                </div>
+                <div>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Cần kiểm tra</p>
+                    <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{warningSensors}</p>
+                </div>
+            </div>
         </div>
 
       <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col min-h-[600px]">
@@ -133,14 +188,14 @@ export const SensorListView: React.FC = () => {
                     <Filter size={12}/> Loại:
                  </div>
                  {typeFilters.map(tf => (
-                    <label key={tf.id} className="flex items-center gap-1.5 cursor-pointer select-none bg-slate-100 dark:bg-slate-700/50 px-2 py-1 rounded-md border border-slate-200 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                    <label key={tf.id} className={`flex items-center gap-1.5 cursor-pointer select-none px-3 py-1.5 rounded-lg border transition-colors ${tf.checked ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800' : 'bg-slate-100 dark:bg-slate-700/50 border-slate-200 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600'}`}>
                        <input 
                          type="checkbox" 
                          checked={tf.checked} 
                          onChange={() => handleTypeCheck(tf.id)}
                          className="w-3.5 h-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                        />
-                       <span className="text-xs font-medium text-slate-600 dark:text-slate-300">{tf.label}</span>
+                       <span className={`text-xs font-medium ${tf.checked ? 'text-blue-700 dark:text-blue-300' : 'text-slate-600 dark:text-slate-300'}`}>{tf.label}</span>
                     </label>
                  ))}
               </div>
@@ -155,10 +210,10 @@ export const SensorListView: React.FC = () => {
                     <th className="px-6 py-4 w-16 text-center">STT</th>
                     <th className="px-6 py-4">Tên cảm biến</th>
                     <th className="px-6 py-4">Loại cảm biến</th>
-                    <th className="px-6 py-4">Trạm đo</th>
-                    <th className="px-6 py-4">Đơn vị đo</th>
-                    <th className="px-6 py-4">Giới hạn</th>
-                    <th className="px-6 py-4">Trạng thái</th>
+                    <th className="px-6 py-4 text-right">Giá trị đo</th>
+                    <th className="px-6 py-4 text-center">Trạng thái</th>
+                    <th className="px-6 py-4">Cập nhật</th>
+                    <th className="px-6 py-4 w-16"></th>
                  </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-700 bg-white dark:bg-slate-800">
@@ -168,34 +223,51 @@ export const SensorListView: React.FC = () => {
                           {(currentPage - 1) * itemsPerPage + index + 1}
                        </td>
                        <td className="px-6 py-4">
-                          <span className="font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">{sensor.name}</span>
+                          <span className="font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer block">{sensor.name}</span>
+                          <span className="text-xs text-slate-400">{sensor.station}</span>
                        </td>
-                       <td className="px-6 py-4 text-slate-700 dark:text-slate-300 font-medium">
-                          {sensor.type}
+                       <td className="px-6 py-4 text-slate-700 dark:text-slate-300">
+                          <span className="bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-xs">{sensor.type}</span>
                        </td>
-                       <td className="px-6 py-4 text-slate-600 dark:text-slate-400 text-xs">
-                          {sensor.station}
+                       <td className="px-6 py-4 text-right">
+                          {sensor.status === 'offline' ? (
+                              <span className="text-slate-400 italic">--</span>
+                          ) : (
+                              <span className="font-mono font-bold text-slate-800 dark:text-white">
+                                  {sensor.lastValue} <span className="text-xs font-normal text-slate-500 ml-1">{sensor.unit}</span>
+                              </span>
+                          )}
                        </td>
-                       <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
-                          <span className="bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded text-xs font-mono">{sensor.unit}</span>
+                       <td className="px-6 py-4 text-center">
+                          {sensor.status === 'online' && (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs font-bold border border-green-100 dark:border-green-900/30">
+                                  <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                  </span>
+                                  Online
+                              </span>
+                          )}
+                          {sensor.status === 'warning' && (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 text-xs font-bold border border-amber-100 dark:border-amber-900/30">
+                                  <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
+                                  Cảnh báo
+                              </span>
+                          )}
+                          {sensor.status === 'offline' && (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 text-xs font-bold border border-slate-200 dark:border-slate-600">
+                                  <div className="w-2 h-2 rounded-full bg-slate-400"></div>
+                                  Offline
+                              </span>
+                          )}
                        </td>
-                       <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-xs">
-                          {sensor.limitInfo}
+                       <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-xs font-mono">
+                          {sensor.lastUpdated || '--:--'}
                        </td>
-                       <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                             <div className={`w-2 h-2 rounded-full ${
-                                sensor.status === 'online' ? 'bg-slate-400' : 
-                                sensor.status === 'warning' ? 'bg-amber-500 animate-pulse' : 'bg-slate-300'
-                             }`}></div>
-                             <span className={`text-xs font-bold whitespace-nowrap ${
-                                sensor.status === 'online' ? 'text-slate-500' : 
-                                sensor.status === 'warning' ? 'text-amber-600' : 'text-slate-400'
-                             }`}>
-                                {sensor.status === 'online' ? 'Kết nối' : 
-                                 sensor.status === 'warning' ? 'Cảnh báo' : 'Mất kết nối'}
-                             </span>
-                          </div>
+                       <td className="px-6 py-4 text-right">
+                          <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors" title="Xem lịch sử">
+                             <BarChart2 size={16} />
+                          </button>
                        </td>
                     </tr>
                  ))}
