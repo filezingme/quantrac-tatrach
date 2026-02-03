@@ -17,7 +17,8 @@ export enum ViewMode {
   USER_PROFILE = 'user_profile',
   SYSTEM_SETTINGS = 'system_settings',
   USER_MANAGEMENT = 'user_management',
-  ALERTS = 'alerts' // New View
+  ALERTS = 'alerts',
+  SENSORS = 'sensors' // New View
 }
 
 export interface WaterLevelRecord {
@@ -194,6 +195,18 @@ export interface AlertLog {
   severity: 'critical' | 'warning' | 'info';
   message: string;
   status: 'new' | 'acknowledged' | 'resolved';
+}
+
+// New Sensor Item Interface
+export interface SensorItem {
+  id: string;
+  code: string; // e.g., P2-3
+  name: string;
+  type: string; // Do ap luc tham, Do bien dang...
+  station: string;
+  unit: string;
+  limitInfo: string; // e.g., ">= 1314: Nguy hiem"
+  status: 'online' | 'offline' | 'warning';
 }
 
 export interface UserProfile {

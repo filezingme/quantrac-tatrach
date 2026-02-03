@@ -13,7 +13,8 @@ import {
   WaterLevelRecord, 
   SystemSettings,
   DocumentItem,
-  AlertLog
+  AlertLog,
+  SensorItem // Imported
 } from '../types';
 
 // CHANGED: Version bump to v4
@@ -32,11 +33,11 @@ const KEYS = {
   WATER_LEVEL_RECORDS: 'app_water_level_records_v3',
   SETTINGS: 'app_settings_v3',
   DOCUMENTS: 'app_documents_v3',
-  ALERTS: 'app_alerts_v4' // New key
+  ALERTS: 'app_alerts_v4',
+  SENSORS: 'app_sensors_v1' // New key
 };
 
 // ... (Existing Default Data: defaultObservation, defaultForecast, defaultSpecs, etc.) ...
-// Preserve existing mock data functions/constants
 const defaultObservation: ObservationData = {
   waterLevel: 45.2,
   capacity: 340.5,
@@ -462,6 +463,51 @@ const generateMockAlerts = (): AlertLog[] => {
   return alerts;
 };
 
+// --- MOCK DATA FOR SENSORS ---
+const generateMockSensors = (): SensorItem[] => {
+  const sensors: SensorItem[] = [];
+  const stations = ['Trạm an toàn đập', 'Trạm thủy văn', 'Đập tràn', 'Nhà máy thủy điện', 'Cửa lấy nước'];
+  const types = [
+    { name: 'Đo áp lực thấm', unit: 'kPa', limit: '≥ 1314: Nguy hiểm' },
+    { name: 'Đo biến dạng khe hở', unit: 'mm', limit: '≥ 15: Nguy hiểm' },
+    { name: 'Đo mưa', unit: 'mm', limit: '≥ 200: Cảnh báo' },
+    { name: 'Đo mực nước', unit: 'm', limit: '> 45: Tràn' },
+    { name: 'Đo nhiệt độ bê tông', unit: '°C', limit: '> 40: Cảnh báo' }
+  ];
+
+  // Manually add some to match the user's screenshot request
+  sensors.push({ id: 's1', code: 'P2-3', name: 'P2-3', type: 'Đo áp lực thấm', station: 'Trạm an toàn đập', unit: 'kPa', limitInfo: '≥ 1314: Nguy hiểm', status: 'offline' });
+  sensors.push({ id: 's2', code: 'P2-2', name: 'P2-2', type: 'Đo áp lực thấm', station: 'Trạm an toàn đập', unit: 'kPa', limitInfo: '≥ 1402: Nguy hiểm', status: 'offline' });
+  sensors.push({ id: 's3', code: 'P2-1', name: 'P2-1', type: 'Đo áp lực thấm', station: 'Trạm an toàn đập', unit: 'kPa', limitInfo: '≥ 1343: Nguy hiểm', status: 'offline' });
+  sensors.push({ id: 's4', code: 'P1-3', name: 'P1-3', type: 'Đo áp lực thấm', station: 'Trạm an toàn đập', unit: 'kPa', limitInfo: '≥ 1314: Nguy hiểm', status: 'offline' });
+  sensors.push({ id: 's5', code: 'P1-2', name: 'P1-2', type: 'Đo áp lực thấm', station: 'Trạm an toàn đập', unit: 'kPa', limitInfo: '≥ 1402: Nguy hiểm', status: 'offline' });
+  sensors.push({ id: 's6', code: 'P1-1', name: 'P1-1', type: 'Đo áp lực thấm', station: 'Trạm an toàn đập', unit: 'kPa', limitInfo: '≥ 1343: Nguy hiểm', status: 'offline' });
+  sensors.push({ id: 's7', code: 'KN4', name: 'KN4', type: 'Đo biến dạng khe hở', station: 'Trạm an toàn đập', unit: 'mm', limitInfo: '≥ 15: Nguy hiểm', status: 'offline' });
+  sensors.push({ id: 's8', code: 'KN3', name: 'KN3', type: 'Đo biến dạng khe hở', station: 'Trạm an toàn đập', unit: 'mm', limitInfo: '≥ 15: Nguy hiểm', status: 'offline' });
+  sensors.push({ id: 's9', code: 'KN2', name: 'KN2', type: 'Đo biến dạng khe hở', station: 'Trạm an toàn đập', unit: 'mm', limitInfo: '≥ 15: Nguy hiểm', status: 'offline' });
+  sensors.push({ id: 's10', code: 'KN1', name: 'KN1', type: 'Đo biến dạng khe hở', station: 'Trạm an toàn đập', unit: 'mm', limitInfo: '≥ 15: Nguy hiểm', status: 'offline' });
+
+  // Add more random ones
+  for (let i = 11; i <= 50; i++) {
+    const type = types[i % types.length];
+    const statusRoll = Math.random();
+    const status = statusRoll > 0.8 ? 'offline' : statusRoll > 0.7 ? 'warning' : 'online';
+    
+    sensors.push({
+      id: `s${i}`,
+      code: `S-${100+i}`,
+      name: `S-${100+i}`,
+      type: type.name,
+      station: stations[i % stations.length],
+      unit: type.unit,
+      limitInfo: type.limit,
+      status: status as any
+    });
+  }
+
+  return sensors;
+};
+
 // --- DB Operations ---
 
 export const db = {
@@ -529,6 +575,11 @@ export const db = {
         const alerts = db.alerts.get();
         db.alerts.set(alerts.map(a => a.id === id ? { ...a, status: 'acknowledged' } : a));
     }
+  },
+  // Added Sensor List DB
+  sensors: {
+    get: () => db.get<SensorItem[]>(KEYS.SENSORS, generateMockSensors()),
+    set: (data: SensorItem[]) => db.set(KEYS.SENSORS, data),
   },
   user: {
     get: () => db.get<UserProfile>(KEYS.CURRENT_USER, defaultAdminUser),

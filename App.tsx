@@ -20,7 +20,8 @@ import { UserProfileView } from './views/UserProfileView';
 import { SystemSettingsView } from './views/SystemSettingsView';
 import { UserManagementView } from './views/UserManagementView';
 import { AISafetyView } from './views/AISafetyView';
-import { AlertHistoryView } from './views/AlertHistoryView'; // New Import
+import { AlertHistoryView } from './views/AlertHistoryView'; 
+import { SensorListView } from './views/SensorListView'; // New Import
 import { LoginView } from './views/LoginView';
 import { UIProvider, useUI } from './components/GlobalUI';
 import { AIAssistant } from './components/AIAssistant'; 
@@ -406,7 +407,8 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             <Route path="/camera" element={<CameraView />} />
             <Route path="/demo-charts" element={<DemoChartsView />} />
             <Route path="/profile" element={<UserProfileView />} />
-            <Route path="/alerts" element={<AlertHistoryView />} /> {/* New Route */}
+            <Route path="/alerts" element={<AlertHistoryView />} />
+            <Route path="/sensors" element={<SensorListView />} /> {/* New Route */}
             
             <Route 
               path="/users" 
@@ -604,6 +606,7 @@ export const App: React.FC = () => {
 
   const handleLogin = (user: UserProfile) => {
     sessionStorage.setItem('isAuthenticated', 'true');
+    db.user.set(user);
     setIsAuthenticated(true);
   };
 
