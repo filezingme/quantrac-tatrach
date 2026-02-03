@@ -8,7 +8,8 @@ import {
   TrendingUp, TrendingDown, Calendar, Droplets,
   Table as TableIcon, Filter, Download, Check, ChevronDown, ChevronUp,
   Radio, BarChart3, AlertCircle, CloudRain, Clock, Zap, ShieldCheck,
-  Wifi, WifiOff, AlertTriangle, ArrowRight, Settings, MapPin, Sliders
+  Wifi, WifiOff, AlertTriangle, ArrowRight, Settings, MapPin, Sliders,
+  ExternalLink // Import ExternalLink icon
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
@@ -1068,6 +1069,17 @@ export const DashboardView: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-2">
+                {/* NEW: Navigation Button for Water Level Deep Analysis */}
+                {selectedMetric.id === 'waterLevel' && (
+                   <button 
+                     onClick={() => navigate('/water-level')}
+                     className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-bold hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors mr-2 border border-blue-200 dark:border-blue-800"
+                     title="Đi tới trang Giám sát Mực nước chi tiết"
+                   >
+                     <ExternalLink size={14}/> Mở trang Giám sát chuyên sâu
+                   </button>
+                )}
+
                 <button 
                   onClick={() => setShowFilters(!showFilters)}
                   className={`p-2 rounded-full transition-colors hidden md:block ${showFilters ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
