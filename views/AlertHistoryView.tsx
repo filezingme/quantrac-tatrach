@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   AlertTriangle, Filter, Search, Download, CheckCircle, WifiOff, AlertCircle, 
-  MapPin, Clock, ArrowRight, Activity, BellRing, Eye, RotateCcw, MoreHorizontal
+  MapPin, Clock, ArrowRight, Activity, BellRing, Eye, RotateCcw, MoreHorizontal, ChevronDown
 } from 'lucide-react';
 import { db } from '../utils/db';
 import { AlertLog } from '../types';
@@ -14,6 +14,7 @@ export const AlertHistoryView: React.FC = () => {
   const [filterSeverity, setFilterSeverity] = useState<'all' | 'critical' | 'warning' | 'info'>('all');
   const [filterStatus, setFilterStatus] = useState<'all' | 'new' | 'acknowledged' | 'resolved'>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [visibleCount, setVisibleCount] = useState(20);
   
   const ui = useUI();
 
@@ -26,6 +27,11 @@ export const AlertHistoryView: React.FC = () => {
     return () => window.removeEventListener('db-change', handleDbChange);
   }, []);
 
+  // Reset pagination when filters change
+  useEffect(() => {
+    setVisibleCount(20);
+  }, [filterSeverity, filterStatus, searchTerm]);
+
   // Filter Logic
   const filteredAlerts = alerts.filter(alert => {
     const matchSeverity = filterSeverity === 'all' || alert.severity === filterSeverity;
@@ -35,6 +41,12 @@ export const AlertHistoryView: React.FC = () => {
                         alert.station.toLowerCase().includes(searchTerm.toLowerCase());
     return matchSeverity && matchStatus && matchSearch;
   });
+
+  const displayedAlerts = filteredAlerts.slice(0, visibleCount);
+
+  const handleLoadMore = () => {
+    setVisibleCount(prev => prev + 20);
+  };
 
   const handleExport = () => {
     const exportData = filteredAlerts.map(a => ({
@@ -205,7 +217,7 @@ export const AlertHistoryView: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700 bg-white dark:bg-slate-800">
-                                {filteredAlerts.map(alert => (
+                                {displayedAlerts.map(alert => (
                                     <tr key={alert.id} className={`hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors ${alert.status === 'new' ? 'bg-blue-50/30 dark:bg-blue-900/10' : ''}`}>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 font-mono text-xs">
@@ -247,7 +259,7 @@ export const AlertHistoryView: React.FC = () => {
 
                     {/* MOBILE CARD VIEW (< MD) */}
                     <div className="md:hidden p-4 space-y-4">
-                        {filteredAlerts.map(alert => (
+                        {displayedAlerts.map(alert => (
                             <div key={alert.id} className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-3">
                                 <div className="flex justify-between items-start">
                                     <div className="flex items-center gap-2">
@@ -282,8 +294,19 @@ export const AlertHistoryView: React.FC = () => {
             )}
         </div>
         
-        <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-700 text-xs text-center text-slate-500">
-           Hiển thị {filteredAlerts.length} bản ghi
+        {/* Load More Footer */}
+        <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-700 flex flex-col items-center justify-center gap-3">
+           <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              Hiển thị {displayedAlerts.length} / {filteredAlerts.length} bản ghi
+           </div>
+           {filteredAlerts.length > displayedAlerts.length && (
+              <button 
+                onClick={handleLoadMore}
+                className="px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm flex items-center gap-2"
+              >
+                <ChevronDown size={14}/> Tải thêm dữ liệu cũ hơn
+              </button>
+           )}
         </div>
       </div>
     </div>

@@ -440,7 +440,7 @@ const generateMockAlerts = (): AlertLog[] => {
   const alerts: AlertLog[] = [];
   const baseTime = new Date('2026-02-03T09:30:02');
 
-  for (let i = 0; i < 25; i++) {
+  for (let i = 0; i < 85; i++) {
     const t = new Date(baseTime.getTime() - i * Math.floor(Math.random() * 3600 * 1000 * 2)); // Spread over time
     const severityRoll = Math.random();
     const severity: 'critical' | 'warning' | 'info' = 
