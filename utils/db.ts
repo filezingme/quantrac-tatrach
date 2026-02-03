@@ -34,7 +34,7 @@ const KEYS = {
   SETTINGS: 'app_settings_v3',
   DOCUMENTS: 'app_documents_v3',
   ALERTS: 'app_alerts_v4',
-  SENSORS: 'app_sensors_v1' // New key
+  SENSORS: 'app_sensors_v2' // Bump version to force regen
 };
 
 // ... (Existing Default Data: defaultObservation, defaultForecast, defaultSpecs, etc.) ...
@@ -475,28 +475,35 @@ const generateMockSensors = (): SensorItem[] => {
     // Removed Concrete Temperature as requested
   ];
 
-  // Helper to get random time in past hour
+  // Helper to get random time in past hour with full Date Time format
   const getRandomTime = () => {
       const date = new Date();
       date.setMinutes(date.getMinutes() - Math.floor(Math.random() * 60));
-      return date.toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'});
+      // Format: DD/MM/YYYY HH:mm:ss
+      return date.toLocaleString('vi-VN', {
+          day: '2-digit', month: '2-digit', year: 'numeric',
+          hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
   }
 
   // Helper to get random value
   const getRandomVal = (base: number) => parseFloat((base + (Math.random() * 10 - 5)).toFixed(2));
 
   // Manually add some to match the user's screenshot request
-  sensors.push({ id: 's1', code: 'P2-3', name: 'P2-3', type: 'Đo áp lực thấm', station: 'Trạm an toàn đập', unit: 'kPa', limitInfo: '≥ 1314: Nguy hiểm', status: 'offline', lastValue: 0, lastUpdated: getRandomTime() });
-  sensors.push({ id: 's2', code: 'P2-2', name: 'P2-2', type: 'Đo áp lực thấm', station: 'Trạm an toàn đập', unit: 'kPa', limitInfo: '≥ 1402: Nguy hiểm', status: 'offline', lastValue: 0, lastUpdated: getRandomTime() });
-  sensors.push({ id: 's3', code: 'P2-1', name: 'P2-1', type: 'Đo áp lực thấm', station: 'Trạm an toàn đập', unit: 'kPa', limitInfo: '≥ 1343: Nguy hiểm', status: 'offline', lastValue: 0, lastUpdated: getRandomTime() });
-  sensors.push({ id: 's4', code: 'P1-3', name: 'P1-3', type: 'Đo áp lực thấm', station: 'Trạm an toàn đập', unit: 'kPa', limitInfo: '≥ 1314: Nguy hiểm', status: 'offline', lastValue: 0, lastUpdated: getRandomTime() });
+  sensors.push({ id: 's1', code: 'P2-3', name: 'P2-3', type: 'Đo áp lực thấm', station: 'Trạm an toàn đập', unit: 'kPa', limitInfo: '≥ 1314: Nguy hiểm', status: 'offline', lastValue: 1205.4, lastUpdated: getRandomTime() });
+  sensors.push({ id: 's2', code: 'P2-2', name: 'P2-2', type: 'Đo áp lực thấm', station: 'Trạm an toàn đập', unit: 'kPa', limitInfo: '≥ 1402: Nguy hiểm', status: 'offline', lastValue: 1390.2, lastUpdated: getRandomTime() });
+  sensors.push({ id: 's3', code: 'P2-1', name: 'P2-1', type: 'Đo áp lực thấm', station: 'Trạm an toàn đập', unit: 'kPa', limitInfo: '≥ 1343: Nguy hiểm', status: 'offline', lastValue: 1310.5, lastUpdated: getRandomTime() });
+  sensors.push({ id: 's4', code: 'P1-3', name: 'P1-3', type: 'Đo áp lực thấm', station: 'Trạm an toàn đập', unit: 'kPa', limitInfo: '≥ 1314: Nguy hiểm', status: 'offline', lastValue: 1280.1, lastUpdated: getRandomTime() });
   
   // Add more random ones
   for (let i = 11; i <= 50; i++) {
     const type = types[i % types.length];
     const statusRoll = Math.random();
     const status = statusRoll > 0.8 ? 'offline' : statusRoll > 0.7 ? 'warning' : 'online';
-    const val = status === 'offline' ? 0 : getRandomVal(1200);
+    
+    // Always provide value, even if offline (last known value)
+    const base = type.name.includes('áp lực') ? 1200 : type.name.includes('mưa') ? 0 : 20;
+    const val = getRandomVal(base);
 
     sensors.push({
       id: `s${i}`,

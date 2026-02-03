@@ -418,7 +418,7 @@ export const SensorListView: React.FC = () => {
                             <th className="px-6 py-4 w-16 text-center">STT</th>
                             <th className="px-6 py-4">Tên cảm biến</th>
                             <th className="px-6 py-4">Loại cảm biến</th>
-                            <th className="px-6 py-4 text-right">Giá trị đo</th>
+                            <th className="px-6 py-4 text-left">Giá trị đo</th>
                             <th className="px-6 py-4 text-center">Trạng thái</th>
                             <th className="px-6 py-4">Cập nhật</th>
                             <th className="px-6 py-4 w-16"></th>
@@ -442,20 +442,16 @@ export const SensorListView: React.FC = () => {
                                 <td className="px-6 py-4 text-slate-700 dark:text-slate-300">
                                     <span className="bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-xs">{sensor.type}</span>
                                 </td>
-                                <td className="px-6 py-4 text-right">
-                                    {sensor.status === 'offline' ? (
-                                        <span className="text-slate-400 italic">--</span>
-                                    ) : (
-                                        <span className="font-mono font-bold text-slate-800 dark:text-white">
-                                            {sensor.lastValue} <span className="text-xs font-normal text-slate-500 ml-1">{sensor.unit}</span>
-                                        </span>
-                                    )}
+                                <td className="px-6 py-4 text-left">
+                                    <span className={`font-mono font-bold ${sensor.status === 'offline' ? 'text-slate-400' : 'text-slate-800 dark:text-white'}`}>
+                                        {sensor.lastValue} <span className="text-xs font-normal text-slate-500 ml-1">{sensor.unit}</span>
+                                    </span>
                                 </td>
                                 <td className="px-6 py-4 text-center">
                                     <StatusBadge status={sensor.status} />
                                 </td>
                                 <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-xs font-mono">
-                                    {sensor.lastUpdated || '--:--'}
+                                    {sensor.lastUpdated}
                                 </td>
                                 <td className="px-6 py-4 text-right">
                                     <button 
@@ -495,11 +491,9 @@ export const SensorListView: React.FC = () => {
                             <div>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-medium">Giá trị đo</p>
                                 <div className="flex items-baseline gap-1">
-                                    {sensor.status === 'offline' ? (
-                                        <span className="text-lg font-bold text-slate-400 italic">--</span>
-                                    ) : (
-                                        <span className="text-xl font-bold text-slate-800 dark:text-white font-mono">{sensor.lastValue}</span>
-                                    )}
+                                    <span className={`text-xl font-bold font-mono ${sensor.status === 'offline' ? 'text-slate-400' : 'text-slate-800 dark:text-white'}`}>
+                                        {sensor.lastValue}
+                                    </span>
                                     <span className="text-xs text-slate-500">{sensor.unit}</span>
                                 </div>
                             </div>
@@ -511,7 +505,7 @@ export const SensorListView: React.FC = () => {
 
                         <div className="flex justify-between items-center pt-2 border-t border-slate-100 dark:border-slate-700">
                             <span className="text-xs text-slate-400 font-mono flex items-center gap-1">
-                                <Activity size={10}/> {sensor.lastUpdated || '--:--'}
+                                <Activity size={10}/> {sensor.lastUpdated}
                             </span>
                             <button 
                                 className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-bold active:scale-95 transition-transform"
