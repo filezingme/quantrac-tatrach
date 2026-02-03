@@ -5,17 +5,18 @@ import { SensorItem } from '../types';
 import { 
   Download, ChevronLeft, ChevronRight, Filter, Search, Activity, Wifi, 
   AlertTriangle, RefreshCw, BarChart2, Maximize2, Minimize2, X, 
-  Calendar, Table as TableIcon, Check, ChevronDown, CloudRain, Thermometer, Gauge, MapPin
+  Calendar, Table as TableIcon, Check, ChevronDown, CloudRain, Thermometer, Gauge, MapPin, Plus, GitMerge
 } from 'lucide-react';
 import { useUI } from '../components/GlobalUI';
 import { exportToExcel } from '../utils/excel';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  BarChart, Bar, Legend 
+  BarChart, Bar, Legend, LineChart, Line
 } from 'recharts';
 
 // --- MOCK HISTORY GENERATOR ---
-const generateSensorHistory = (sensor: SensorItem, days: number = 7) => {
+// Updated to accept a specific seed/offset for consistent random data when comparing
+const generateSensorHistory = (sensor: SensorItem, days: number = 7, seedOffset: number = 0) => {
   const data = [];
   const now = new Date();
   
@@ -28,6 +29,9 @@ const generateSensorHistory = (sensor: SensorItem, days: number = 7) => {
   else if (sensor.type.toLowerCase().includes('nhiệt độ')) { baseValue = 28; volatility = 2; }
   else if (isRain) { baseValue = 0; volatility = 0; }
 
+  // Adjust base slightly for comparison realism if it's a simulated peer
+  baseValue += seedOffset * (volatility || 5);
+
   for (let i = days * 24; i >= 0; i--) {
     const date = new Date(now.getTime() - i * 60 * 60 * 1000);
     const timeLabel = `${date.getDate()}/${date.getMonth()+1} ${date.getHours()}:00`;
@@ -38,7 +42,7 @@ const generateSensorHistory = (sensor: SensorItem, days: number = 7) => {
        val = Math.random() > 0.8 ? Math.random() * 20 : 0;
     } else {
        // Smooth trend with noise
-       const trend = Math.sin(i / 10) * volatility;
+       const trend = Math.sin((i + seedOffset * 10) / 10) * volatility;
        const noise = (Math.random() - 0.5) * (volatility / 2);
        val = baseValue + trend + noise;
     }
@@ -52,6 +56,9 @@ const generateSensorHistory = (sensor: SensorItem, days: number = 7) => {
   return data;
 };
 
+// Colors for comparison lines
+const COMPARE_COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'];
+
 export const SensorListView: React.FC = () => {
   const [sensors, setSensors] = useState<SensorItem[]>([]);
   const [stationFilter, setStationFilter] = useState('all');
@@ -60,7 +67,9 @@ export const SensorListView: React.FC = () => {
   
   // Modal State
   const [selectedSensor, setSelectedSensor] = useState<SensorItem | null>(null);
-  const [historyData, setHistoryData] = useState<any[]>([]);
+  const [compareList, setCompareList] = useState<SensorItem[]>([]); // List of additional sensors to compare
+  const [chartData, setChartData] = useState<any[]>([]); // Unified chart data
+  
   const [modalTab, setModalTab] = useState<'chart' | 'table'>('chart');
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -69,7 +78,7 @@ export const SensorListView: React.FC = () => {
       to: new Date().toISOString().slice(0, 16)
   });
 
-  // Quick Switch Dropdown State
+  // Quick Switch / Add Compare Dropdown State
   const [isQuickSwitchOpen, setIsQuickSwitchOpen] = useState(false);
   const [quickSwitchSearch, setQuickSwitchSearch] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -101,6 +110,39 @@ export const SensorListView: React.FC = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // --- CHART DATA MERGING LOGIC ---
+  useEffect(() => {
+    if (!selectedSensor) return;
+
+    // 1. Generate data for main sensor
+    const mainData = generateSensorHistory(selectedSensor);
+    
+    // 2. Generate data for compared sensors and merge
+    // Structure: [{ label: '10:00', value_main: 10, value_compare1: 12, ... }]
+    const mergedData = mainData.map((point, idx) => {
+        const row: any = {
+            time: point.time,
+            label: point.label,
+            [selectedSensor.id]: point.value // Dynamic key for main sensor
+        };
+
+        compareList.forEach((compSensor, cIdx) => {
+            // Generate mock history with offset based on index to make them look distinct
+            const compHist = generateSensorHistory(compSensor, 7, cIdx + 1); 
+            // Safety check for index existence
+            if (compHist[idx]) {
+                row[compSensor.id] = compHist[idx].value;
+            }
+        });
+
+        return row;
+    });
+
+    setChartData(mergedData);
+
+  }, [selectedSensor, compareList]);
+
 
   const handleRefresh = () => {
       setIsRefreshing(true);
@@ -136,22 +178,28 @@ export const SensorListView: React.FC = () => {
     });
   }, [sensors, searchTerm, stationFilter, typeFilters]);
 
-  // Quick Switch Filter Logic
-  const quickSwitchList = useMemo(() => {
-      if (!quickSwitchSearch.trim()) return filteredSensors;
-      const lower = quickSwitchSearch.toLowerCase();
-      return filteredSensors.filter(s => 
-          s.name.toLowerCase().includes(lower) || 
-          s.code.toLowerCase().includes(lower) ||
-          s.type.toLowerCase().includes(lower)
-      );
-  }, [filteredSensors, quickSwitchSearch]);
+  // Quick Switch / Comparison Filter Logic
+  const comparisonCandidates = useMemo(() => {
+      if (!selectedSensor) return [];
+      
+      // Only show sensors with SAME UNIT and NOT current selected
+      let candidates = sensors.filter(s => s.unit === selectedSensor.unit && s.id !== selectedSensor.id);
+
+      if (quickSwitchSearch.trim()) {
+          const lower = quickSwitchSearch.toLowerCase();
+          candidates = candidates.filter(s => 
+              s.name.toLowerCase().includes(lower) || 
+              s.code.toLowerCase().includes(lower)
+          );
+      }
+      return candidates;
+  }, [sensors, selectedSensor, quickSwitchSearch]);
 
   // --- MODAL HANDLERS ---
 
   const handleOpenHistory = (sensor: SensorItem) => {
       setSelectedSensor(sensor);
-      setHistoryData(generateSensorHistory(sensor));
+      setCompareList([]); // Reset comparison when opening new
       setModalTab('chart');
       setIsFullScreen(false);
       setShowFilters(false);
@@ -161,21 +209,46 @@ export const SensorListView: React.FC = () => {
 
   const handleCloseModal = () => {
       setSelectedSensor(null);
+      setCompareList([]);
   };
 
+  // Switch the main view to another sensor
   const handleQuickSwitch = (sensor: SensorItem) => {
       setSelectedSensor(sensor);
-      setHistoryData(generateSensorHistory(sensor));
+      setCompareList([]); // Reset compare on switch
       setIsQuickSwitchOpen(false);
+  };
+
+  // Add a sensor to the comparison list
+  const handleAddToCompare = (sensor: SensorItem, e: React.MouseEvent) => {
+      e.stopPropagation(); // Prevent switching
+      if (compareList.find(c => c.id === sensor.id)) return; // Already added
+      if (compareList.length >= 4) {
+          ui.showToast('warning', 'Chỉ có thể so sánh tối đa 5 cảm biến cùng lúc');
+          return;
+      }
+      setCompareList(prev => [...prev, sensor]);
+      // Optional: Don't close dropdown to allow adding more? 
+      // Let's keep it open for UX convenience
+  };
+
+  const handleRemoveCompare = (sensorId: string) => {
+      setCompareList(prev => prev.filter(c => c.id !== sensorId));
   };
 
   const handleExportHistory = () => {
       if (!selectedSensor) return;
-      const exportData = historyData.map(d => ({
-          'Thời gian': d.label,
-          [`Giá trị (${selectedSensor.unit})`]: d.value
-      }));
-      exportToExcel(exportData, `Lich_su_${selectedSensor.code}`);
+      const exportData = chartData.map(d => {
+          const row: any = { 'Thời gian': d.label };
+          // Main sensor
+          row[`${selectedSensor.name} (${selectedSensor.unit})`] = d[selectedSensor.id];
+          // Compared sensors
+          compareList.forEach(c => {
+              row[`${c.name} (${c.unit})`] = d[c.id];
+          });
+          return row;
+      });
+      exportToExcel(exportData, `Du_lieu_so_sanh_${selectedSensor.code}`);
   };
 
   // --- RENDER HELPERS ---
@@ -509,7 +582,7 @@ export const SensorListView: React.FC = () => {
                                  <Gauge size={24}/>}
                             </div>
                             
-                            {/* Title & Quick Switch */}
+                            {/* Title & Quick Switch / Comparison Dropdown */}
                             <div className="relative" ref={dropdownRef}>
                                 <div 
                                     className="cursor-pointer group"
@@ -520,6 +593,19 @@ export const SensorListView: React.FC = () => {
                                             {selectedSensor.name} 
                                             <ChevronDown size={18} className={`text-slate-400 transition-transform ${isQuickSwitchOpen ? 'rotate-180' : ''}`}/>
                                         </h3>
+                                        {/* Comparison Indicators */}
+                                        {compareList.length > 0 && (
+                                            <div className="flex -space-x-2">
+                                                {compareList.map((c, i) => (
+                                                    <div key={c.id} className="w-5 h-5 rounded-full border-2 border-white dark:border-slate-800 flex items-center justify-center text-[8px] text-white font-bold" style={{ backgroundColor: COMPARE_COLORS[i % COMPARE_COLORS.length] }}>
+                                                        {i+1}
+                                                    </div>
+                                                ))}
+                                                <div className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-600 border-2 border-white dark:border-slate-800 flex items-center justify-center text-[8px] font-bold text-slate-600 dark:text-slate-300">
+                                                    +{compareList.length}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                                         <span className="font-medium text-slate-700 dark:text-slate-300">{selectedSensor.type}</span>
@@ -528,18 +614,23 @@ export const SensorListView: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* Quick Switch Dropdown */}
+                                {/* Comparison / Switch Dropdown */}
                                 {isQuickSwitchOpen && (
                                     <div className="absolute top-full left-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 z-50 transform origin-top-left flex flex-col max-h-[400px]">
                                         
+                                        {/* Header Hint */}
+                                        <div className="px-3 py-2 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700 text-[10px] text-slate-500 uppercase font-bold tracking-wide rounded-t-xl">
+                                            Thêm so sánh (Cùng loại: {selectedSensor.unit})
+                                        </div>
+
                                         {/* Search Box */}
-                                        <div className="p-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 sticky top-0 rounded-t-xl">
+                                        <div className="p-3 border-b border-slate-100 dark:border-slate-700 sticky top-0 bg-white dark:bg-slate-800">
                                             <div className="relative">
                                                 <Search size={14} className="absolute left-3 top-2.5 text-slate-400"/>
                                                 <input 
                                                     autoFocus
                                                     type="text" 
-                                                    placeholder="Tìm cảm biến..." 
+                                                    placeholder="Tìm cảm biến khác..." 
                                                     value={quickSwitchSearch}
                                                     onChange={(e) => setQuickSwitchSearch(e.target.value)}
                                                     className="w-full pl-9 pr-3 py-2 text-sm bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-slate-700 dark:text-slate-200"
@@ -548,21 +639,34 @@ export const SensorListView: React.FC = () => {
                                         </div>
 
                                         <div className="p-2 overflow-y-auto custom-scrollbar flex-1">
-                                            {quickSwitchList.map(s => (
-                                                <div 
-                                                    key={s.id}
-                                                    onClick={() => handleQuickSwitch(s)}
-                                                    className={`flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer ${selectedSensor.id === s.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
-                                                >
-                                                    <div className="min-w-0">
-                                                        <p className={`text-sm font-bold truncate ${selectedSensor.id === s.id ? 'text-blue-700 dark:text-blue-300' : 'text-slate-700 dark:text-slate-300'}`}>{s.name}</p>
-                                                        <p className="text-xs text-slate-500 truncate">{s.type} • {s.station}</p>
+                                            {comparisonCandidates.map((s, idx) => {
+                                                const isComparing = compareList.some(c => c.id === s.id);
+                                                return (
+                                                    <div 
+                                                        key={s.id}
+                                                        className={`flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer group`}
+                                                        onClick={() => handleQuickSwitch(s)}
+                                                    >
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className={`text-sm font-bold truncate ${isComparing ? 'text-blue-600 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300'}`}>{s.name}</p>
+                                                            <p className="text-xs text-slate-500 truncate">{s.station}</p>
+                                                        </div>
+                                                        
+                                                        {/* Actions */}
+                                                        <div className="flex items-center gap-1">
+                                                            <button 
+                                                                onClick={(e) => isComparing ? handleRemoveCompare(s.id) : handleAddToCompare(s, e)}
+                                                                className={`p-1.5 rounded-full transition-colors ${isComparing ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 'bg-slate-100 text-slate-500 hover:bg-blue-100 hover:text-blue-600 dark:bg-slate-700 dark:text-slate-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-400'}`}
+                                                                title={isComparing ? "Bỏ so sánh" : "Thêm vào so sánh"}
+                                                            >
+                                                                {isComparing ? <X size={14}/> : <Plus size={14}/>}
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                    {selectedSensor.id === s.id && <Check size={16} className="text-blue-600 dark:text-blue-400 shrink-0 ml-2"/>}
-                                                </div>
-                                            ))}
-                                            {quickSwitchList.length === 0 && (
-                                                <div className="py-4 text-center text-xs text-slate-400">Không tìm thấy kết quả</div>
+                                                );
+                                            })}
+                                            {comparisonCandidates.length === 0 && (
+                                                <div className="py-4 text-center text-xs text-slate-400">Không có cảm biến cùng loại</div>
                                             )}
                                         </div>
                                     </div>
@@ -593,32 +697,54 @@ export const SensorListView: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Filters (Toggleable) */}
-                    {showFilters && (
-                        <div className="px-6 py-4 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row gap-4 items-end animate-in slide-in-from-top-2 duration-200">
-                            <div className="flex-1 grid grid-cols-2 gap-4 w-full">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Từ ngày giờ</label>
-                                    <input 
-                                        type="datetime-local" 
-                                        value={dateRange.from}
-                                        onChange={(e) => setDateRange({...dateRange, from: e.target.value})}
-                                        className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-slate-700 dark:text-white"
-                                    />
+                    {/* Active Filters / Compare Chips */}
+                    {(compareList.length > 0 || showFilters) && (
+                        <div className="px-6 py-3 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex flex-col gap-3 animate-in slide-in-from-top-2 duration-200">
+                            {/* Compare Chips */}
+                            {compareList.length > 0 && (
+                                <div className="flex flex-wrap gap-2 items-center">
+                                    <span className="text-xs font-bold text-slate-400 uppercase mr-1 flex items-center gap-1"><GitMerge size={12}/> Đang so sánh:</span>
+                                    
+                                    {/* Main Chip */}
+                                    <div className="flex items-center gap-1 px-2 py-1 rounded bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs font-bold text-slate-700 dark:text-slate-200">
+                                        <div className="w-2 h-2 rounded-full bg-blue-600"></div>
+                                        {selectedSensor.name}
+                                    </div>
+
+                                    {/* Compare Chips */}
+                                    {compareList.map((c, i) => (
+                                        <div key={c.id} className="flex items-center gap-1 px-2 py-1 rounded bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/30 text-xs font-bold text-blue-700 dark:text-blue-300">
+                                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COMPARE_COLORS[i % COMPARE_COLORS.length] }}></div>
+                                            {c.name}
+                                            <button onClick={() => handleRemoveCompare(c.id)} className="ml-1 hover:bg-blue-200 dark:hover:bg-blue-800 rounded-full p-0.5"><X size={10}/></button>
+                                        </div>
+                                    ))}
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Đến ngày giờ</label>
-                                    <input 
-                                        type="datetime-local" 
-                                        value={dateRange.to}
-                                        onChange={(e) => setDateRange({...dateRange, to: e.target.value})}
-                                        className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-slate-700 dark:text-white"
-                                    />
+                            )}
+
+                            {/* Date Filter */}
+                            {showFilters && (
+                                <div className="grid grid-cols-2 gap-4 w-full md:w-2/3">
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Từ ngày giờ</label>
+                                        <input 
+                                            type="datetime-local" 
+                                            value={dateRange.from}
+                                            onChange={(e) => setDateRange({...dateRange, from: e.target.value})}
+                                            className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-slate-700 dark:text-white"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Đến ngày giờ</label>
+                                        <input 
+                                            type="datetime-local" 
+                                            value={dateRange.to}
+                                            onChange={(e) => setDateRange({...dateRange, to: e.target.value})}
+                                            className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-slate-700 dark:text-white"
+                                        />
+                                    </div>
                                 </div>
-                            </div>
-                            <button className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold shadow-md transition-all flex items-center justify-center gap-2">
-                                <Search size={16}/> Xem dữ liệu
-                            </button>
+                            )}
                         </div>
                     )}
 
@@ -656,16 +782,31 @@ export const SensorListView: React.FC = () => {
                                 <div className="h-full bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 flex flex-col relative group">
                                     <div className="flex-1 w-full min-h-[400px]" style={{ minHeight: '400px' }}>
                                         <ResponsiveContainer width="99%" height="100%">
-                                            {selectedSensor.type.toLowerCase().includes('mưa') ? (
-                                                <BarChart data={historyData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
+                                            {/* Logic: Switch to LineChart if comparing, else use Area/Bar based on type */}
+                                            {compareList.length > 0 ? (
+                                                <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
+                                                    <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#e2e8f0" strokeOpacity={0.5} />
+                                                    <XAxis dataKey="label" tick={{fontSize: 12, fill: '#64748b'}} interval={Math.floor(chartData.length / 10)} />
+                                                    <YAxis label={{ value: `Giá trị (${selectedSensor.unit})`, angle: -90, position: 'insideLeft', fill: '#64748b' }} tick={{fontSize: 12, fill: '#64748b'}} />
+                                                    <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                                    <Legend />
+                                                    {/* Main Line */}
+                                                    <Line type="monotone" dataKey={selectedSensor.id} stroke="#3b82f6" strokeWidth={3} dot={false} name={selectedSensor.name} />
+                                                    {/* Comparison Lines */}
+                                                    {compareList.map((c, i) => (
+                                                        <Line key={c.id} type="monotone" dataKey={c.id} stroke={COMPARE_COLORS[i % COMPARE_COLORS.length]} strokeWidth={2} dot={false} name={c.name} />
+                                                    ))}
+                                                </LineChart>
+                                            ) : selectedSensor.type.toLowerCase().includes('mưa') ? (
+                                                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
                                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" strokeOpacity={0.5} />
-                                                    <XAxis dataKey="label" tick={{fontSize: 12, fill: '#64748b'}} interval={Math.floor(historyData.length / 10)} />
+                                                    <XAxis dataKey="label" tick={{fontSize: 12, fill: '#64748b'}} interval={Math.floor(chartData.length / 10)} />
                                                     <YAxis label={{ value: 'Lượng mưa (mm)', angle: -90, position: 'insideLeft', fill: '#64748b' }} tick={{fontSize: 12, fill: '#64748b'}} />
                                                     <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                                                    <Bar dataKey="value" fill="#3b82f6" name="Lượng mưa" radius={[4, 4, 0, 0]} barSize={20} />
+                                                    <Bar dataKey={selectedSensor.id} fill="#3b82f6" name="Lượng mưa" radius={[4, 4, 0, 0]} barSize={20} />
                                                 </BarChart>
                                             ) : (
-                                                <AreaChart data={historyData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
+                                                <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
                                                     <defs>
                                                         <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                                                             <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
@@ -673,7 +814,7 @@ export const SensorListView: React.FC = () => {
                                                         </linearGradient>
                                                     </defs>
                                                     <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#e2e8f0" strokeOpacity={0.5} />
-                                                    <XAxis dataKey="label" tick={{fontSize: 12, fill: '#64748b'}} interval={Math.floor(historyData.length / 10)} />
+                                                    <XAxis dataKey="label" tick={{fontSize: 12, fill: '#64748b'}} interval={Math.floor(chartData.length / 10)} />
                                                     <YAxis 
                                                         domain={['auto', 'auto']} 
                                                         label={{ value: `${selectedSensor.type} (${selectedSensor.unit})`, angle: -90, position: 'insideLeft', fill: '#64748b' }} 
@@ -683,7 +824,7 @@ export const SensorListView: React.FC = () => {
                                                     <Legend />
                                                     <Area 
                                                         type="monotone" 
-                                                        dataKey="value" 
+                                                        dataKey={selectedSensor.id} 
                                                         stroke="#3b82f6" 
                                                         fill="url(#colorValue)" 
                                                         strokeWidth={3}
@@ -701,16 +842,20 @@ export const SensorListView: React.FC = () => {
                                             <thead className="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 sticky top-0">
                                                 <tr>
                                                     <th className="px-6 py-3">Thời gian</th>
-                                                    <th className="px-6 py-3">Giá trị ({selectedSensor.unit})</th>
-                                                    <th className="px-6 py-3">Trạng thái ghi nhận</th>
+                                                    <th className="px-6 py-3">{selectedSensor.name} ({selectedSensor.unit})</th>
+                                                    {compareList.map(c => (
+                                                        <th key={c.id} className="px-6 py-3">{c.name} ({c.unit})</th>
+                                                    ))}
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                                {historyData.map((row, i) => (
+                                                {chartData.map((row, i) => (
                                                     <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
                                                         <td className="px-6 py-2 font-medium text-slate-700 dark:text-slate-300 font-mono text-xs">{row.time.replace('T', ' ').slice(0, 16)}</td>
-                                                        <td className="px-6 py-2 font-bold text-blue-600 dark:text-blue-400">{row.value}</td>
-                                                        <td className="px-6 py-2 text-slate-500 dark:text-slate-500 text-xs">Tự động</td>
+                                                        <td className="px-6 py-2 font-bold text-blue-600 dark:text-blue-400">{row[selectedSensor.id]}</td>
+                                                        {compareList.map(c => (
+                                                            <td key={c.id} className="px-6 py-2 text-slate-600 dark:text-slate-400">{row[c.id]}</td>
+                                                        ))}
                                                     </tr>
                                                 ))}
                                             </tbody>
