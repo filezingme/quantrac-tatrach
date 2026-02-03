@@ -8,7 +8,7 @@ import {
   TrendingUp, TrendingDown, Calendar, Droplets,
   Table as TableIcon, Filter, Download, Check, ChevronDown, ChevronUp,
   Radio, BarChart3, AlertCircle, CloudRain, Clock, Zap, ShieldCheck,
-  Wifi, WifiOff, AlertTriangle, ArrowRight, Settings, MapPin
+  Wifi, WifiOff, AlertTriangle, ArrowRight, Settings, MapPin, Sliders
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
@@ -72,12 +72,6 @@ const generateRainfallData = (isForecast: boolean) => {
   return data;
 };
 
-const sensorHealthData = [
-  { name: 'Hoạt động', value: 10, color: '#22c55e' }, // Green
-  { name: 'Cảnh báo', value: 1, color: '#f59e0b' },   // Amber
-  { name: 'Mất tín hiệu', value: 1, color: '#ef4444' } // Red
-];
-
 // Mock Data for Rainfall Widgets (Summary)
 const recentRainData = [
   { name: '3 ngày trước', value: 120.5, fullMark: 150 },
@@ -104,6 +98,16 @@ export const DashboardView: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showFilters, setShowFilters] = useState(true); // State to toggle filter visibility
   
+  // Health Settings State
+  const [showHealthSettings, setShowHealthSettings] = useState(false);
+  const [healthScore, setHealthScore] = useState(92);
+  const [sensorCounts, setSensorCounts] = useState({ good: 10, warning: 1, critical: 1 });
+  const [healthThresholds, setHealthThresholds] = useState({ warning: 80, critical: 60 });
+  
+  // Temp state for editing in modal
+  const [tempThresholds, setTempThresholds] = useState({ warning: 80, critical: 60 });
+  const [tempCounts, setTempCounts] = useState({ good: 10, warning: 1, critical: 1 });
+
   // Filter State
   const [filterFrom, setFilterFrom] = useState(new Date(new Date().setHours(0,0,0,0)).toISOString().slice(0, 16));
   const [filterTo, setFilterTo] = useState(new Date().toISOString().slice(0, 16));
@@ -118,6 +122,13 @@ export const DashboardView: React.FC = () => {
   const refreshData = () => {
       setData(db.observation.get());
       setAlertData(db.alerts.get());
+      // Small fluctuation for demo
+      if (Math.random() > 0.7) {
+          setSensorCounts(prev => ({
+              ...prev,
+              good: Math.max(0, prev.good + (Math.random() > 0.5 ? 1 : -1))
+          }));
+      }
   };
 
   useEffect(() => {
@@ -132,6 +143,18 @@ export const DashboardView: React.FC = () => {
     return () => window.removeEventListener('db-change', handleDbChange);
   }, []);
 
+  // Recalculate Health Score whenever counts change
+  useEffect(() => {
+      const total = sensorCounts.good + sensorCounts.warning + sensorCounts.critical;
+      if (total === 0) {
+          setHealthScore(0);
+          return;
+      }
+      // Simple weighted formula: Good=100%, Warning=50%, Critical=0%
+      const score = ((sensorCounts.good * 1 + sensorCounts.warning * 0.6 + sensorCounts.critical * 0) / total) * 100;
+      setHealthScore(Math.round(score));
+  }, [sensorCounts]);
+
   // Force chart resize on modal open/tab change/filter toggle
   useEffect(() => {
     if (selectedMetric && modalTab === 'chart') {
@@ -141,6 +164,20 @@ export const DashboardView: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [selectedMetric, modalTab, isFullscreen, showFilters]);
+
+  // Determine Health Color based on dynamic thresholds
+  const healthColor = healthScore >= healthThresholds.warning 
+    ? '#22c55e' // Green
+    : healthScore >= healthThresholds.critical 
+      ? '#f59e0b' // Amber
+      : '#ef4444'; // Red
+
+  // NEW: Breakdown Chart Data
+  const sensorHealthData = [
+    { name: 'Hoạt động tốt', value: sensorCounts.good, color: '#22c55e' },
+    { name: 'Cần kiểm tra', value: sensorCounts.warning, color: '#f59e0b' },
+    { name: 'Mất tín hiệu', value: sensorCounts.critical, color: '#ef4444' }
+  ].filter(item => item.value > 0); // Hide zero segments
 
   // Constants
   const MAX_DAM_HEIGHT = 60;
@@ -355,6 +392,23 @@ export const DashboardView: React.FC = () => {
     });
 
     exportToExcel(exportData, `Du_lieu_${selectedMetric?.id}`, headers);
+  };
+
+  const handleSaveHealthSettings = () => {
+      setHealthThresholds(tempThresholds);
+      setSensorCounts(tempCounts); // Apply count changes
+      setShowHealthSettings(false);
+      ui.showToast('success', 'Đã cập nhật cấu hình đánh giá sức khỏe');
+  };
+
+  const handleRandomize = () => {
+      // Randomize counts
+      const total = 12;
+      const critical = Math.floor(Math.random() * 3); // 0-2
+      const warning = Math.floor(Math.random() * 4); // 0-3
+      const good = total - critical - warning;
+      
+      setTempCounts({ good, warning, critical });
   };
 
   // Helper to determine chart color: Primary year gets metric color, others get contrast colors
@@ -796,13 +850,21 @@ export const DashboardView: React.FC = () => {
           </div>
 
           {/* Sensor Stats -> REIMAGINED as Health Chart */}
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 flex flex-col h-full">
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 flex flex-col h-full relative">
              <div className="flex justify-between items-start mb-4">
                  <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
                   <BarChart3 className="text-purple-600 dark:text-purple-400" size={20} />
                   Sức khỏe Hệ thống
                 </h3>
-                <button className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                <button 
+                  onClick={() => {
+                      setTempThresholds(healthThresholds);
+                      setTempCounts(sensorCounts);
+                      setShowHealthSettings(true);
+                  }}
+                  className="text-slate-400 hover:text-blue-600 dark:hover:text-blue-300 p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"
+                  title="Cấu hình"
+                >
                    <Settings size={16}/>
                 </button>
              </div>
@@ -827,7 +889,7 @@ export const DashboardView: React.FC = () => {
                 </ResponsiveContainer>
                 {/* Center Text */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                   <span className="text-3xl font-bold text-slate-800 dark:text-white">83%</span>
+                   <span className="text-3xl font-bold" style={{ color: healthColor }}>{healthScore}%</span>
                    <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wide">Health Score</span>
                 </div>
              </div>
@@ -839,26 +901,120 @@ export const DashboardView: React.FC = () => {
                       <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
                       <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Hoạt động tốt</span>
                    </div>
-                   <span className="text-sm font-bold text-green-600 dark:text-green-400">10</span>
+                   <span className="text-sm font-bold text-green-600 dark:text-green-400">{sensorCounts.good}</span>
                 </div>
                 <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-700/30 border border-slate-100 dark:border-slate-700/50">
                    <div className="flex items-center gap-2">
                       <div className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></div>
                       <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Cần kiểm tra</span>
                    </div>
-                   <span className="text-sm font-bold text-amber-600 dark:text-amber-400">1</span>
+                   <span className="text-sm font-bold text-amber-600 dark:text-amber-400">{sensorCounts.warning}</span>
                 </div>
                 <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-700/30 border border-slate-100 dark:border-slate-700/50">
                    <div className="flex items-center gap-2">
                       <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
                       <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Mất tín hiệu</span>
                    </div>
-                   <span className="text-sm font-bold text-red-600 dark:text-red-400">1</span>
+                   <span className="text-sm font-bold text-red-600 dark:text-red-400">{sensorCounts.critical}</span>
                 </div>
              </div>
           </div>
         </div>
       </div>
+
+      {/* --- HEALTH SETTINGS MODAL --- */}
+      {showHealthSettings && (
+        <div className="fixed inset-0 z-[2000] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+           <div className="bg-white dark:bg-slate-800 w-full max-w-sm rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-in zoom-in-95 duration-200">
+              <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
+                 <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                    <Sliders size={18} className="text-blue-500"/> Cấu hình đánh giá
+                 </h3>
+                 <button onClick={() => setShowHealthSettings(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <X size={20}/>
+                 </button>
+              </div>
+              
+              <div className="p-5 space-y-6">
+                 {/* Count Configuration */}
+                 <div>
+                    <p className="text-xs font-bold text-slate-500 uppercase mb-3 border-b dark:border-slate-700 pb-1">Trạng thái thiết bị</p>
+                    <div className="space-y-3">
+                       <div className="flex justify-between items-center">
+                          <span className="text-sm text-green-700 dark:text-green-400 font-medium">Hoạt động tốt</span>
+                          <input type="number" min="0" className="w-16 border rounded text-center text-sm p-1 dark:bg-slate-700 dark:text-white" value={tempCounts.good} onChange={(e) => setTempCounts({...tempCounts, good: parseInt(e.target.value) || 0})}/>
+                       </div>
+                       <div className="flex justify-between items-center">
+                          <span className="text-sm text-amber-600 dark:text-amber-400 font-medium">Cần kiểm tra</span>
+                          <input type="number" min="0" className="w-16 border rounded text-center text-sm p-1 dark:bg-slate-700 dark:text-white" value={tempCounts.warning} onChange={(e) => setTempCounts({...tempCounts, warning: parseInt(e.target.value) || 0})}/>
+                       </div>
+                       <div className="flex justify-between items-center">
+                          <span className="text-sm text-red-600 dark:text-red-400 font-medium">Mất tín hiệu</span>
+                          <input type="number" min="0" className="w-16 border rounded text-center text-sm p-1 dark:bg-slate-700 dark:text-white" value={tempCounts.critical} onChange={(e) => setTempCounts({...tempCounts, critical: parseInt(e.target.value) || 0})}/>
+                       </div>
+                    </div>
+                 </div>
+
+                 {/* Threshold Configuration */}
+                 <div>
+                    <label className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-300 uppercase mb-2">
+                       <span>Ngưỡng cảnh báo (Warning)</span>
+                       <span className="text-amber-600 dark:text-amber-400">{tempThresholds.warning}%</span>
+                    </label>
+                    <input 
+                       type="range" 
+                       min="0" max="100" 
+                       value={tempThresholds.warning} 
+                       onChange={(e) => setTempThresholds({...tempThresholds, warning: parseInt(e.target.value)})}
+                       className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                    />
+                 </div>
+
+                 <div>
+                    <label className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-300 uppercase mb-2">
+                       <span>Ngưỡng nguy hiểm (Critical)</span>
+                       <span className="text-red-600 dark:text-red-400">{tempThresholds.critical}%</span>
+                    </label>
+                    <input 
+                       type="range" 
+                       min="0" max="100" 
+                       value={tempThresholds.critical} 
+                       onChange={(e) => setTempThresholds({...tempThresholds, critical: parseInt(e.target.value)})}
+                       className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-red-500"
+                    />
+                 </div>
+
+                 <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-900/30 flex items-start gap-3">
+                    <Activity size={16} className="text-blue-600 mt-0.5 shrink-0"/>
+                    <div>
+                       <p className="text-xs font-bold text-blue-700 dark:text-blue-300">Giả lập biến động</p>
+                       <button 
+                          onClick={handleRandomize}
+                          className="text-[10px] text-blue-600 dark:text-blue-400 hover:underline mt-1 block"
+                       >
+                          Tạo ngẫu nhiên dữ liệu thiết bị
+                       </button>
+                    </div>
+                 </div>
+              </div>
+
+              <div className="px-5 py-4 bg-slate-50 dark:bg-slate-900/50 flex justify-end gap-3 border-t border-slate-100 dark:border-slate-700">
+                 <button 
+                    onClick={() => setShowHealthSettings(false)}
+                    className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-sm font-medium"
+                 >
+                    Hủy bỏ
+                 </button>
+                 <button 
+                    onClick={handleSaveHealthSettings}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold shadow-md"
+                 >
+                    Lưu cấu hình
+                 </button>
+              </div>
+           </div>
+        </div>
+      )}
 
       {/* --- ADVANCED DETAIL MODAL (Moved outside main div to avoid transform conflicts) --- */}
       {selectedMetric && (

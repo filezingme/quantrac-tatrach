@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { Layers, MapPin, Maximize2, Minimize2 } from 'lucide-react';
 import { db } from '../utils/db';
@@ -68,46 +69,91 @@ export const MapView: React.FC = () => {
     // Save layers to toggle later
     (map as any)._layers_custom = { streets: streetLayer, satellite: satelliteLayer };
 
+    // --- SVG STRINGS FOR ICONS ---
+    const damSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>`; // Activity/Wave icon
+    const rainSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M8 19v2"/><path d="M12 19v2"/><path d="M16 19v2"/></svg>`; // CloudRain icon
+
     // --- Markers ---
 
-    // 1. Main Dam Marker
+    // 1. Main Dam Marker (Big, Red, Pulsating)
     const mainIcon = L.divIcon({
-      className: 'custom-div-icon',
-      html: `<div style="background-color: #ef4444; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.3);"></div>`,
-      iconSize: [12, 12],
-      iconAnchor: [6, 6]
+      className: 'custom-dam-marker',
+      html: `
+        <div class="relative flex flex-col items-center justify-center w-16 h-16 group">
+          <span class="animate-ping absolute inline-flex h-12 w-12 rounded-full bg-red-500 opacity-75"></span>
+          <div class="relative flex items-center justify-center w-14 h-14 bg-gradient-to-br from-red-600 to-rose-500 rounded-full shadow-xl border-[3px] border-white z-10 transition-transform duration-300 hover:scale-110">
+            ${damSvg}
+          </div>
+          <div class="absolute -bottom-3 bg-slate-900/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg border border-slate-700 whitespace-nowrap z-20">Đập chính</div>
+        </div>
+      `,
+      iconSize: [64, 64],
+      iconAnchor: [32, 32],
+      popupAnchor: [0, -36]
     });
 
     L.marker([centerLat, centerLng], { icon: mainIcon })
       .addTo(map)
       .bindPopup(`
-        <div style="min-width: 200px;">
-          <h3 style="font-weight: bold; color: #1e40af; margin-bottom: 4px;">Hồ Tả Trạch</h3>
-          <p style="margin: 0; font-size: 12px; color: #64748b;">Mực nước: <b>${db.observation.get().waterLevel} m</b></p>
-          <p style="margin: 0; font-size: 12px; color: #64748b;">Dung tích: <b>${db.observation.get().capacity} tr.m³</b></p>
-          <div style="margin-top: 8px; font-size: 11px; background: #eff6ff; padding: 4px; border-radius: 4px;">
+        <div style="min-width: 220px; font-family: 'Inter', sans-serif;">
+          <div style="background: linear-gradient(to right, #ef4444, #be123c); padding: 8px; border-radius: 6px 6px 0 0; color: white; margin: -13px -20px 10px -20px;">
+             <h3 style="font-weight: 700; margin: 0; font-size: 14px; text-align: center;">HỒ TẢ TRẠCH</h3>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+             <div style="text-align: center; background: #eff6ff; padding: 6px; border-radius: 6px;">
+                <div style="font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: 600;">Mực nước</div>
+                <div style="font-size: 16px; font-weight: 700; color: #2563eb;">${db.observation.get().waterLevel} m</div>
+             </div>
+             <div style="text-align: center; background: #f0fdf4; padding: 6px; border-radius: 6px;">
+                <div style="font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: 600;">Dung tích</div>
+                <div style="font-size: 16px; font-weight: 700; color: #16a34a;">${db.observation.get().capacity}</div>
+             </div>
+          </div>
+          <div style="margin-top: 10px; font-size: 11px; color: #475569; display: flex; align-items: center; gap: 4px;">
+            <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%; display: inline-block;"></span>
             Trạng thái: <b>Vận hành bình thường</b>
           </div>
         </div>
-      `)
+      `, { className: 'custom-popup-clean' }) // We can add CSS for this class if needed, or rely on inline styles
       .openPopup();
 
-    // 2. Simulated Rainfall Stations
+    // 2. Simulated Rainfall Stations (Blue, Stylish Pins)
     const stations = [
-      { name: 'Hương Sơn', lat: centerLat + 0.04, lng: centerLng - 0.03 },
-      { name: 'Thượng Quảng', lat: centerLat - 0.03, lng: centerLng + 0.02 },
-      { name: 'Đầu mối', lat: centerLat + 0.01, lng: centerLng + 0.01 },
+      { name: 'Hương Sơn', lat: centerLat + 0.04, lng: centerLng - 0.03, rain: 15.0 },
+      { name: 'Thượng Quảng', lat: centerLat - 0.03, lng: centerLng + 0.02, rain: 10.2 },
+      { name: 'Đầu mối', lat: centerLat + 0.01, lng: centerLng + 0.01, rain: 5.5 },
     ];
 
     stations.forEach(st => {
       const stationIcon = L.divIcon({
-        className: 'station-icon',
-        html: `<div style="background-color: #3b82f6; width: 10px; height: 10px; border-radius: 50%; border: 1px solid white;"></div>`,
-        iconSize: [10, 10]
+        className: 'custom-rain-marker',
+        html: `
+          <div class="relative flex flex-col items-center justify-center w-12 h-12 group transition-transform duration-300 hover:-translate-y-1">
+            <div class="relative flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full shadow-lg border-[2px] border-white z-10 group-hover:shadow-blue-300/50 group-hover:shadow-xl">
+              ${rainSvg}
+            </div>
+            <div class="absolute -bottom-7 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white text-slate-700 text-[10px] font-bold px-2 py-1 rounded shadow-md whitespace-nowrap border border-slate-100 pointer-events-none z-20 transform scale-90 group-hover:scale-100">
+               ${st.name}
+            </div>
+            <!-- Pin Triangle -->
+            <div class="absolute bottom-2 w-3 h-3 bg-cyan-500 rotate-45 z-0 mb-[1px]"></div>
+          </div>
+        `,
+        iconSize: [48, 48],
+        iconAnchor: [24, 40], // Point at bottom
+        popupAnchor: [0, -40]
       });
+
       L.marker([st.lat, st.lng], { icon: stationIcon })
         .addTo(map)
-        .bindPopup(`<b>Trạm đo mưa: ${st.name}</b>`);
+        .bindPopup(`
+           <div style="text-align: center; font-family: 'Inter', sans-serif;">
+              <h4 style="margin: 0 0 4px 0; color: #0f172a; font-size: 13px;">Trạm ${st.name}</h4>
+              <div style="font-size: 12px; color: #334155;">
+                 Mưa hiện tại: <b style="color: #0284c7;">${st.rain} mm</b>
+              </div>
+           </div>
+        `);
     });
 
     // --- CRITICAL FIX: Invalidate Size to ensure map renders fully ---
@@ -186,22 +232,32 @@ export const MapView: React.FC = () => {
       </div>
 
       {/* Legend Overlay */}
-      <div className="absolute bottom-6 left-6 z-[400] bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-slate-200 p-4 max-w-xs">
-         <h4 className="text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
-           <MapPin size={16} className="text-blue-600"/> Chú giải
+      <div className="absolute bottom-6 left-6 z-[400] bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-slate-200 p-4 max-w-xs">
+         <h4 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+           <MapPin size={16} className="text-blue-600"/> Chú giải bản đồ
          </h4>
-         <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-red-500 border border-white shadow-sm block"></span>
-              <span className="text-xs text-slate-600">Vị trí đập chính / Hồ chứa</span>
+         <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-500 to-rose-600 border-2 border-white shadow-sm flex items-center justify-center">
+                 <div className="w-3 h-3 bg-white rounded-full opacity-50"></div>
+              </div>
+              <div>
+                 <p className="text-xs font-bold text-slate-700">Vị trí đập chính</p>
+                 <p className="text-[10px] text-slate-500">Trung tâm điều hành</p>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-blue-500 border border-white shadow-sm block"></span>
-              <span className="text-xs text-slate-600">Trạm đo mưa / Thủy văn</span>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 border-2 border-white shadow-sm flex items-center justify-center">
+                 <div className="w-4 h-[2px] bg-white rounded-full"></div>
+              </div>
+              <div>
+                 <p className="text-xs font-bold text-slate-700">Trạm đo mưa</p>
+                 <p className="text-[10px] text-slate-500">Cảm biến tự động</p>
+              </div>
             </div>
          </div>
-         <div className="mt-3 pt-3 border-t border-slate-200 text-[10px] text-slate-500">
-           Tọa độ tâm: {generalInfo.latitude}, {generalInfo.longitude}
+         <div className="mt-4 pt-3 border-t border-slate-200 text-[10px] text-slate-400 font-mono">
+           GPS: {generalInfo.latitude}, {generalInfo.longitude}
          </div>
       </div>
 
