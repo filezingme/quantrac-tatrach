@@ -75,6 +75,7 @@ const generateRainfallData = (isForecast: boolean) => {
 // Mock Data for Rainfall Widgets (Summary)
 const recentRainData = [
   { name: '3 ngày trước', value: 120.5, fullMark: 150 },
+  { name: '2 ngày trước', value: 82.0, fullMark: 150 }, // Added missing day
   { name: '1 ngày trước', value: 45.2, fullMark: 150 },
   { name: 'Hiện tại', value: 12.5, fullMark: 150 },
 ];
@@ -702,7 +703,7 @@ export const DashboardView: React.FC = () => {
                        />
                        <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]}>
                           {recentRainData.map((entry, index) => (
-                             <Cell key={`cell-${index}`} fill={index === 2 ? '#06b6d4' : '#94a3b8'} />
+                             <Cell key={`cell-${index}`} fill={index === recentRainData.length - 1 ? '#06b6d4' : '#94a3b8'} />
                           ))}
                        </Bar>
                     </BarChart>
