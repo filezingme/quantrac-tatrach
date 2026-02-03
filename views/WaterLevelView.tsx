@@ -43,64 +43,77 @@ export const WaterLevelView: React.FC = () => {
   const processedData = useMemo(() => {
     const resultRecords: (WaterLevelRecord & { year: number })[] = [];
     
-    // Parse filter bounds (Day/Month/Hour/Minute only)
+    // Parse filter bounds
     const startObj = new Date(fromDate);
     const endObj = new Date(toDate);
     
-    // Helper to get comparable value for "Day/Month Hour:Minute"
-    // We set all dates to a leap year (e.g., 2024) to handle comparison correctly
+    // Calculate total hours in the range to generate adequate mock data
+    const durationMs = endObj.getTime() - startObj.getTime();
+    const totalHours = Math.max(24, Math.ceil(durationMs / (1000 * 60 * 60)));
+
+    // Helper to get normalized comparison time (ignoring year)
+    // We map everything to a leap year (2024) to handle day/month comparisons
     const getComparisonTime = (d: Date) => {
       const temp = new Date(2024, d.getMonth(), d.getDate(), d.getHours(), d.getMinutes());
       return temp.getTime();
     };
 
-    const startTime = getComparisonTime(startObj);
-    const endTime = getComparisonTime(endObj);
+    const rangeStartTime = getComparisonTime(startObj);
+    const rangeEndTime = getComparisonTime(endObj);
 
-    // Loop through selected years
+    // If the range crosses year boundary (e.g. Dec to Jan), simple comparison fails.
+    // For this demo, we assume ranges are within a calendar year or short duration.
+
     selectedYears.forEach(year => {
       // 1. Get real data from DB for this year
-      const yearRecords = dbData.filter(r => new Date(r.time).getFullYear() === year);
+      const rawYearRecords = dbData.filter(r => new Date(r.time).getFullYear() === year);
       
-      // 2. If no data for this year, generate MOCK data for demo/simulation
-      if (yearRecords.length === 0) {
-         // Mock based on existing data pattern (or random if empty)
-         const baseData = dbData.length > 0 ? dbData : Array.from({length: 24}).map((_, i) => ({
-             id: `base-${i}`, 
-             time: new Date(new Date().setHours(i, 0, 0, 0)).toISOString(), 
-             level: 35
-         }));
-
-         baseData.forEach((r, idx) => {
-           // Create a date object for the selected year but keeping the month/day/time of the base record
-           const origDate = new Date(r.time);
-           const newDate = new Date(origDate);
-           newDate.setFullYear(year);
-           
-           // Add some noise to make years look different
-           // Use year as seed for consistent noise
-           const noise = Math.sin(idx + year) * 2; 
-           
-           const mockRecord = {
-             id: `mock-${year}-${idx}`, // ID indicates it's a mock
-             time: newDate.toISOString(),
-             level: parseFloat((r.level + noise).toFixed(2)),
-             year: year
-           };
-           
-           resultRecords.push(mockRecord);
-         });
+      // Filter real data by the time range (ignoring year part of the record)
+      const validRealRecords = rawYearRecords.filter(item => {
+          const itemTime = getComparisonTime(new Date(item.time));
+          // Simple inclusion check
+          return itemTime >= rangeStartTime && itemTime <= rangeEndTime;
+      });
+      
+      // 2. If we have substantial real data, use it. 
+      // Otherwise, generate mock data for the WHOLE range to ensure chart looks "full".
+      if (validRealRecords.length > 0) {
+         validRealRecords.forEach(r => resultRecords.push({ ...r, year }));
       } else {
-        yearRecords.forEach(r => resultRecords.push({ ...r, year }));
+         // --- MOCK DATA GENERATION ---
+         // Generate points for every hour in the range
+         for (let i = 0; i <= totalHours; i++) {
+             // Create date relative to startObj but set to target Year
+             const t = new Date(startObj.getTime() + (i * 60 * 60 * 1000));
+             t.setFullYear(year); 
+             
+             // Simulation Math
+             const h = t.getHours();
+             // Base level varies by year to separate lines visually (e.g. 2022->30, 2023->35)
+             const yearBase = 30 + ((year % 5) * 5); 
+             
+             // Add daily tide/operation cycle (sin wave)
+             const daily = Math.sin((h / 24) * Math.PI * 2) * 0.5;
+             
+             // Add a longer trend (flood/drain) over the period
+             const trend = Math.cos((i / totalHours) * Math.PI) * 2;
+             
+             // Random noise for realism
+             const noise = (Math.random() - 0.5) * 0.3;
+
+             const level = parseFloat((yearBase + daily + trend + noise).toFixed(2));
+
+             resultRecords.push({
+                 id: `mock-${year}-${i}`, // Mark ID as mock
+                 time: t.toISOString(),
+                 level,
+                 year
+             });
+         }
       }
     });
 
-    // 3. Filter by Time Range (Day/Month)
-    return resultRecords.filter(item => {
-      const itemTime = getComparisonTime(new Date(item.time));
-      // Handle range crossing year boundary if needed (ignored for simplicity here)
-      return itemTime >= startTime && itemTime <= endTime;
-    }).sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
+    return resultRecords.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
 
   }, [dbData, selectedYears, fromDate, toDate]);
 
@@ -120,7 +133,7 @@ export const WaterLevelView: React.FC = () => {
       entry[record.year] = record.level;
     });
 
-    // Sort by time within year
+    // Sort by time within year (Month -> Day -> Time)
     return Array.from(map.values()).sort((a, b) => {
         const getTimeInYear = (lbl: string) => {
            const [datePart, timePart] = lbl.split(' ');
@@ -152,26 +165,25 @@ export const WaterLevelView: React.FC = () => {
        return;
     }
 
-    // 2. If modifying a MOCK record, we need to "materialize" all mock data for that year 
-    // into real data so the user can save it.
+    // 2. If modifying a MOCK record, we need to "materialize" it into a real record
     const targetRecord = processedData.find(r => r.id === id);
     if (!targetRecord) return;
 
+    // Convert only the edited record + maybe neighbors if we wanted to be fancy, but let's just do the target for now
+    // Actually, to persist a "scenario", we probably want to save the whole mock series?
+    // For simplicity, we just materialize the single edited point and let the rest stay mock.
+    // BUT, if we save, we usually want to save what we see. 
+    // Let's materialize the *entire* series for that year so the line doesn't break.
     const yearToMaterialize = targetRecord.year;
-    
-    // Find all mocks for this year currently displayed
     const mocksToConvert = processedData.filter(r => r.year === yearToMaterialize && r.id.startsWith('mock-'));
     
     const newRealRecords = mocksToConvert.map(r => ({
       id: r.id.replace('mock-', 'sim-'), // Convert ID to simulated
       time: r.time,
-      // Apply the update if this is the target record
       level: r.id === id && field === 'level' ? parseFloat(value) : r.level,
-      // Handle time update if needed (though UI prevents mock time update usually, let's allow it)
       ...(r.id === id && field === 'time' ? { time: value } : {})
     }));
 
-    // Save to DB state (merging with existing)
     setDbData(prev => [...prev, ...newRealRecords]);
   };
 
@@ -184,11 +196,9 @@ export const WaterLevelView: React.FC = () => {
   };
 
   const handleExport = () => {
-    // Define headers explicitly to ensure order
     const headers = ['Năm', 'Thời gian', 'Mực nước (m)', 'Loại dữ liệu'];
     
     const exportData = processedData.map(row => {
-      // Localize export time format
       const d = new Date(row.time);
       const formattedTime = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
       

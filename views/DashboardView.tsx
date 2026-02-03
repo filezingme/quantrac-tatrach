@@ -3,20 +3,20 @@ import { ObservationData } from '../types';
 import { db } from '../utils/db';
 import { exportToExcel } from '../utils/excel';
 import { 
-  CloudRain, Activity, RefreshCw, X, Maximize2, Minimize2,
-  TrendingUp, TrendingDown, Calendar, Droplets, Waves, Info,
-  Table as TableIcon, Filter, Download, CheckCircle, ChevronDown, ChevronUp, Check
+  Activity, RefreshCw, X, Maximize2, Minimize2,
+  TrendingUp, TrendingDown, Calendar, Droplets,
+  Table as TableIcon, Filter, Download, Check, ChevronDown, ChevronUp,
+  Radio, BarChart3, AlertCircle, CloudRain, Clock, Zap, ShieldCheck
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, LineChart, Line, Legend
+  PieChart, Pie, Cell, Legend, BarChart, Bar, ComposedChart, Line
 } from 'recharts';
-import * as XLSX from 'xlsx';
 import { useUI } from '../components/GlobalUI';
 
 // --- Types & Constants ---
 
-type MetricType = 'waterLevel' | 'capacity' | 'inflow' | 'outflow';
+type MetricType = 'waterLevel' | 'capacity' | 'inflow' | 'outflow' | 'rain_recent' | 'rain_forecast';
 
 interface MetricDetail {
   id: MetricType;
@@ -26,6 +26,7 @@ interface MetricDetail {
   max: number;
   color: string;
   subLabel?: string;
+  chartType?: 'area' | 'bar_line'; // New property to distinguish chart types
   historyData?: any[]; 
 }
 
@@ -47,6 +48,51 @@ const generateSparklineHistory = (baseValue: number, variance: number) => {
     };
   });
 };
+
+// Generate Mock Rainfall Data (Hourly Bars + Accumulation)
+const generateRainfallData = (isForecast: boolean) => {
+  const data = [];
+  let accum = 0;
+  for (let i = 0; i < 24; i++) {
+    // Random rain event pattern
+    const rawRain = Math.random() > 0.6 ? Math.random() * 20 : 0; 
+    const rain = parseFloat(rawRain.toFixed(1));
+    accum += rain;
+    const hourLabel = isForecast ? `+${i+1}h` : `${i}:00`;
+    
+    data.push({
+      timeLabel: hourLabel,
+      value: rain, // Hourly intensity (Bar)
+      accumulated: parseFloat(accum.toFixed(1)) // Cumulative (Line)
+    });
+  }
+  return data;
+};
+
+// Mock Data for New Widgets
+const alertData = [
+  { id: 1, time: '03/02/2026 09:30:02', sensor: 'Đo mực nước', type: 'Đo mực nước', station: 'Trạm đo mực nước', status: 'Mất kết nối' },
+  { id: 2, time: '03/02/2026 09:30:02', sensor: 'P2-3', type: 'Đo mực nước', station: 'Trạm đo mực nước', status: 'Mất kết nối' },
+  { id: 3, time: '03/02/2026 09:30:02', sensor: 'KN4', type: 'Đo mực nước', station: 'Trạm đo mực nước', status: 'Mất kết nối' },
+  { id: 4, time: '03/02/2026 09:30:02', sensor: 'KN2', type: 'Đo mực nước', station: 'Trạm đo mực nước', status: 'Mất kết nối' },
+  { id: 5, time: '03/02/2026 09:30:02', sensor: 'KN1', type: 'Đo mực nước', station: 'Trạm đo mực nước', status: 'Mất kết nối' },
+  { id: 6, time: '03/02/2026 08:15:00', sensor: 'Cảm biến thấm T1', type: 'Áp lực thấm', station: 'Đập chính', status: 'Cảnh báo' },
+  { id: 7, time: '03/02/2026 07:45:30', sensor: 'Trạm mưa Hương Sơn', type: 'Mưa lớn', station: 'Thượng lưu', status: 'Vượt ngưỡng' },
+];
+
+// Mock Data for Rainfall Widgets (Summary)
+const recentRainData = [
+  { name: '3 ngày trước', value: 120.5, fullMark: 150 },
+  { name: '1 ngày trước', value: 45.2, fullMark: 150 },
+  { name: 'Hiện tại', value: 12.5, fullMark: 150 },
+];
+
+const forecastRainData = [
+  { name: 'Hiện tại', value: 12.5 },
+  { name: '3h tới', value: 25.0 },
+  { name: '24h tới', value: 65.0 },
+  { name: '3 ngày tới', value: 110.0 },
+];
 
 export const DashboardView: React.FC = () => {
   const [data, setData] = useState<ObservationData>(db.observation.get());
@@ -88,7 +134,6 @@ export const DashboardView: React.FC = () => {
 
   // Constants
   const MAX_DAM_HEIGHT = 60;
-  const DEAD_LEVEL = 23;
   const NORMAL_LEVEL = 45;
   
   // Safe Access to Data
@@ -96,8 +141,6 @@ export const DashboardView: React.FC = () => {
   const currentCapacity = data?.capacity ?? 0;
   const currentInflow = data?.inflow ?? 0;
   const currentOutflow = data?.outflow ?? 0;
-  const rainfallData = data?.rainfall ?? [];
-  const downstreamData = data?.downstream ?? [];
   const lastUpdated = data?.lastUpdated ? new Date(data.lastUpdated).toLocaleString('vi-VN') : 'N/A';
 
   const waterPercent = Math.min(100, Math.max(0, (currentWaterLevel / MAX_DAM_HEIGHT) * 100));
@@ -111,6 +154,7 @@ export const DashboardView: React.FC = () => {
       max: MAX_DAM_HEIGHT, 
       color: '#3b82f6',
       subLabel: 'MNDBT: 45m',
+      chartType: 'area',
       historyData: generateSparklineHistory(currentWaterLevel, 0.8)
     },
     capacity: {
@@ -121,6 +165,7 @@ export const DashboardView: React.FC = () => {
       max: 646, 
       color: '#06b6d4',
       subLabel: `${((currentCapacity / 646) * 100).toFixed(1)}% dung tích`,
+      chartType: 'area',
       historyData: generateSparklineHistory(currentCapacity, 10)
     },
     inflow: {
@@ -130,6 +175,8 @@ export const DashboardView: React.FC = () => {
       unit: 'm³/s',
       max: 1000, 
       color: '#10b981',
+      subLabel: 'Trung bình 1h',
+      chartType: 'area',
       historyData: generateSparklineHistory(currentInflow, 30)
     },
     outflow: {
@@ -139,7 +186,31 @@ export const DashboardView: React.FC = () => {
       unit: 'm³/s',
       max: 1000,
       color: '#f59e0b',
+      subLabel: 'Qua 2 tổ máy',
+      chartType: 'area',
       historyData: generateSparklineHistory(currentOutflow, 25)
+    },
+    rain_recent: {
+      id: 'rain_recent',
+      label: 'Mưa thực đo',
+      value: 12.5,
+      unit: 'mm',
+      max: 200,
+      color: '#3b82f6',
+      subLabel: 'Tổng 24h qua',
+      chartType: 'bar_line',
+      historyData: generateRainfallData(false)
+    },
+    rain_forecast: {
+      id: 'rain_forecast',
+      label: 'Dự báo mưa',
+      value: 65.0,
+      unit: 'mm',
+      max: 200,
+      color: '#8b5cf6',
+      subLabel: 'Dự báo WRF',
+      chartType: 'bar_line',
+      historyData: generateRainfallData(true)
     }
   };
 
@@ -150,15 +221,59 @@ export const DashboardView: React.FC = () => {
 
   // --- Modal Logic ---
 
-  const generateComparisonData = (metric: MetricDetail, years: number[]) => {
-    const points = 24; 
-    const baseVal = metric.value;
-    const newData = [];
-    const start = new Date(filterFrom);
+  const generateComparisonData = (metric: MetricDetail, years: number[], startDateStr?: string, endDateStr?: string) => {
+    const start = startDateStr ? new Date(startDateStr) : new Date(filterFrom);
+    const end = endDateStr ? new Date(endDateStr) : new Date(filterTo);
     
-    for (let i = 0; i <= points; i++) {
-       const date = new Date(start);
-       date.setHours(date.getHours() + i);
+    // Calculate total hours in the range to generate adequate mock data
+    const diffMs = Math.abs(end.getTime() - start.getTime());
+    const totalHours = Math.ceil(diffMs / (1000 * 60 * 60)); 
+    
+    const newData = [];
+
+    // --- Rainfall Logic (Bar + Line) ---
+    if (metric.chartType === 'bar_line') {
+       // Initialize accumulators for each year
+       const accumulators: Record<number, number> = {};
+       years.forEach(y => accumulators[y] = 0);
+
+       for (let i = 0; i <= totalHours; i++) {
+           const date = new Date(start.getTime() + i * 60 * 60 * 1000);
+           const timeLabel = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:00`;
+           const row: any = { timeLabel };
+
+           years.forEach(year => {
+               // Pseudo-random seed based on year and hour index to make it deterministic but look random
+               const seed = (year % 100) * 1000 + i;
+               // Sine wave based probability to create "storm clusters"
+               const prob = Math.sin(i / 5 + year) * 0.5 + 0.5; // 0 to 1
+               
+               let rain = 0;
+               // 30% chance of rain, higher probability during "peaks" of the sine wave
+               if (prob > 0.7 || Math.random() > 0.8) {
+                   // Random rain intensity: light (1-5mm) to heavy (20-50mm)
+                   const intensity = Math.random();
+                   rain = intensity > 0.9 ? 20 + Math.random() * 30 : 1 + Math.random() * 10;
+                   rain = parseFloat(rain.toFixed(1));
+               }
+               
+               // Accumulate
+               accumulators[year] += rain;
+               
+               // Assign to row
+               row[year] = rain; // Bar value
+               row[`${year}_accum`] = parseFloat(accumulators[year].toFixed(1)); // Line value
+           });
+           newData.push(row);
+       }
+       setComparisonData(newData);
+       return;
+    }
+
+    // --- Default Logic (Area Charts: Water Level, Flow, etc.) ---
+    const baseVal = metric.value;
+    for (let i = 0; i <= totalHours; i++) {
+       const date = new Date(start.getTime() + i * 60 * 60 * 1000);
        const timeLabel = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:00`;
        const row: any = { timeLabel };
 
@@ -177,15 +292,20 @@ export const DashboardView: React.FC = () => {
 
   const handleOpenModal = (metric: MetricDetail) => {
     const initialYears = [new Date().getFullYear()];
-    generateComparisonData(metric, initialYears);
+    const yesterday = new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().slice(0, 16);
+    const now = new Date().toISOString().slice(0, 16);
+    
+    // Set state
     setSelectedMetric(metric);
     setModalTab('chart');
     setIsFullscreen(false);
-    setShowFilters(true); // Reset filters to visible when opening
-    // Reset filters
-    setFilterFrom(new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().slice(0, 16));
-    setFilterTo(new Date().toISOString().slice(0, 16));
+    setShowFilters(true);
+    setFilterFrom(yesterday);
+    setFilterTo(now);
     setSelectedYears(initialYears);
+
+    // Generate initial data with explicitly passed dates to avoid state race condition
+    generateComparisonData(metric, initialYears, yesterday, now);
   };
 
   const handleCloseModal = () => setSelectedMetric(null);
@@ -204,30 +324,22 @@ export const DashboardView: React.FC = () => {
     }
   };
 
-  const handleExportRainfall = () => {
-    // Define exact headers and their order
-    const headers = ['Trạm đo', 'Hiện tại (mm)', '1 giờ (mm)', '24 giờ (mm)', '3 ngày (mm)'];
-    
-    const exportData = rainfallData.map(r => ({
-      'Trạm đo': r.name,
-      'Hiện tại (mm)': r.data.current,
-      '1 giờ (mm)': '-',
-      '24 giờ (mm)': r.data.day1,
-      '3 ngày (mm)': r.data.day3
-    }));
-    
-    exportToExcel(exportData, 'So_lieu_mua', headers);
-  };
-
   const handleExportComparison = () => {
     // Dynamic headers based on selected years
     const headers = ['Thời gian', ...selectedYears.map(y => `Năm ${y}`)];
+    if (selectedMetric?.chartType === 'bar_line') {
+       // Add accumulated col for rain
+       selectedYears.forEach(y => headers.push(`Lũy kế Năm ${y}`));
+    }
     
     // Transform data to match headers
     const exportData = comparisonData.map(row => {
         const item: any = { 'Thời gian': row.timeLabel };
         selectedYears.forEach(y => {
             item[`Năm ${y}`] = row[y];
+            if (selectedMetric?.chartType === 'bar_line') {
+               item[`Lũy kế Năm ${y}`] = row[`${y}_accum`];
+            }
         });
         return item;
     });
@@ -258,7 +370,6 @@ export const DashboardView: React.FC = () => {
               100% { bottom: 100%; transform: translateX(-20px); opacity: 0; }
             }
             .wave-bg {
-              /* Changed to a lighter cyan color to match the new gradient */
               background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 88.7'%3E%3Cpath d='M800 56.9c-155.5 0-204.9-50-405.5-49.9-200 0-250 49.9-394.5 49.9v31.8h800v-.2-31.6z' fill='%2322d3ee'/%3E%3C/svg%3E");
               background-position: 0 bottom;
               background-repeat: repeat-x;
@@ -294,16 +405,13 @@ export const DashboardView: React.FC = () => {
           </div>
           
           <div className="flex gap-3 w-full md:w-auto">
-              <div className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg text-xs font-bold uppercase tracking-wide border border-green-200 dark:border-green-800 shadow-sm">
-                  <div className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                  </div>
-                  <span className="whitespace-nowrap">Máy chủ: Online</span>
+              <div className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 rounded-lg text-xs font-bold uppercase tracking-wide border border-yellow-200 dark:border-yellow-800 shadow-sm">
+                  <Zap size={14} className="animate-pulse" />
+                  <span className="whitespace-nowrap">Phát điện: 21 MW</span>
               </div>
-              <div className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-lg text-xs font-bold uppercase tracking-wide border border-blue-200 dark:border-blue-800 shadow-sm">
-                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                  <span className="whitespace-nowrap">Sensor: Tốt</span>
+              <div className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg text-xs font-bold uppercase tracking-wide border border-green-200 dark:border-green-800 shadow-sm">
+                  <ShieldCheck size={14} />
+                  <span className="whitespace-nowrap">An toàn đập: Tốt</span>
               </div>
           </div>
         </div>
@@ -311,7 +419,7 @@ export const DashboardView: React.FC = () => {
         {/* Main Metric Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
           
-          {/* 1. Water Level - Updated Design to Square/Rectangle */}
+          {/* 1. Water Level */}
           <div 
             onClick={() => handleOpenModal(metrics.waterLevel)}
             className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden group h-56 flex flex-col p-5"
@@ -340,9 +448,8 @@ export const DashboardView: React.FC = () => {
                       </div>
                   </div>
 
-                  {/* Redesigned Water Tank Visualizer - Rectangular/Boxy */}
+                  {/* Water Tank Visualizer */}
                   <div className="relative h-full w-24 bg-slate-100 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-600 overflow-hidden shadow-inner flex-none ml-2">
-                      {/* Ruler Ticks */}
                       <div className="absolute right-0 top-0 bottom-0 w-full z-20 pointer-events-none flex flex-col justify-between py-2 px-1">
                           {[...Array(6)].map((_, i) => (
                               <div key={i} className="flex items-center justify-end w-full gap-1 opacity-40">
@@ -351,26 +458,15 @@ export const DashboardView: React.FC = () => {
                               </div>
                           ))}
                       </div>
-
-                      {/* Critical Level Marker Line */}
                       <div className="absolute top-[25%] left-0 w-full flex items-center z-30" title="MNDBT (45m)">
                           <div className="h-[1px] w-full bg-red-500 opacity-70"></div>
                       </div>
-                      
-                      {/* Dead Level Marker Line */}
                       <div className="absolute bottom-[38%] left-0 w-full flex items-center z-30" title="MNC (23m)">
                           <div className="h-[1px] w-full bg-slate-500 dark:bg-slate-300 opacity-70"></div>
                       </div>
-
-                      {/* Water Fill & Wave */}
                       <div className="absolute bottom-0 left-0 w-full transition-all duration-1000 ease-in-out z-10 bg-gradient-to-t from-blue-600 to-cyan-400 opacity-90" style={{ height: `${waterPercent}%` }}>
-                          {/* Top Surface Glow */}
                           <div className="absolute top-0 left-0 w-full h-[1px] bg-white/50 z-20"></div>
-                          
-                          {/* Animated Wave on Top */}
                           <div className="absolute -top-3 left-0 w-full h-4"><div className="wave-bg"></div></div>
-                          
-                          {/* Bubbles */}
                           <div className="bubble w-1 h-1 left-1/3 bottom-2 delay-100"></div>
                           <div className="bubble w-1.5 h-1.5 left-2/3 bottom-5 delay-700"></div>
                       </div>
@@ -507,20 +603,89 @@ export const DashboardView: React.FC = () => {
           </div>
         </div>
 
-        {/* Secondary Data Sections */}
+        {/* --- NEW SECTION: RAINFALL ANALYSIS --- */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+           
+           {/* Recent Rainfall (Clickable) */}
+           <div 
+             onClick={() => handleOpenModal(metrics.rain_recent)}
+             className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5 flex flex-col cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all group"
+           >
+              <div className="flex justify-between items-center mb-4">
+                 <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                   <CloudRain className="text-blue-500" size={18} />
+                   Lượng mưa 3 ngày gần nhất (mm)
+                 </h3>
+                 <Maximize2 size={16} className="text-slate-300 dark:text-slate-500 group-hover:text-blue-500 transition-colors"/>
+              </div>
+              <div className="flex-1 min-h-[200px]">
+                 <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={recentRainData} margin={{top: 10, right: 30, left: 0, bottom: 0}} barSize={40}>
+                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" strokeOpacity={0.5} />
+                       <XAxis dataKey="name" tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} />
+                       <YAxis tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} />
+                       <RechartsTooltip 
+                          cursor={{fill: 'transparent'}}
+                          contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', backgroundColor: 'var(--tooltip-bg, #fff)'}}
+                       />
+                       <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]}>
+                          {recentRainData.map((entry, index) => (
+                             <Cell key={`cell-${index}`} fill={index === 2 ? '#06b6d4' : '#94a3b8'} />
+                          ))}
+                       </Bar>
+                    </BarChart>
+                 </ResponsiveContainer>
+              </div>
+           </div>
+
+           {/* Rainfall Forecast (Clickable) */}
+           <div 
+             onClick={() => handleOpenModal(metrics.rain_forecast)}
+             className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5 flex flex-col cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all group"
+           >
+              <div className="flex justify-between items-center mb-4">
+                 <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                   <Clock className="text-purple-500" size={18} />
+                   Dự báo lượng mưa tích lũy (mm)
+                 </h3>
+                 <Maximize2 size={16} className="text-slate-300 dark:text-slate-500 group-hover:text-purple-500 transition-colors"/>
+              </div>
+              <div className="flex-1 min-h-[200px]">
+                 <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={forecastRainData} margin={{top: 10, right: 30, left: 0, bottom: 0}}>
+                       <defs>
+                          <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
+                             <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
+                             <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                          </linearGradient>
+                       </defs>
+                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" strokeOpacity={0.5} />
+                       <XAxis dataKey="name" tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} />
+                       <YAxis tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} />
+                       <RechartsTooltip 
+                          contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', backgroundColor: 'var(--tooltip-bg, #fff)'}}
+                       />
+                       <Area type="monotone" dataKey="value" stroke="#8b5cf6" strokeWidth={3} fill="url(#colorForecast)" />
+                    </AreaChart>
+                 </ResponsiveContainer>
+              </div>
+           </div>
+
+        </div>
+
+        {/* Secondary Data Sections (Replaced with Sensor Alerts and Stats) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          {/* Rainfall Table */}
+          {/* Latest Sensor Alerts */}
           <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col">
             <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-700/50 flex justify-between items-center">
                <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                 <CloudRain className="text-indigo-600 dark:text-indigo-400" size={20} />
-                 Số liệu mưa tại các trạm (mm)
+                 <Radio className="text-indigo-600 dark:text-indigo-400" size={20} />
+                 Danh sách cảnh báo mới nhất
                </h3>
                <div className="flex gap-2 items-center">
                   <span className="text-xs text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-2 py-1 border dark:border-slate-600 rounded hidden sm:inline-block">Cập nhật 10p trước</span>
                   <button 
-                    onClick={handleExportRainfall}
                     className="flex items-center gap-1 text-xs font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-2 py-1 rounded transition-colors"
                   >
                     <Download size={14}/> Xuất Excel
@@ -529,63 +694,81 @@ export const DashboardView: React.FC = () => {
             </div>
             <div className="overflow-x-auto p-2">
               <table className="w-full text-sm text-left border-collapse">
-                <thead className="text-xs text-slate-500 dark:text-slate-400 uppercase bg-slate-50/50 dark:bg-slate-700/50">
+                <thead className="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold">
                   <tr>
-                    <th className="px-4 py-3 rounded-l-lg">Trạm đo</th>
-                    <th className="px-4 py-3 text-center">Hiện tại</th>
-                    <th className="px-4 py-3 text-center">1 giờ</th>
-                    <th className="px-4 py-3 text-center">24 giờ</th>
-                    <th className="px-4 py-3 text-center rounded-r-lg">3 ngày</th>
+                    <th className="px-4 py-3 text-center">STT</th>
+                    <th className="px-4 py-3">THỜI GIAN</th>
+                    <th className="px-4 py-3 font-bold text-slate-600 dark:text-slate-300">TÊN CẢM BIẾN</th>
+                    <th className="px-4 py-3">LOẠI CẢNH BÁO</th>
+                    <th className="px-4 py-3">TRẠM ĐO</th>
+                    <th className="px-4 py-3 text-right">TRẠNG THÁI</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
-                  {rainfallData.length > 0 ? rainfallData.map(r => (
-                    <tr key={r.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-700/30 transition-colors">
-                      <td className="px-4 py-3 font-medium text-slate-700 dark:text-slate-300">{r.name}</td>
-                      <td className="px-4 py-3 text-center font-bold text-blue-600 dark:text-blue-400 bg-blue-50/30 dark:bg-blue-900/20 rounded">{r.data.current}</td>
-                      <td className="px-4 py-3 text-center text-slate-600 dark:text-slate-400">-</td>
-                      <td className="px-4 py-3 text-center font-medium dark:text-slate-300">{r.data.day1}</td>
-                      <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400">{r.data.day3}</td>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                  {alertData.map((row) => (
+                    <tr key={row.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-700/30 transition-colors">
+                      <td className="px-4 py-3 text-center text-slate-600 dark:text-slate-400">{row.id}</td>
+                      <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{row.time}</td>
+                      <td className="px-4 py-3 font-bold text-blue-600 dark:text-blue-400 cursor-pointer hover:underline">{row.sensor}</td>
+                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{row.type}</td>
+                      <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{row.station}</td>
+                      <td className="px-4 py-3 text-right text-slate-500 dark:text-slate-400">{row.status}</td>
                     </tr>
-                  )) : (
-                    <tr><td colSpan={5} className="px-4 py-4 text-center text-slate-400">Chưa có dữ liệu mưa</td></tr>
-                  )}
+                  ))}
                 </tbody>
               </table>
             </div>
           </div>
 
-          {/* Downstream Stations */}
+          {/* Sensor Stats */}
           <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-0 overflow-hidden flex flex-col">
              <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-700/50">
                  <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                  <Waves className="text-purple-600 dark:text-purple-400" size={20} />
-                  Mực nước hạ lưu
+                  <BarChart3 className="text-purple-600 dark:text-purple-400" size={20} />
+                  Thống kê hiện trạng cảm biến
                 </h3>
              </div>
-             <div className="p-4 space-y-4 flex-1 overflow-y-auto">
-              {downstreamData.map(d => (
-                <div key={d.id} className="relative group">
-                    <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-slate-200 dark:bg-slate-700 group-hover:bg-purple-300 dark:group-hover:bg-purple-500 transition-colors"></div>
-                    <div className="pl-8 py-1">
-                        <div className="flex justify-between items-start mb-1">
-                            <span className="font-bold text-slate-700 dark:text-slate-300">{d.name}</span>
-                            <span className="text-[10px] text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">H1</span>
-                        </div>
-                        <div className="flex gap-4">
-                          <div className="bg-blue-50 dark:bg-blue-900/20 px-3 py-2 rounded-lg border border-blue-100 dark:border-blue-800 flex-1">
-                               <span className="text-xs text-slate-500 dark:text-slate-400 block">Mực nước</span>
-                               <span className="font-bold text-blue-700 dark:text-blue-400">{d.level} m</span>
-                          </div>
-                          <div className="bg-purple-50 dark:bg-purple-900/20 px-3 py-2 rounded-lg border border-purple-100 dark:border-purple-800 flex-1">
-                               <span className="text-xs text-slate-500 dark:text-slate-400 block">Lưu lượng</span>
-                               <span className="font-bold text-purple-700 dark:text-purple-400">{d.flow} m³/s</span>
-                          </div>
-                        </div>
-                        <div className="absolute left-[13px] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600 border-2 border-white dark:border-slate-800 group-hover:bg-purple-500 transition-colors"></div>
-                    </div>
+             <div className="p-6 space-y-6 flex-1">
+                
+                {/* Block 1 */}
+                <div>
+                   <h4 className="font-bold text-slate-700 dark:text-slate-200 text-sm mb-3">Số cảm biến đang hoạt động/Tổng</h4>
+                   <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+                         <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Hoạt động</div>
+                         <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">10</div>
+                      </div>
+                      <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3">
+                         <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Tổng số</div>
+                         <div className="text-2xl font-bold text-purple-700 dark:text-purple-400">12</div>
+                      </div>
+                   </div>
                 </div>
-              ))}
+
+                {/* Block 2 */}
+                <div>
+                   <h4 className="font-bold text-slate-700 dark:text-slate-200 text-sm mb-3">Số cảm biến hỏng / mất kết nối</h4>
+                   <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+                         <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Hỏng</div>
+                         <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">1</div>
+                      </div>
+                      <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3">
+                         <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Mất kết nối</div>
+                         <div className="text-2xl font-bold text-purple-700 dark:text-purple-400">1</div>
+                      </div>
+                   </div>
+                </div>
+
+                {/* Block 3 */}
+                <div>
+                   <h4 className="font-bold text-slate-700 dark:text-slate-200 text-sm mb-3">Số điểm có cảnh báo vượt ngưỡng</h4>
+                   <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 w-full">
+                         <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Vượt ngưỡng</div>
+                         <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">1</div>
+                   </div>
+                </div>
+
             </div>
           </div>
         </div>
@@ -603,7 +786,7 @@ export const DashboardView: React.FC = () => {
             <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 flex justify-between items-center flex-none">
               <div className="flex items-center gap-3">
                  <div className="p-2 rounded-lg text-white shadow-md" style={{ backgroundColor: selectedMetric.color }}>
-                   <Activity size={24}/>
+                   {selectedMetric.chartType === 'bar_line' ? <CloudRain size={24}/> : <Activity size={24}/>}
                  </div>
                  
                  {/* Title Area with Hover Dropdown */}
@@ -765,58 +948,78 @@ export const DashboardView: React.FC = () => {
                     <div className="h-full bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 flex flex-col relative group">
                         <div className="flex-1 w-full min-h-[400px]" style={{ minHeight: '400px' }}>
                            <ResponsiveContainer width="99%" height="100%">
-                              <AreaChart data={comparisonData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
-                                 <defs>
+                              {selectedMetric.chartType === 'bar_line' ? (
+                                <ComposedChart data={comparisonData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
+                                   <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#e2e8f0" strokeOpacity={0.5} />
+                                   <XAxis dataKey="timeLabel" tick={{fontSize: 12, fill: '#64748b'}} interval={2} />
+                                   <YAxis yAxisId="left" label={{ value: 'Vũ lượng (mm)', angle: -90, position: 'insideLeft', fill: '#64748b' }} tick={{fontSize: 12, fill: '#64748b'}} />
+                                   <YAxis yAxisId="right" orientation="right" label={{ value: 'Lũy kế (mm)', angle: 90, position: 'insideRight', fill: '#64748b' }} tick={{fontSize: 12, fill: '#64748b'}} />
+                                   <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                   <Legend />
                                    {selectedYears.map((year, index) => {
-                                     const color = getSeriesColor(index, selectedMetric.color);
-                                     return (
-                                       <linearGradient key={year} id={`color${year}`} x1="0" y1="0" x2="0" y2="1">
-                                         <stop offset="5%" stopColor={color} stopOpacity={0.3}/>
-                                         <stop offset="95%" stopColor={color} stopOpacity={0}/>
-                                       </linearGradient>
-                                     );
+                                      const color = getSeriesColor(index, selectedMetric.color);
+                                      return (
+                                        <React.Fragment key={year}>
+                                          <Bar yAxisId="left" dataKey={year} fill={color} fillOpacity={0.6} name={`Mưa giờ (Năm ${year})`} radius={[4, 4, 0, 0]} barSize={20} />
+                                          <Line yAxisId="right" type="monotone" dataKey={`${year}_accum`} stroke={color} strokeWidth={2} dot={false} name={`Lũy kế (Năm ${year})`} />
+                                        </React.Fragment>
+                                      );
                                    })}
-                                 </defs>
-                                 <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#e2e8f0" strokeOpacity={0.5} />
-                                 <XAxis 
-                                    dataKey="timeLabel" 
-                                    tick={{fontSize: 12, fill: '#64748b'}}
-                                    interval={2}
-                                 />
-                                 <YAxis 
-                                    domain={['auto', 'auto']} 
-                                    label={{ 
-                                      value: `${selectedMetric.label} (${selectedMetric.unit})`, 
-                                      angle: -90, 
-                                      position: 'insideLeft', 
-                                      fill: '#64748b',
-                                      style: { textAnchor: 'middle' }
-                                    }}
-                                    tick={{fontSize: 12, fill: '#64748b'}}
-                                 />
-                                 <RechartsTooltip 
-                                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', backgroundColor: 'var(--tooltip-bg, #fff)' }}
-                                    itemStyle={{ fontSize: '13px', fontWeight: 600 }}
-                                 />
-                                 <Legend />
-                                 {selectedYears.map((year, index) => {
-                                    const color = getSeriesColor(index, selectedMetric.color);
-                                    return (
-                                      <Area 
-                                        key={year}
-                                        type="monotone" 
-                                        dataKey={year} 
-                                        stroke={color} 
-                                        fill={`url(#color${year})`}
-                                        fillOpacity={1}
-                                        strokeWidth={3}
-                                        dot={{ r: 3, strokeWidth: 2, fill: '#fff' }}
-                                        activeDot={{ r: 6, strokeWidth: 0 }}
-                                        name={`Năm ${year}`}
-                                      />
-                                    );
-                                 })}
-                              </AreaChart>
+                                </ComposedChart>
+                              ) : (
+                                <AreaChart data={comparisonData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
+                                   <defs>
+                                     {selectedYears.map((year, index) => {
+                                       const color = getSeriesColor(index, selectedMetric.color);
+                                       return (
+                                         <linearGradient key={year} id={`color${year}`} x1="0" y1="0" x2="0" y2="1">
+                                           <stop offset="5%" stopColor={color} stopOpacity={0.3}/>
+                                           <stop offset="95%" stopColor={color} stopOpacity={0}/>
+                                         </linearGradient>
+                                       );
+                                     })}
+                                   </defs>
+                                   <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#e2e8f0" strokeOpacity={0.5} />
+                                   <XAxis 
+                                      dataKey="timeLabel" 
+                                      tick={{fontSize: 12, fill: '#64748b'}}
+                                      interval={2}
+                                   />
+                                   <YAxis 
+                                      domain={['auto', 'auto']} 
+                                      label={{ 
+                                        value: `${selectedMetric.label} (${selectedMetric.unit})`, 
+                                        angle: -90, 
+                                        position: 'insideLeft', 
+                                        fill: '#64748b',
+                                        style: { textAnchor: 'middle' }
+                                      }}
+                                      tick={{fontSize: 12, fill: '#64748b'}}
+                                   />
+                                   <RechartsTooltip 
+                                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', backgroundColor: 'var(--tooltip-bg, #fff)' }}
+                                      itemStyle={{ fontSize: '13px', fontWeight: 600 }}
+                                   />
+                                   <Legend />
+                                   {selectedYears.map((year, index) => {
+                                      const color = getSeriesColor(index, selectedMetric.color);
+                                      return (
+                                        <Area 
+                                          key={year}
+                                          type="monotone" 
+                                          dataKey={year} 
+                                          stroke={color} 
+                                          fill={`url(#color${year})`}
+                                          fillOpacity={1}
+                                          strokeWidth={3}
+                                          dot={{ r: 3, strokeWidth: 2, fill: '#fff' }}
+                                          activeDot={{ r: 6, strokeWidth: 0 }}
+                                          name={`Năm ${year}`}
+                                        />
+                                      );
+                                   })}
+                                </AreaChart>
+                              )}
                            </ResponsiveContainer>
                         </div>
                     </div>
@@ -828,7 +1031,12 @@ export const DashboardView: React.FC = () => {
                               <thead className="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 sticky top-0">
                                  <tr>
                                     <th className="px-6 py-3">Thời gian</th>
-                                    {selectedYears.map(year => <th key={year} className="px-6 py-3">Năm {year}</th>)}
+                                    {selectedYears.map(year => (
+                                      <React.Fragment key={year}>
+                                        <th className="px-6 py-3">Năm {year}</th>
+                                        {selectedMetric.chartType === 'bar_line' && <th className="px-6 py-3 text-slate-500">Lũy kế {year}</th>}
+                                      </React.Fragment>
+                                    ))}
                                  </tr>
                               </thead>
                               <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -836,7 +1044,10 @@ export const DashboardView: React.FC = () => {
                                     <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
                                        <td className="px-6 py-2 font-medium text-slate-700 dark:text-slate-300">{row.timeLabel}</td>
                                        {selectedYears.map(year => (
-                                          <td key={year} className="px-6 py-2 text-slate-600 dark:text-slate-400">{row[year]}</td>
+                                          <React.Fragment key={year}>
+                                            <td className="px-6 py-2 text-slate-600 dark:text-slate-400">{row[year]}</td>
+                                            {selectedMetric.chartType === 'bar_line' && <td className="px-6 py-2 text-slate-500 dark:text-slate-500">{row[`${year}_accum`]}</td>}
+                                          </React.Fragment>
                                        ))}
                                     </tr>
                                  ))}
