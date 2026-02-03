@@ -51,10 +51,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
 
   const menuItems = [
     { path: '/dashboard', label: 'Quan trắc & Giám sát', icon: LayoutDashboard, roles: ['admin', 'user'] },
+    { path: '/map', label: 'Bản đồ GIS', icon: MapIcon, roles: ['admin', 'user'] },
     { path: '/alerts', label: 'Cảnh báo & Sự kiện', icon: AlertTriangle, roles: ['admin', 'user'] },
     { path: '/sensors', label: 'Danh sách Cảm biến', icon: Radio, roles: ['admin', 'user'] }, // New Item
     { path: '/ai-safety', label: 'Giám sát An toàn AI', icon: BrainCircuit, roles: ['admin', 'user'] }, 
-    { path: '/map', label: 'Bản đồ GIS', icon: MapIcon, roles: ['admin', 'user'] },
     { path: '/water-level', label: 'Giám sát Mực nước', icon: TrendingUp, roles: ['admin', 'user'] },
     { path: '/forecast', label: 'Thông tin Dự báo', icon: CloudRain, roles: ['admin', 'user'] },
     { path: '/flood-forecast', label: 'Dự báo Lũ & Kịch bản', icon: Waves, roles: ['admin', 'user'] },
