@@ -9,7 +9,7 @@ import {
   Table as TableIcon, Filter, Download, Check, ChevronDown, ChevronUp,
   Radio, BarChart3, AlertCircle, CloudRain, Clock, Zap, ShieldCheck,
   Wifi, WifiOff, AlertTriangle, ArrowRight, Settings, MapPin, Sliders,
-  ExternalLink // Import ExternalLink icon
+  ExternalLink // Added Import
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
@@ -76,7 +76,7 @@ const generateRainfallData = (isForecast: boolean) => {
 // Mock Data for Rainfall Widgets (Summary)
 const recentRainData = [
   { name: '3 ngày trước', value: 120.5, fullMark: 150 },
-  { name: '2 ngày trước', value: 82.0, fullMark: 150 }, // Added missing day
+  { name: '2 ngày trước', value: 82.0, fullMark: 150 },
   { name: '1 ngày trước', value: 45.2, fullMark: 150 },
   { name: 'Hiện tại', value: 12.5, fullMark: 150 },
 ];
