@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   AlertTriangle, Filter, Search, Download, CheckCircle, WifiOff, AlertCircle, 
-  MapPin, Clock, ArrowRight, Activity, BellRing, Eye
+  MapPin, Clock, ArrowRight, Activity, BellRing, Eye, RotateCcw
 } from 'lucide-react';
 import { db } from '../utils/db';
 import { AlertLog } from '../types';
@@ -49,29 +49,29 @@ export const AlertHistoryView: React.FC = () => {
     exportToExcel(exportData, 'Lich_su_canh_bao');
   };
 
-  const handleAction = (id: string, action: 'acknowledge' | 'resolve') => {
-    if (action === 'acknowledge') {
-      db.alerts.acknowledge(id);
-      ui.showToast('success', 'Đã tiếp nhận cảnh báo');
-    } else {
-      db.alerts.resolve(id);
-      ui.showToast('success', 'Đã xử lý cảnh báo');
-    }
+  const handleStatusChange = (id: string, newStatus: 'new' | 'acknowledged' | 'resolved') => {
+    const updated = alerts.map(a => a.id === id ? { ...a, status: newStatus } : a);
+    db.alerts.set(updated); // This triggers the listener which updates local state
+    
+    // Optional: Show toast for feedback
+    if (newStatus === 'acknowledged') ui.showToast('success', 'Đã tiếp nhận cảnh báo');
+    if (newStatus === 'resolved') ui.showToast('success', 'Đã xử lý cảnh báo');
+    if (newStatus === 'new') ui.showToast('info', 'Đã hoàn tác về trạng thái Mới');
   };
 
   const getSeverityBadge = (sev: string) => {
     switch (sev) {
-      case 'critical': return <span className="px-2 py-1 rounded text-xs font-bold bg-red-100 text-red-700 border border-red-200">Nghiêm trọng</span>;
-      case 'warning': return <span className="px-2 py-1 rounded text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">Cảnh báo</span>;
-      default: return <span className="px-2 py-1 rounded text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">Thông tin</span>;
+      case 'critical': return <span className="px-2 py-1 rounded text-xs font-bold bg-red-100 text-red-700 border border-red-200 whitespace-nowrap">Nghiêm trọng</span>;
+      case 'warning': return <span className="px-2 py-1 rounded text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200 whitespace-nowrap">Cảnh báo</span>;
+      default: return <span className="px-2 py-1 rounded text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200 whitespace-nowrap">Thông tin</span>;
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'new': return <span className="flex items-center gap-1 text-xs font-bold text-red-600"><span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span> Mới</span>;
-      case 'acknowledged': return <span className="flex items-center gap-1 text-xs font-bold text-amber-600"><Eye size={12}/> Đã xem</span>;
-      case 'resolved': return <span className="flex items-center gap-1 text-xs font-bold text-green-600"><CheckCircle size={12}/> Đã xử lý</span>;
+      case 'new': return <span className="flex items-center gap-1 text-xs font-bold text-red-600 whitespace-nowrap"><span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span> Mới</span>;
+      case 'acknowledged': return <span className="flex items-center gap-1 text-xs font-bold text-amber-600 whitespace-nowrap"><Eye size={12}/> Đã xem</span>;
+      case 'resolved': return <span className="flex items-center gap-1 text-xs font-bold text-green-600 whitespace-nowrap"><CheckCircle size={12}/> Đã xử lý</span>;
       default: return null;
     }
   };
@@ -129,7 +129,7 @@ export const AlertHistoryView: React.FC = () => {
               <select 
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value as any)}
-                className="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-sm bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 outline-none focus:border-blue-500"
+                className="px-3 py-2 pr-8 rounded-lg border border-slate-300 dark:border-slate-600 text-sm bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 outline-none focus:border-blue-500 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748b%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:10px] bg-[right_10px_center] bg-no-repeat"
               >
                  <option value="all">Tất cả trạng thái</option>
                  <option value="new">Mới</option>
@@ -195,24 +195,44 @@ export const AlertHistoryView: React.FC = () => {
                              {getStatusBadge(alert.status)}
                           </td>
                           <td className="px-6 py-4 text-center">
-                             {alert.status === 'new' && (
-                                <button 
-                                  onClick={() => handleAction(alert.id, 'acknowledge')}
-                                  className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                                  title="Tiếp nhận"
-                                >
-                                   <Eye size={18}/>
-                                </button>
-                             )}
-                             {alert.status === 'acknowledged' && (
-                                <button 
-                                  onClick={() => handleAction(alert.id, 'resolve')}
-                                  className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
-                                  title="Đánh dấu đã xử lý"
-                                >
-                                   <CheckCircle size={18}/>
-                                </button>
-                             )}
+                             <div className="flex items-center justify-center gap-2">
+                                {alert.status === 'new' && (
+                                    <button 
+                                      onClick={() => handleStatusChange(alert.id, 'acknowledged')}
+                                      className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                      title="Tiếp nhận"
+                                    >
+                                      <Eye size={18}/>
+                                    </button>
+                                )}
+                                {alert.status === 'acknowledged' && (
+                                    <>
+                                      <button 
+                                        onClick={() => handleStatusChange(alert.id, 'new')}
+                                        className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                                        title="Hoàn tác (Về Mới)"
+                                      >
+                                        <RotateCcw size={18}/>
+                                      </button>
+                                      <button 
+                                        onClick={() => handleStatusChange(alert.id, 'resolved')}
+                                        className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
+                                        title="Đánh dấu đã xử lý"
+                                      >
+                                        <CheckCircle size={18}/>
+                                      </button>
+                                    </>
+                                )}
+                                {alert.status === 'resolved' && (
+                                    <button 
+                                      onClick={() => handleStatusChange(alert.id, 'acknowledged')}
+                                      className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                                      title="Hoàn tác (Về Đã tiếp nhận)"
+                                    >
+                                      <RotateCcw size={18}/>
+                                    </button>
+                                )}
+                             </div>
                           </td>
                        </tr>
                     ))
