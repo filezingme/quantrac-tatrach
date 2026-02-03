@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import { 
   BrainCircuit, Activity, AlertTriangle, CheckCircle, Zap, Search, 
-  Terminal, ShieldCheck, Thermometer, Droplets
+  Terminal, ShieldCheck, Thermometer, Droplets, Maximize2, X, Minimize2
 } from 'lucide-react';
 
 // --- MOCK DATA ---
@@ -53,7 +53,7 @@ const logMessages = [
 
 export const AISafetyView: React.FC = () => {
   const [logs, setLogs] = useState<string[]>([]);
-  const [scanning, setScanning] = useState(true);
+  const [fullScreenChart, setFullScreenChart] = useState<'radar' | 'scatter' | null>(null);
   
   // Terminal effect
   useEffect(() => {
@@ -68,6 +68,48 @@ export const AISafetyView: React.FC = () => {
     }, 2000);
     return () => clearInterval(interval);
   }, []);
+
+  // Helper function to render charts (reused for both card and modal)
+  const renderChartContent = (type: 'radar' | 'scatter', isFullScreen = false) => {
+    if (type === 'radar') {
+      return (
+        <ResponsiveContainer width="100%" height="100%">
+          <RadarChart cx="50%" cy="50%" outerRadius={isFullScreen ? "80%" : "70%"} data={turbineHealthData}>
+            <PolarGrid stroke="#94a3b8" strokeOpacity={0.3} />
+            <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: isFullScreen ? 14 : 10, fontWeight: 'bold' }} />
+            <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+            <Radar name="Tuabin H1" dataKey="A" stroke="#8884d8" fill="#8884d8" fillOpacity={0.5} />
+            <Tooltip contentStyle={{backgroundColor: '#1e293b', border: 'none', color: '#fff', borderRadius: '8px', fontSize: '12px'}} itemStyle={{color: '#fff'}}/>
+            <Legend wrapperStyle={{fontSize: isFullScreen ? '14px' : '11px', paddingTop: '10px'}}/>
+          </RadarChart>
+        </ResponsiveContainer>
+      );
+    }
+
+    if (type === 'scatter') {
+      return (
+        <ResponsiveContainer width="100%" height="100%">
+          <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" strokeOpacity={0.5} />
+            <XAxis type="number" dataKey="x" name="Mực nước hồ" unit="m" stroke="#94a3b8" label={{ value: 'Mực nước hồ (m)', position: 'bottom', fill: '#94a3b8', fontSize: 12 }} />
+            <YAxis type="number" dataKey="y" name="Lưu lượng thấm" unit="l/s" stroke="#94a3b8" label={{ value: 'Lưu lượng thấm (l/s)', angle: -90, position: 'left', fill: '#94a3b8', fontSize: 12 }} />
+            <Tooltip 
+               cursor={{ strokeDasharray: '3 3' }} 
+               contentStyle={{backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'}}
+            />
+            <Scatter name="Dữ liệu quan trắc" data={anomalyData} fill="#8884d8">
+              {anomalyData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.isAnomaly ? '#ef4444' : '#3b82f6'} />
+              ))}
+            </Scatter>
+            {/* Trend Line Visual */}
+            <ReferenceLine segment={[{ x: 30, y: 15 }, { x: 50, y: 25 }]} stroke="#94a3b8" strokeDasharray="3 3" strokeWidth={2} label={{ value: 'Đường xu hướng chuẩn', fill: '#94a3b8', fontSize: 10, position: 'insideTopRight' }} />
+          </ScatterChart>
+        </ResponsiveContainer>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="space-y-6 pb-20 animate-fade-in">
@@ -88,25 +130,25 @@ export const AISafetyView: React.FC = () => {
         
         {/* 1. Predictive Maintenance Radar */}
         <div className="lg:col-span-1 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-5 flex flex-col">
-           <h3 className="font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-             <Zap size={18} className="text-amber-500"/> Sức khỏe thiết bị (Health Score)
-           </h3>
+           <div className="flex justify-between items-center mb-4">
+             <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+               <Zap size={18} className="text-amber-500"/> Sức khỏe thiết bị
+             </h3>
+             <button 
+                onClick={() => setFullScreenChart('radar')}
+                className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                title="Phóng to"
+             >
+                <Maximize2 size={18}/>
+             </button>
+           </div>
            
            <div className="flex-1 relative min-h-[300px]">
               <div className="absolute top-0 right-0 z-10 flex flex-col gap-2">
                  <div className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded">Tuabin H1: 91/100</div>
                  <div className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded">Cửa van: 85/100</div>
               </div>
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={turbineHealthData}>
-                  <PolarGrid stroke="#94a3b8" strokeOpacity={0.3} />
-                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 'bold' }} />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                  <Radar name="Tuabin H1" dataKey="A" stroke="#8884d8" fill="#8884d8" fillOpacity={0.5} />
-                  <Tooltip contentStyle={{backgroundColor: '#1e293b', border: 'none', color: '#fff', borderRadius: '8px', fontSize: '12px'}} itemStyle={{color: '#fff'}}/>
-                  <Legend wrapperStyle={{fontSize: '11px', paddingTop: '10px'}}/>
-                </RadarChart>
-              </ResponsiveContainer>
+              {renderChartContent('radar')}
            </div>
            
            <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-100 dark:border-amber-900/30">
@@ -126,31 +168,23 @@ export const AISafetyView: React.FC = () => {
               <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
                 <Search size={18} className="text-blue-500"/> Phát hiện bất thường (Anomaly Detection)
               </h3>
-              <div className="flex gap-2 text-[10px] font-bold">
-                 <span className="flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded"><div className="w-2 h-2 rounded-full bg-blue-500"></div> Bình thường</span>
-                 <span className="flex items-center gap-1 px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded"><div className="w-2 h-2 rounded-full bg-red-500"></div> Bất thường</span>
+              <div className="flex items-center gap-3">
+                <div className="flex gap-2 text-[10px] font-bold">
+                   <span className="flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded"><div className="w-2 h-2 rounded-full bg-blue-500"></div> Bình thường</span>
+                   <span className="flex items-center gap-1 px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded"><div className="w-2 h-2 rounded-full bg-red-500"></div> Bất thường</span>
+                </div>
+                <button 
+                  onClick={() => setFullScreenChart('scatter')}
+                  className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                  title="Phóng to"
+                >
+                  <Maximize2 size={18}/>
+                </button>
               </div>
            </div>
 
            <div className="flex-1 min-h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" strokeOpacity={0.5} />
-                  <XAxis type="number" dataKey="x" name="Mực nước hồ" unit="m" stroke="#94a3b8" label={{ value: 'Mực nước hồ (m)', position: 'bottom', fill: '#94a3b8', fontSize: 12 }} />
-                  <YAxis type="number" dataKey="y" name="Lưu lượng thấm" unit="l/s" stroke="#94a3b8" label={{ value: 'Lưu lượng thấm (l/s)', angle: -90, position: 'left', fill: '#94a3b8', fontSize: 12 }} />
-                  <Tooltip 
-                     cursor={{ strokeDasharray: '3 3' }} 
-                     contentStyle={{backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'}}
-                  />
-                  <Scatter name="Dữ liệu quan trắc" data={anomalyData} fill="#8884d8">
-                    {anomalyData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.isAnomaly ? '#ef4444' : '#3b82f6'} />
-                    ))}
-                  </Scatter>
-                  {/* Trend Line Visual */}
-                  <ReferenceLine segment={[{ x: 30, y: 15 }, { x: 50, y: 25 }]} stroke="#94a3b8" strokeDasharray="3 3" strokeWidth={2} label={{ value: 'Đường xu hướng chuẩn', fill: '#94a3b8', fontSize: 10, position: 'insideTopRight' }} />
-                </ScatterChart>
-              </ResponsiveContainer>
+              {renderChartContent('scatter')}
            </div>
            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 italic text-center">
              Biểu đồ phân tích tương quan giữa Mực nước hồ và Lưu lượng thấm qua thân đập. Các điểm đỏ thể hiện giá trị thấm cao bất thường so với mực nước tương ứng.
@@ -206,6 +240,32 @@ export const AISafetyView: React.FC = () => {
         </div>
 
       </div>
+
+      {/* FULLSCREEN CHART MODAL */}
+      {fullScreenChart && (
+        <div 
+          className="fixed inset-0 z-[5000] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+          style={{ marginTop: 0 }}
+        >
+          <div className="bg-white dark:bg-slate-800 w-full h-full max-w-[95vw] max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
+              <h3 className="text-lg font-bold text-slate-800 dark:text-white uppercase flex items-center gap-2">
+                 <Maximize2 size={18} className="text-blue-600 dark:text-blue-400"/> 
+                 {fullScreenChart === 'radar' ? 'Chi tiết Sức khỏe Thiết bị' : 'Phân tích Dữ liệu Bất thường'}
+              </h3>
+              <button 
+                onClick={() => setFullScreenChart(null)}
+                className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 rounded-full transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="flex-1 p-6 bg-white dark:bg-slate-800 overflow-hidden">
+              {renderChartContent(fullScreenChart, true)}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
