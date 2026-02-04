@@ -96,23 +96,23 @@ export const MapView: React.FC = () => {
       .addTo(map)
       .bindPopup(`
         <div style="font-family: 'Inter', sans-serif;">
-          <div style="background: linear-gradient(135deg, #ef4444, #be123c); padding: 16px 40px 16px 16px; color: white;">
-             <h3 style="font-weight: 800; margin: 0; font-size: 16px; letter-spacing: 0.5px; text-transform: uppercase;">HỒ TẢ TRẠCH</h3>
+          <div style="background: linear-gradient(135deg, #ef4444, #be123c); padding: 10px 30px 10px 12px; color: white;">
+             <h3 style="font-weight: 700; margin: 0; font-size: 14px; letter-spacing: 0.3px; text-transform: uppercase;">HỒ TẢ TRẠCH</h3>
           </div>
-          <div style="padding: 16px;">
-             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
-                <div style="text-align: center; background: #eff6ff; padding: 10px; border-radius: 8px; border: 1px solid #dbeafe;">
-                   <div style="font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Mực nước</div>
-                   <div style="font-size: 18px; font-weight: 800; color: #2563eb; line-height: 1;">${db.observation.get().waterLevel} <span style="font-size: 12px;">m</span></div>
+          <div style="padding: 10px;">
+             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+                <div style="text-align: center; background: #eff6ff; padding: 6px; border-radius: 6px; border: 1px solid #dbeafe;">
+                   <div style="font-size: 9px; color: #64748b; text-transform: uppercase; font-weight: 700; margin-bottom: 2px;">Mực nước</div>
+                   <div style="font-size: 16px; font-weight: 800; color: #2563eb; line-height: 1;">${db.observation.get().waterLevel} <span style="font-size: 10px;">m</span></div>
                 </div>
-                <div style="text-align: center; background: #f0fdf4; padding: 10px; border-radius: 8px; border: 1px solid #dcfce7;">
-                   <div style="font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Dung tích</div>
-                   <div style="font-size: 18px; font-weight: 800; color: #16a34a; line-height: 1;">${db.observation.get().capacity}</div>
+                <div style="text-align: center; background: #f0fdf4; padding: 6px; border-radius: 6px; border: 1px solid #dcfce7;">
+                   <div style="font-size: 9px; color: #64748b; text-transform: uppercase; font-weight: 700; margin-bottom: 2px;">Dung tích</div>
+                   <div style="font-size: 16px; font-weight: 800; color: #16a34a; line-height: 1;">${db.observation.get().capacity}</div>
                 </div>
              </div>
-             <div style="padding-top: 12px; border-top: 1px solid #f1f5f9; font-size: 12px; color: #475569; display: flex; align-items: center; gap: 8px; font-weight: 500;">
-               <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 0 2px #dcfce7;"></span>
-               Trạng thái: <b style="color: #15803d;">Vận hành bình thường</b>
+             <div style="padding-top: 8px; border-top: 1px solid #f1f5f9; font-size: 11px; color: #475569; display: flex; align-items: center; gap: 6px; font-weight: 500;">
+               <span style="width: 6px; height: 6px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 0 2px #dcfce7;"></span>
+               Trạng thái: <b style="color: #15803d;">Bình thường</b>
              </div>
           </div>
         </div>
