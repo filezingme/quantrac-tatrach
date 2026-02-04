@@ -152,6 +152,9 @@ export const UserManagementView: React.FC = () => {
       setIsAddModalOpen(true);
   }
 
+  // Define Standard Input Style
+  const inputStyle = "w-full border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-normal focus:text-slate-900 dark:focus:text-white transition-colors placeholder-slate-400";
+
   return (
     <>
       <div className="space-y-6 animate-fade-in pb-10">
@@ -177,7 +180,7 @@ export const UserManagementView: React.FC = () => {
                      placeholder="Tìm kiếm theo tên, email..." 
                      value={search}
                      onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-                     className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-400 focus:text-slate-900 dark:focus:text-white transition-colors"
+                     className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-400 font-normal focus:text-slate-900 dark:focus:text-white transition-colors"
                    />
                    <Search className="absolute left-3 top-2.5 text-slate-400" size={18}/>
                </div>
@@ -354,7 +357,7 @@ export const UserManagementView: React.FC = () => {
                              type="text" 
                              value={newUserForm.username}
                              onChange={e => setNewUserForm({...newUserForm, username: e.target.value})}
-                             className="w-full border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 text-slate-500 dark:text-slate-400 focus:text-slate-900 dark:focus:text-white transition-colors"
+                             className={inputStyle}
                              placeholder="user123"
                           />
                       </div>
@@ -364,7 +367,7 @@ export const UserManagementView: React.FC = () => {
                              type="password" 
                              value={newUserForm.password}
                              onChange={e => setNewUserForm({...newUserForm, password: e.target.value})}
-                             className="w-full border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 text-slate-500 dark:text-slate-400 focus:text-slate-900 dark:focus:text-white transition-colors"
+                             className={inputStyle}
                              placeholder="••••••"
                           />
                       </div>
@@ -374,7 +377,7 @@ export const UserManagementView: React.FC = () => {
                              type="text" 
                              value={newUserForm.name}
                              onChange={e => setNewUserForm({...newUserForm, name: e.target.value})}
-                             className="w-full border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 text-slate-500 dark:text-slate-400 focus:text-slate-900 dark:focus:text-white transition-colors"
+                             className={inputStyle}
                              placeholder="Nguyễn Văn A"
                           />
                       </div>
@@ -384,7 +387,7 @@ export const UserManagementView: React.FC = () => {
                              type="email" 
                              value={newUserForm.email}
                              onChange={e => setNewUserForm({...newUserForm, email: e.target.value})}
-                             className="w-full border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 text-slate-500 dark:text-slate-400 focus:text-slate-900 dark:focus:text-white transition-colors"
+                             className={inputStyle}
                              placeholder="user@tatrach.vn"
                           />
                       </div>
@@ -435,7 +438,7 @@ export const UserManagementView: React.FC = () => {
                                 type="password" 
                                 value={passForm.new}
                                 onChange={e => setPassForm({...passForm, new: e.target.value})}
-                                className="w-full border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 pl-10 outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 text-slate-500 dark:text-slate-400 focus:text-slate-900 dark:focus:text-white transition-colors"
+                                className="w-full border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 pl-10 outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-normal focus:text-slate-900 dark:focus:text-white transition-colors"
                                 placeholder="••••••"
                             />
                             <Lock className="absolute left-3 top-3 text-slate-400" size={16}/>
@@ -448,7 +451,7 @@ export const UserManagementView: React.FC = () => {
                                 type="password" 
                                 value={passForm.confirm}
                                 onChange={e => setPassForm({...passForm, confirm: e.target.value})}
-                                className="w-full border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 pl-10 outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 text-slate-500 dark:text-slate-400 focus:text-slate-900 dark:focus:text-white transition-colors"
+                                className="w-full border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 pl-10 outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-normal focus:text-slate-900 dark:focus:text-white transition-colors"
                                 placeholder="••••••"
                             />
                              <Lock className="absolute left-3 top-3 text-slate-400" size={16}/>

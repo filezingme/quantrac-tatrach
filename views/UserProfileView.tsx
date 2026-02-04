@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { User, Mail, Phone, MapPin, Briefcase, Save, Lock, Shield, CheckCircle, RefreshCw, Check, AlertCircle } from 'lucide-react';
 import { db } from '../utils/db';
@@ -221,7 +222,7 @@ const InputGroup = ({ label, value, onChange, icon, type = "text" }: { label: st
                 type={type} 
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                className="w-full border border-slate-200 dark:border-slate-600 rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-slate-600 dark:text-slate-300 font-medium bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 focus:text-slate-900 dark:focus:text-white transition-colors"
+                className="w-full border border-slate-200 dark:border-slate-600 rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-slate-600 dark:text-slate-300 font-normal bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 focus:text-slate-900 dark:focus:text-white transition-colors placeholder-slate-400"
             />
             <div className="absolute left-3 top-2.5 text-slate-400">
                 {icon}

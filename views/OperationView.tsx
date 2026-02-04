@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { OperationTable } from '../types';
 import { db } from '../utils/db';
@@ -6,7 +7,7 @@ import { Save, Calendar, Search, RefreshCw, Check, Download } from 'lucide-react
 
 export const OperationView: React.FC = () => {
   const [tables, setTables] = useState<OperationTable[]>(db.operationTables.get());
-  const [activeTabId, setActiveTabId] = useState<string>('supply_limit');
+  const [activeTab, setActiveTab] = useState<string>('supply_limit');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
   useEffect(() => {
@@ -16,7 +17,7 @@ export const OperationView: React.FC = () => {
     }
   }, [saveStatus]);
 
-  const activeTable = tables.find(t => t.id === activeTabId);
+  const activeTable = tables.find(t => t.id === activeTab);
 
   const handleUpdateCell = (tableId: string, rowId: string, col: 'col1' | 'col2' | 'col3', val: string) => {
     setTables(prev => prev.map(t => {
@@ -80,9 +81,9 @@ export const OperationView: React.FC = () => {
           {tables.map(t => (
             <button
               key={t.id}
-              onClick={() => setActiveTabId(t.id)}
+              onClick={() => setActiveTab(t.id)}
               className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                activeTabId === t.id 
+                activeTab === t.id 
                   ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 shadow-sm' 
                   : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
               }`}
@@ -129,14 +130,14 @@ export const OperationView: React.FC = () => {
                            <input 
                              value={row.col1} 
                              onChange={e => handleUpdateCell(activeTable.id, row.id, 'col1', e.target.value)} 
-                             className="w-full bg-transparent outline-none focus:border-blue-500 border-b border-transparent transition-colors text-slate-600 dark:text-slate-400 focus:text-slate-800 dark:focus:text-slate-200"
+                             className="w-full bg-transparent outline-none focus:border-blue-500 border-b border-transparent transition-colors text-slate-600 dark:text-slate-400 font-normal focus:text-slate-800 dark:focus:text-slate-200"
                            />
                          </td>
                          <td className="px-6 py-2">
                            <input 
                              value={row.col2} 
                              onChange={e => handleUpdateCell(activeTable.id, row.id, 'col2', e.target.value)} 
-                             className="w-full bg-transparent outline-none focus:border-blue-500 border-b border-transparent transition-colors text-slate-600 dark:text-slate-400 focus:text-slate-800 dark:focus:text-slate-200"
+                             className="w-full bg-transparent outline-none focus:border-blue-500 border-b border-transparent transition-colors text-slate-600 dark:text-slate-400 font-normal focus:text-slate-800 dark:focus:text-slate-200"
                            />
                          </td>
                          {row.col3 !== undefined && (
@@ -144,7 +145,7 @@ export const OperationView: React.FC = () => {
                               <input 
                                 value={row.col3} 
                                 onChange={e => handleUpdateCell(activeTable.id, row.id, 'col3', e.target.value)} 
-                                className="w-full bg-transparent outline-none focus:border-blue-500 border-b border-transparent transition-colors font-medium text-slate-600 dark:text-slate-300 focus:text-slate-800 dark:focus:text-slate-100"
+                                className="w-full bg-transparent outline-none focus:border-blue-500 border-b border-transparent transition-colors text-slate-600 dark:text-slate-300 font-normal focus:text-slate-800 dark:focus:text-slate-100"
                               />
                            </td>
                          )}

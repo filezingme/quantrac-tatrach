@@ -77,6 +77,9 @@ export const SystemSettingsView: React.FC = () => {
       }, 600);
   };
 
+  // Standard input style for settings - lighter and not bold
+  const inputStyle = "w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-slate-600 dark:text-slate-300 font-normal bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 focus:text-slate-900 dark:focus:text-white transition-colors placeholder-slate-400";
+
   return (
     <div className="max-w-5xl mx-auto pb-10 space-y-6 animate-fade-in">
         <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Cài đặt hệ thống</h2>
@@ -110,7 +113,7 @@ export const SystemSettingsView: React.FC = () => {
                                         type="text" 
                                         value={settings.appName}
                                         onChange={(e) => handleChange('appName', e.target.value)}
-                                        className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-slate-600 dark:text-slate-300 font-medium bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 focus:text-slate-900 dark:focus:text-white transition-colors"
+                                        className={inputStyle}
                                         placeholder="Ví dụ: TP Geo Monitoring"
                                     />
                                 </div>
@@ -120,7 +123,7 @@ export const SystemSettingsView: React.FC = () => {
                                         type="text" 
                                         value={settings.appSubtitle}
                                         onChange={(e) => handleChange('appSubtitle', e.target.value)}
-                                        className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-slate-600 dark:text-slate-300 font-medium bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 focus:text-slate-900 dark:focus:text-white transition-colors"
+                                        className={inputStyle}
                                         placeholder="Ví dụ: Hệ thống quản lý"
                                     />
                                 </div>
@@ -130,7 +133,7 @@ export const SystemSettingsView: React.FC = () => {
                                         type="text" 
                                         value={settings.appTitle}
                                         onChange={(e) => handleChange('appTitle', e.target.value)}
-                                        className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-slate-600 dark:text-slate-300 font-medium bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 focus:text-slate-900 dark:focus:text-white transition-colors"
+                                        className={inputStyle}
                                         placeholder="Ví dụ: Hệ thống Quản lý TP Geo Monitoring"
                                     />
                                 </div>
@@ -140,7 +143,7 @@ export const SystemSettingsView: React.FC = () => {
                                         type="text" 
                                         value={settings.appFooter}
                                         onChange={(e) => handleChange('appFooter', e.target.value)}
-                                        className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-slate-600 dark:text-slate-300 font-medium bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 focus:text-slate-900 dark:focus:text-white transition-colors"
+                                        className={inputStyle}
                                         placeholder="Ví dụ: Version 3.0.1 © 2026..."
                                     />
                                 </div>
@@ -259,7 +262,7 @@ export const SystemSettingsView: React.FC = () => {
                                         type="number" 
                                         value={settings.notifications.alertThresholdLevel}
                                         onChange={(e) => setSettings(prev => ({...prev, notifications: {...prev.notifications, alertThresholdLevel: parseFloat(e.target.value)}}))}
-                                        className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 outline-none font-bold text-red-600/80 bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 focus:text-red-600 transition-colors"
+                                        className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 outline-none font-medium text-red-600/80 bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 focus:text-red-600 transition-colors"
                                     />
                                     <span className="flex items-center text-slate-500 dark:text-slate-400 text-sm">m</span>
                                 </div>
@@ -284,7 +287,7 @@ export const SystemSettingsView: React.FC = () => {
                                     <select 
                                         value={settings.backupFrequency}
                                         onChange={(e) => handleChange('backupFrequency', e.target.value)}
-                                        className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-slate-600 dark:text-slate-300 font-medium bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 focus:text-slate-900 dark:focus:text-white transition-colors appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748b%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:10px] bg-[right_10px_center] bg-no-repeat"
+                                        className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-slate-600 dark:text-slate-300 font-normal bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 focus:text-slate-900 dark:focus:text-white transition-colors appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748b%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:10px] bg-[right_10px_center] bg-no-repeat"
                                     >
                                         <option value="daily">Hàng ngày (00:00)</option>
                                         <option value="weekly">Hàng tuần (Chủ nhật)</option>

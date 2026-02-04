@@ -18,13 +18,13 @@ import {
   SidebarConfigItem
 } from '../types';
 
-// CHANGED: Version bump to v7
+// CHANGED: Version bump to v8 (force refresh images and settings)
 const KEYS = {
   OBSERVATION: 'app_observation_v3',
   FORECAST: 'app_forecast_v3',
   SPECS: 'app_specs_v3',
   OPERATION_TABLES: 'app_op_tables_v3',
-  IMAGES: 'app_images_v4', 
+  IMAGES: 'app_images_v6', // Updated version for images
   GENERAL_INFO: 'app_general_info_v3',
   CAMERAS: 'app_cameras_v4', 
   SCENARIOS: 'app_scenarios_v3',
@@ -32,7 +32,7 @@ const KEYS = {
   CURRENT_USER: 'app_current_user_v3',
   USERS_LIST: 'app_users_list_v3',
   WATER_LEVEL_RECORDS: 'app_water_level_records_v3',
-  SETTINGS: 'app_settings_v7', // Bumped settings version
+  SETTINGS: 'app_settings_v8', 
   DOCUMENTS: 'app_documents_v3',
   ALERTS: 'app_alerts_v4',
   SENSORS: 'app_sensors_v2',
@@ -250,34 +250,37 @@ const defaultOpTables: OperationTable[] = [
   }
 ];
 
+// UPDATED IMAGES WITH RELIABLE UNSPLASH URLS & MORE ITEMS
 const defaultImages: ImageGroup[] = [
   { 
     id: 'g1', 
     title: 'Hồ chứa & Phong cảnh', 
     images: [
-      { id: 'i1', title: 'Toàn cảnh hồ Tả Trạch', url: 'https://images.unsplash.com/photo-1522923898399-693dfa92938e?w=800&q=80' },
-      { id: 'i2', title: 'Mặt nước hồ mùa kiệt', url: 'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=800&q=80' },
-      { id: 'i3', title: 'Hoàng hôn trên hồ', url: 'https://images.unsplash.com/photo-1502083896352-259a9a770c32?w=800&q=80' },
-      { id: 'i4', title: 'Khu vực thượng lưu', url: 'https://images.unsplash.com/photo-1534764654921-209c730f5c3a?w=800&q=80' }
+      { id: 'i1', title: 'Toàn cảnh hồ Tả Trạch', url: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=80' },
+      { id: 'i2', title: 'Mặt nước hồ mùa kiệt', url: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=80' },
+      { id: 'i3', title: 'Hoàng hôn trên hồ', url: 'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&w=800&q=80' },
+      { id: 'i4', title: 'Khu vực thượng lưu', url: 'https://images.unsplash.com/photo-1497436072909-60f360e1d4b0?auto=format&fit=crop&w=800&q=80' }
     ]
   },
   { 
     id: 'g2', 
     title: 'Đập chính & Công trình', 
     images: [
-      { id: 'd1', title: 'Thân đập chính nhìn từ hạ lưu', url: 'https://images.unsplash.com/photo-1582236879707-1647eb38c4b1?w=800&q=80' },
-      { id: 'd2', title: 'Cửa lấy nước tuynel', url: 'https://images.unsplash.com/photo-1463790589133-d731057885b7?w=800&q=80' },
-      { id: 'd3', title: 'Kiểm tra kỹ thuật đập', url: 'https://images.unsplash.com/photo-1581093806990-25699999a380?w=800&q=80' },
-      { id: 'd4', title: 'Nhà máy thủy điện', url: 'https://images.unsplash.com/photo-1574786198875-49f5d09ec2d3?w=800&q=80' }
+      { id: 'd1', title: 'Thân đập chính nhìn từ hạ lưu', url: 'https://images.unsplash.com/photo-1574786198875-49f5d09ec2d3?auto=format&fit=crop&w=800&q=80' },
+      { id: 'd2', title: 'Cửa lấy nước tuynel', url: 'https://images.unsplash.com/photo-1524514587602-57223788730b?auto=format&fit=crop&w=800&q=80' },
+      { id: 'd3', title: 'Kiểm tra kỹ thuật đập', url: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&w=800&q=80' },
+      { id: 'd4', title: 'Nhà máy thủy điện', url: 'https://images.unsplash.com/photo-1565610261709-5c5697d29491?auto=format&fit=crop&w=800&q=80' },
+      { id: 'd5', title: 'Hệ thống van vận hành', url: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=800&q=80' },
+      { id: 'd6', title: 'Trung tâm điều hành', url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80' }
     ]
   },
   { 
     id: 'g3', 
     title: 'Tràn xả lũ', 
     images: [
-      { id: 't1', title: 'Vận hành xả lũ 2023', url: 'https://images.unsplash.com/photo-1621262923737-234293992823?w=800&q=80' },
-      { id: 't2', title: 'Dòng chảy sau tràn', url: 'https://images.unsplash.com/photo-1455582916367-25f75bfc6710?w=800&q=80' },
-      { id: 't3', title: 'Cửa van cung', url: 'https://images.unsplash.com/photo-1517511620798-cec17d42226b?w=800&q=80' }
+      { id: 't1', title: 'Vận hành xả lũ 2023', url: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=800&q=80' },
+      { id: 't2', title: 'Dòng chảy sau tràn', url: 'https://images.unsplash.com/photo-1455582916367-25f75bfc6710?auto=format&fit=crop&w=800&q=80' },
+      { id: 't3', title: 'Cửa van cung', url: 'https://images.unsplash.com/photo-1535581652167-3d6b98c06d3c?auto=format&fit=crop&w=800&q=80' }
     ]
   },
 ];

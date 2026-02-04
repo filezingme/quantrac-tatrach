@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { SpecGroup, SpecItem } from '../types';
 import { ChevronDown, Plus, Trash2, Save, FolderPlus, Check, Download } from 'lucide-react';
@@ -168,7 +169,7 @@ export const TechnicalSpecsView: React.FC = () => {
                 <input 
                   value={item.name} 
                   onChange={e => updateItem(item.id, 'name', e.target.value)} 
-                  className="bg-transparent w-full outline-none font-medium text-slate-600 dark:text-slate-400 placeholder-slate-300 focus:text-blue-700 dark:focus:text-blue-400 transition-colors"
+                  className="bg-transparent w-full outline-none font-normal text-slate-600 dark:text-slate-400 placeholder-slate-300 focus:text-blue-700 dark:focus:text-blue-400 transition-colors"
                   placeholder="Tên thông số..."
                 />
               </td>
@@ -176,7 +177,7 @@ export const TechnicalSpecsView: React.FC = () => {
                 <input 
                   value={item.value} 
                   onChange={e => updateItem(item.id, 'value', e.target.value)} 
-                  className="bg-transparent w-full outline-none text-slate-600 dark:text-slate-300 font-semibold focus:text-blue-700 dark:focus:text-blue-400 transition-colors"
+                  className="bg-transparent w-full outline-none text-slate-600 dark:text-slate-300 font-normal focus:text-blue-700 dark:focus:text-blue-400 transition-colors"
                   placeholder="Giá trị..."
                 />
               </td>
@@ -184,7 +185,7 @@ export const TechnicalSpecsView: React.FC = () => {
                  <input 
                    value={item.unit} 
                    onChange={e => updateItem(item.id, 'unit', e.target.value)} 
-                   className="bg-transparent w-full outline-none text-slate-500 dark:text-slate-500 text-xs focus:text-blue-600 dark:focus:text-blue-400 transition-colors"
+                   className="bg-transparent w-full outline-none text-slate-500 dark:text-slate-500 text-xs font-normal focus:text-blue-600 dark:focus:text-blue-400 transition-colors"
                    placeholder="Đơn vị"
                  />
               </td>
