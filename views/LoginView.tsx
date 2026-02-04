@@ -64,7 +64,10 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-600 shadow-lg shadow-blue-200 mb-4">
             <Waves className="text-white" size={32} />
           </div>
-          <h1 className="text-2xl font-bold text-slate-800 mb-1 tracking-tight">{settings.appName}</h1>
+          {/* CHANGED: Use appName instead of appTitle/appname combo */}
+          <h1 className="text-2xl font-bold text-slate-800 mb-1 tracking-tight">
+            {settings.appName}
+          </h1>
           <p className="text-slate-500 text-sm font-medium">{settings.appSubtitle}</p>
         </div>
 

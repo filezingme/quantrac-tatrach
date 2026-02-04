@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, Plus, Filter, MoreVertical, Edit, Trash2, Shield, User, 
-  CheckCircle, XCircle, Key, ChevronLeft, ChevronRight, Lock, AlertCircle
+  CheckCircle, XCircle, Key, ChevronLeft, ChevronRight, Lock, AlertCircle, Ban
 } from 'lucide-react';
 import { db } from '../utils/db';
 import { UserProfile } from '../types';
@@ -96,6 +96,30 @@ export const UserManagementView: React.FC = () => {
               db.users.delete(user.id);
               setUsers(db.users.getAll());
               ui.showToast('success', 'Đã xóa người dùng');
+          }
+      });
+  };
+
+  // Toggle Activate/Deactivate
+  const handleToggleStatus = (user: UserProfile) => {
+      if (user.id === currentUser.id) {
+          ui.showToast('error', 'Bạn không thể tự vô hiệu hóa tài khoản của mình');
+          return;
+      }
+
+      const newStatus: 'active' | 'inactive' = user.status === 'active' ? 'inactive' : 'active';
+      const actionName = newStatus === 'active' ? 'Kích hoạt' : 'Vô hiệu hóa';
+
+      ui.confirm({
+          title: `${actionName} tài khoản`,
+          message: `Bạn có chắc chắn muốn ${actionName.toLowerCase()} tài khoản "${user.name}" không?`,
+          type: newStatus === 'active' ? 'primary' : 'danger',
+          confirmText: newStatus === 'active' ? 'Kích hoạt' : 'Vô hiệu hóa',
+          onConfirm: () => {
+              const updatedUser: UserProfile = { ...user, status: newStatus };
+              db.users.update(updatedUser);
+              setUsers(db.users.getAll());
+              ui.showToast('success', `Đã ${actionName.toLowerCase()} tài khoản thành công`);
           }
       });
   };
@@ -240,6 +264,18 @@ export const UserManagementView: React.FC = () => {
                                         >
                                             <Key size={16}/>
                                         </button>
+                                        
+                                        {/* Enable/Disable Toggle */}
+                                        {user.id !== currentUser.id && (
+                                            <button 
+                                                onClick={() => handleToggleStatus(user)}
+                                                className={`p-2 rounded-lg transition-colors ${user.status === 'active' ? 'text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20' : 'text-slate-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20'}`}
+                                                title={user.status === 'active' ? "Vô hiệu hóa" : "Kích hoạt"}
+                                            >
+                                                {user.status === 'active' ? <Ban size={16}/> : <CheckCircle size={16}/>}
+                                            </button>
+                                        )}
+
                                         {user.id !== currentUser.id ? (
                                             <button 
                                               onClick={() => handleDeleteUser(user)}

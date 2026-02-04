@@ -207,8 +207,9 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             <button onClick={toggleSidebar} className="md:hidden text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200">
               <Menu size={24} />
             </button>
+            {/* CHANGED: Use settings.appTitle instead of settings.appName */}
             <h1 className="text-lg font-semibold text-slate-800 dark:text-slate-100 hidden sm:block">
-              {settings.appName}
+              {settings.appTitle || settings.appName}
             </h1>
           </div>
           

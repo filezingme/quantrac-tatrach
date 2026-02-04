@@ -105,7 +105,7 @@ export const SystemSettingsView: React.FC = () => {
                             
                             <div className="space-y-4 max-w-lg">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tên công trình (Header)</label>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tên công trình (Sidebar & Login)</label>
                                     <input 
                                         type="text" 
                                         value={settings.appName}
@@ -125,7 +125,7 @@ export const SystemSettingsView: React.FC = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tiêu đề công trình (Browser Title)</label>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tiêu đề công trình (Header & Browser Title)</label>
                                     <input 
                                         type="text" 
                                         value={settings.appTitle}
