@@ -291,8 +291,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
         </div>
 
         {/* Navigation */}
-        <nav className={`flex-1 py-6 sidebar-scrollbar ${isCollapsed ? 'pr-0' : ''}`}>
-          <ul className={`space-y-1.5 ${isCollapsed ? 'pl-[11px] pr-0' : 'px-3'}`}>
+        <nav className={`flex-1 py-6 sidebar-scrollbar ${isCollapsed ? 'px-0' : ''}`}>
+          {/* Changed padding logic here: Remove pl-[11px] when collapsed to allow justify-center to work perfectly */}
+          <ul className={`space-y-1.5 ${isCollapsed ? 'px-0 flex flex-col items-center' : 'px-3'}`}>
             {visibleItems.map((item) => {
               // Check if active (dashboard is also root)
               const isActive = location.pathname === item.path || (item.path === '/dashboard' && location.pathname === '/');
@@ -300,16 +301,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
               const label = conf?.customLabel || item.label;
 
               return (
-                <li key={item.path} className="group relative">
+                <li key={item.path} className={`group relative ${isCollapsed ? 'w-full flex justify-center' : ''}`}>
                   <button
                     onClick={() => {
                       navigate(item.path);
                       if (window.innerWidth < 768) toggleSidebar();
                     }}
                     className={`
-                      relative w-full flex items-center 
-                      ${isCollapsed ? 'justify-center px-0' : 'justify-start px-4'} 
-                      py-3 text-sm font-medium rounded-xl transition-all duration-200 
+                      relative flex items-center 
+                      ${isCollapsed ? 'justify-center w-12 h-12 p-0' : 'justify-start w-full px-4 py-3'} 
+                      text-sm font-medium rounded-xl transition-all duration-200 
                       ${isActive
                         ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 shadow-sm'
                         : 'hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-100 text-slate-500 dark:text-slate-400'
