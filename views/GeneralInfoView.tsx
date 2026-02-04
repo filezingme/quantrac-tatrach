@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { db } from '../utils/db';
 import { GeneralInfo } from '../types';
@@ -28,7 +29,7 @@ export const GeneralInfoView: React.FC = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-10">
+    <div className="max-w-5xl mx-auto space-y-6 pb-10 animate-fade-in">
       <div className="flex items-center justify-between">
          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Thông tin chung công trình</h2>
          <button 
@@ -63,8 +64,13 @@ export const GeneralInfoView: React.FC = () => {
                <Input label="Đơn vị quản lý" val={info.manager} onChange={v => handleChange('manager', v)} />
                <Input label="Thời gian xây dựng" val={info.constructionTime} onChange={v => handleChange('constructionTime', v)} />
                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nhiệm vụ</label>
-                  <textarea rows={3} value={info.mission} onChange={e => handleChange('mission', e.target.value)} className="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-white rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"/>
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">Nhiệm vụ</label>
+                  <textarea 
+                    rows={3} 
+                    value={info.mission} 
+                    onChange={e => handleChange('mission', e.target.value)} 
+                    className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none font-medium text-slate-700 dark:text-slate-200 bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 focus:text-slate-900 dark:focus:text-white transition-colors"
+                  />
                </div>
             </div>
          </div>
@@ -105,7 +111,12 @@ export const GeneralInfoView: React.FC = () => {
 
 const Input = ({ label, val, onChange }: { label: string, val: string, onChange: (v: string) => void }) => (
   <div>
-    <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase">{label}</label>
-    <input type="text" value={val} onChange={(e) => onChange(e.target.value)} className="w-full border-b border-slate-200 dark:border-slate-600 focus:border-blue-500 outline-none py-1 text-slate-800 dark:text-white font-medium transition-colors bg-transparent" />
+    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase">{label}</label>
+    <input 
+      type="text" 
+      value={val} 
+      onChange={(e) => onChange(e.target.value)} 
+      className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none font-medium text-slate-700 dark:text-slate-200 bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 focus:text-slate-900 dark:focus:text-white transition-colors" 
+    />
   </div>
 );

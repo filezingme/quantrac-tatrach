@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Upload, FileSpreadsheet, Save, CheckCircle, AlertCircle, RefreshCw, Check } from 'lucide-react';
 import { db } from '../utils/db';
@@ -58,8 +59,11 @@ export const ManualEntryView: React.FC = () => {
     }, 600);
   };
 
+  // Standard input class for data entry
+  const inputClass = "w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-700 dark:text-slate-200 bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 focus:text-blue-700 dark:focus:text-blue-400 transition-colors";
+
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-10">
+    <div className="space-y-6 max-w-4xl mx-auto pb-10 animate-fade-in">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Nhập liệu thủ công</h2>
       </div>
@@ -96,52 +100,52 @@ export const ManualEntryView: React.FC = () => {
         <div className="p-6 space-y-8">
           {/* Main Indicators */}
           <div>
-            <h4 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 border-l-4 border-blue-500 pl-2">Thông số hồ chứa</h4>
+            <h4 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 border-l-4 border-blue-500 pl-2">Thông số hồ chứa</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="form-group">
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Mực nước hồ (m)</label>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 uppercase">Mực nước hồ (m)</label>
                 <input 
                   type="number" 
                   value={formData.waterLevel}
                   onChange={(e) => handleChange('waterLevel', parseFloat(e.target.value))}
-                  className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 focus:text-slate-900 dark:focus:text-white" 
+                  className={inputClass}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Dung tích (triệu m³)</label>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 uppercase">Dung tích (triệu m³)</label>
                 <input 
                   type="number" 
                    value={formData.capacity}
                   onChange={(e) => handleChange('capacity', parseFloat(e.target.value))}
-                  className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 focus:text-slate-900 dark:focus:text-white" 
+                  className={inputClass}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Mực nước hạ lưu (m)</label>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 uppercase">Mực nước hạ lưu (m)</label>
                 <input 
                   type="number" 
                    value={formData.downstream[0]?.level || 0}
                   onChange={(e) => handleDownstreamChange(parseFloat(e.target.value))}
-                  className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 focus:text-slate-900 dark:focus:text-white" 
+                  className={inputClass}
                 />
                 {formData.downstream[0] && <p className="text-xs text-slate-400 mt-1">{formData.downstream[0].name}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Lưu lượng đến (m³/s)</label>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 uppercase">Lưu lượng đến (m³/s)</label>
                 <input 
                   type="number" 
                    value={formData.inflow}
                   onChange={(e) => handleChange('inflow', parseFloat(e.target.value))}
-                  className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all bg-emerald-50/30 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-slate-600 dark:text-slate-300 focus:text-slate-900 dark:focus:text-white" 
+                  className={inputClass}
                 />
               </div>
               <div>
-                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Tổng xả (m³/s)</label>
+                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 uppercase">Tổng xả (m³/s)</label>
                  <input 
                   type="number" 
                    value={formData.outflow}
                   onChange={(e) => handleChange('outflow', parseFloat(e.target.value))}
-                  className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all bg-amber-50/30 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-slate-600 dark:text-slate-300 focus:text-slate-900 dark:focus:text-white" 
+                  className={inputClass}
                 />
               </div>
             </div>
@@ -151,16 +155,16 @@ export const ManualEntryView: React.FC = () => {
 
           {/* Rainfall */}
           <div>
-            <h4 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 border-l-4 border-blue-500 pl-2">Số liệu mưa (mm)</h4>
+            <h4 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 border-l-4 border-blue-500 pl-2">Số liệu mưa (mm)</h4>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               {formData.rainfall.map((station) => (
                 <div key={station.id}>
-                  <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5 truncate" title={station.name}>{station.name}</label>
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 truncate" title={station.name}>{station.name}</label>
                   <input 
                     type="number" 
                     value={station.data.current}
                     onChange={(e) => handleRainfallChange(station.id, e.target.value)}
-                    className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-center font-medium bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 focus:text-slate-900 dark:focus:text-white" 
+                    className={inputClass}
                   />
                 </div>
               ))}
