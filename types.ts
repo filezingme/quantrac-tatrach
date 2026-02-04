@@ -228,6 +228,9 @@ export interface UserProfile {
 
 export interface SystemSettings {
   appName: string;
+  appSubtitle: string; // Subtitle
+  appTitle: string; // Full Title (Browser Tab)
+  appFooter: string; // Footer/Copyright text
   maintenanceMode: boolean;
   language: 'vi' | 'en';
   dateFormat: 'DD/MM/YYYY' | 'MM/DD/YYYY';

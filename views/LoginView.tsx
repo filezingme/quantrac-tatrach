@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Waves, ArrowRight, Lock, User, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { db } from '../utils/db';
-import { UserProfile } from '../types';
+import { UserProfile, SystemSettings } from '../types';
 
 interface LoginViewProps {
   onLogin: (user: UserProfile) => void;
@@ -14,6 +14,12 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [settings, setSettings] = useState<SystemSettings>(db.settings.get());
+
+  useEffect(() => {
+      // Keep settings fresh just in case
+      setSettings(db.settings.get());
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,8 +64,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-600 shadow-lg shadow-blue-200 mb-4">
             <Waves className="text-white" size={32} />
           </div>
-          <h1 className="text-2xl font-bold text-slate-800 mb-1 tracking-tight">Hồ Tả Trạch</h1>
-          <p className="text-slate-500 text-sm font-medium">Hệ thống Quản lý & Giám sát</p>
+          <h1 className="text-2xl font-bold text-slate-800 mb-1 tracking-tight">{settings.appName}</h1>
+          <p className="text-slate-500 text-sm font-medium">{settings.appSubtitle}</p>
         </div>
 
         {/* Form */}
@@ -131,7 +137,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
             <ShieldCheck size={14} className="text-green-500" />
             <span>Bảo mật & An toàn dữ liệu</span>
           </div>
-          <p className="text-[10px] text-slate-400">Version 3.0.1 © 2026 Ta Trach Management System</p>
+          <p className="text-[10px] text-slate-400">{settings.appFooter}</p>
         </div>
       </div>
     </div>

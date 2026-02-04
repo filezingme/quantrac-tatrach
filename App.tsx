@@ -21,13 +21,14 @@ import { SystemSettingsView } from './views/SystemSettingsView';
 import { UserManagementView } from './views/UserManagementView';
 import { AISafetyView } from './views/AISafetyView';
 import { AlertHistoryView } from './views/AlertHistoryView'; 
-import { SensorListView } from './views/SensorListView'; // New Import
+import { SensorListView } from './views/SensorListView'; 
 import { LoginView } from './views/LoginView';
+import { MaintenanceView } from './views/MaintenanceView'; // NEW IMPORT
 import { UIProvider, useUI } from './components/GlobalUI';
 import { AIAssistant } from './components/AIAssistant'; 
 import { GlobalSearch } from './components/GlobalSearch';
 import { AppNotification, UserProfile, SystemSettings } from './types';
-import { Menu, Bell, Check, LogOut, User, Settings as SettingsIcon, X, AlertTriangle, AlertCircle, Info, Clock, ChevronLeft, Mail, Search, Command } from 'lucide-react';
+import { Menu, Bell, Check, LogOut, User, Settings as SettingsIcon, X, AlertTriangle, AlertCircle, Info, Clock, ChevronLeft, Mail, Search, Command, Wrench } from 'lucide-react';
 import { db } from './utils/db';
 
 const ProtectedRoute = ({ children, role }: { children?: React.ReactNode; role?: 'admin' | 'user' }) => {
@@ -86,6 +87,19 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
     window.addEventListener('db-change', handleDbChange);
     return () => window.removeEventListener('db-change', handleDbChange);
   }, []);
+
+  // Update Document Title based on settings
+  useEffect(() => {
+    document.title = settings.appTitle || 'Hệ thống Quản lý Hồ Tả Trạch';
+  }, [settings.appTitle]);
+
+  // --- MAINTENANCE MODE CHECK ---
+  if (settings.maintenanceMode && user.role !== 'admin') {
+      return <MaintenanceView />;
+  }
+
+  // ... (Rest of existing logic: KeyDown, ClickOutside, Toggles, etc.)
+  // We keep the logic as is, just wrapped in the conditional above.
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -171,6 +185,15 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
 
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden font-sans transition-colors duration-200">
+      
+      {/* MAINTENANCE BANNER FOR ADMINS */}
+      {settings.maintenanceMode && user.role === 'admin' && (
+        <div className="absolute top-0 left-0 right-0 z-[600] bg-red-600 text-white text-xs font-bold py-1 px-4 text-center shadow-md flex items-center justify-center gap-2">
+           <Wrench size={12} className="animate-spin-slow"/>
+           CHẾ ĐỘ BẢO TRÌ ĐANG BẬT - Người dùng thường không thể truy cập
+        </div>
+      )}
+
       <Sidebar 
         isOpen={isSidebarOpen}
         toggleSidebar={toggleSidebar}
@@ -178,7 +201,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
         toggleCollapse={toggleSidebarCollapse}
       />
 
-      <div className="flex-1 flex flex-col min-w-0 relative">
+      <div className={`flex-1 flex flex-col min-w-0 relative ${settings.maintenanceMode && user.role === 'admin' ? 'pt-6' : ''}`}>
         <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 h-16 flex items-center justify-between px-4 sm:px-6 z-[500] shadow-sm relative transition-colors duration-200">
           <div className="flex items-center gap-4">
             <button onClick={toggleSidebar} className="md:hidden text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200">
@@ -190,6 +213,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
           </div>
           
           <div className="flex items-center gap-2 sm:gap-4">
+             {/* ... (Search, Notification, User Menu - keeping same structure) ... */}
              <button 
                 onClick={() => setIsSearchOpen(true)}
                 className="hidden md:flex items-center w-full max-w-[200px] lg:max-w-[320px] gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 text-sm transition-colors border border-transparent hover:border-slate-300 dark:hover:border-slate-600"
@@ -408,7 +432,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             <Route path="/demo-charts" element={<DemoChartsView />} />
             <Route path="/profile" element={<UserProfileView />} />
             <Route path="/alerts" element={<AlertHistoryView />} />
-            <Route path="/sensors" element={<SensorListView />} /> {/* New Route */}
+            <Route path="/sensors" element={<SensorListView />} />
             
             <Route 
               path="/users" 
@@ -457,6 +481,8 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
 
         {settings.features.enableAIAssistant && <AIAssistant />}
 
+        {/* ... (Existing Notification Modal Logic) ... */}
+        {/* I am keeping the notification modal structure intact but omitted here for brevity as requested to minimize changes unless logic changes. The logic is unchanged. */}
         {showAllNotifications && (
           <div className="fixed inset-0 z-[5000] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl h-[80vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-slate-700">
@@ -606,6 +632,7 @@ export const App: React.FC = () => {
 
   const handleLogin = (user: UserProfile) => {
     sessionStorage.setItem('isAuthenticated', 'true');
+    // Ensure the logged in user is set in our DB store for the session
     db.user.set(user);
     setIsAuthenticated(true);
   };
@@ -617,13 +644,13 @@ export const App: React.FC = () => {
 
   return (
     <UIProvider>
-      <HashRouter>
-        {isAuthenticated ? (
+      {isAuthenticated ? (
+        <HashRouter>
           <MainLayout onLogout={handleLogout} />
-        ) : (
-          <LoginView onLogin={handleLogin} />
-        )}
-      </HashRouter>
+        </HashRouter>
+      ) : (
+        <LoginView onLogin={handleLogin} />
+      )}
     </UIProvider>
   );
 };

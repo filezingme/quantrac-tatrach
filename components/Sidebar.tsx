@@ -87,9 +87,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
   // Drag and Drop State
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
+  // App Settings (Name/Subtitle)
+  const [appSettings, setAppSettings] = useState(db.settings.get());
+
   const ui = useUI();
 
-  // Load User Role & Sidebar Config
+  // Load User Role, Sidebar Config & App Settings
   useEffect(() => {
     const updateUserRole = () => {
       const user = db.user.get();
@@ -111,15 +114,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
       }
     };
 
+    const updateAppSettings = () => {
+        setAppSettings(db.settings.get());
+    };
+
     updateUserRole();
     updateSidebarConfig();
+    updateAppSettings();
 
     window.addEventListener('db-change', updateUserRole);
     window.addEventListener('db-change', updateSidebarConfig);
+    window.addEventListener('db-change', updateAppSettings);
     
     return () => {
       window.removeEventListener('db-change', updateUserRole);
       window.removeEventListener('db-change', updateSidebarConfig);
+      window.removeEventListener('db-change', updateAppSettings);
     };
   }, []);
 
@@ -279,9 +289,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
               <Waves size={20} />
             </div>
             {!isCollapsed && (
-              <div className="transition-opacity duration-200 opacity-100 w-auto">
-                <h1 className="font-bold text-lg text-slate-800 dark:text-white leading-tight whitespace-nowrap">Hồ Tả Trạch</h1>
-                <p className="text-xs text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap">Hệ thống quản lý</p>
+              <div className="transition-opacity duration-200 opacity-100 w-auto min-w-0">
+                <h1 className="font-bold text-lg text-slate-800 dark:text-white leading-tight truncate max-w-[180px]">{appSettings.appName}</h1>
+                <p className="text-xs text-slate-400 dark:text-slate-500 font-medium truncate max-w-[180px]">{appSettings.appSubtitle}</p>
               </div>
             )}
           </div>
@@ -350,7 +360,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
         {/* Footer with Edit Menu */}
         <div className={`p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/30 transition-all duration-300 flex items-center select-none ${isCollapsed ? 'justify-center flex-col gap-2' : 'relative justify-center'}`}>
           {!isCollapsed && (
-             <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Version 3.0.1 © 2026</p>
+             <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium truncate max-w-[180px]">{appSettings.appFooter}</p>
           )}
           
           <button 

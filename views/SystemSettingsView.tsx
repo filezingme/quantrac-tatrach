@@ -105,30 +105,49 @@ export const SystemSettingsView: React.FC = () => {
                             
                             <div className="space-y-4 max-w-lg">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tên hệ thống</label>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tên công trình (Header)</label>
                                     <input 
                                         type="text" 
                                         value={settings.appName}
                                         onChange={(e) => handleChange('appName', e.target.value)}
                                         className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-slate-600 dark:text-slate-300 font-medium bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 focus:text-slate-900 dark:focus:text-white transition-colors"
+                                        placeholder="Ví dụ: TP Geo Monitoring"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Định dạng Ngày/Tháng</label>
-                                    <select 
-                                        value={settings.dateFormat}
-                                        onChange={(e) => handleChange('dateFormat', e.target.value)}
-                                        className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-slate-600 dark:text-slate-300 font-medium bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 focus:text-slate-900 dark:focus:text-white transition-colors appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748b%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:10px] bg-[right_10px_center] bg-no-repeat"
-                                    >
-                                        <option value="DD/MM/YYYY">DD/MM/YYYY (Việt Nam)</option>
-                                        <option value="MM/DD/YYYY">MM/DD/YYYY (US)</option>
-                                    </select>
-                                    <p className="text-xs text-slate-500 mt-1">Áp dụng cho hiển thị bảng biểu và đồ thị.</p>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Mô tả công trình (Sub)</label>
+                                    <input 
+                                        type="text" 
+                                        value={settings.appSubtitle}
+                                        onChange={(e) => handleChange('appSubtitle', e.target.value)}
+                                        className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-slate-600 dark:text-slate-300 font-medium bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 focus:text-slate-900 dark:focus:text-white transition-colors"
+                                        placeholder="Ví dụ: Hệ thống quản lý"
+                                    />
                                 </div>
-                                <div className="flex items-center justify-between py-2">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tiêu đề công trình (Browser Title)</label>
+                                    <input 
+                                        type="text" 
+                                        value={settings.appTitle}
+                                        onChange={(e) => handleChange('appTitle', e.target.value)}
+                                        className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-slate-600 dark:text-slate-300 font-medium bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 focus:text-slate-900 dark:focus:text-white transition-colors"
+                                        placeholder="Ví dụ: Hệ thống Quản lý TP Geo Monitoring"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Thông tin bản quyền (Footer)</label>
+                                    <input 
+                                        type="text" 
+                                        value={settings.appFooter}
+                                        onChange={(e) => handleChange('appFooter', e.target.value)}
+                                        className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-slate-600 dark:text-slate-300 font-medium bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 focus:text-slate-900 dark:focus:text-white transition-colors"
+                                        placeholder="Ví dụ: Version 3.0.1 © 2026..."
+                                    />
+                                </div>
+                                <div className="flex items-center justify-between py-2 mt-4 border-t border-slate-100 dark:border-slate-700 pt-4">
                                     <div>
                                         <p className="font-medium text-slate-800 dark:text-white">Chế độ bảo trì</p>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">Chỉ Admin mới có thể truy cập khi bật</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">Chặn truy cập đối với người dùng thông thường</p>
                                     </div>
                                     <Switch checked={settings.maintenanceMode} onChange={() => handleChange('maintenanceMode', !settings.maintenanceMode)} />
                                 </div>

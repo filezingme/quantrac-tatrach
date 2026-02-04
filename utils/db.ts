@@ -18,28 +18,30 @@ import {
   SidebarConfigItem
 } from '../types';
 
-// CHANGED: Version bump to v4
+// CHANGED: Version bump to v7
 const KEYS = {
   OBSERVATION: 'app_observation_v3',
   FORECAST: 'app_forecast_v3',
   SPECS: 'app_specs_v3',
   OPERATION_TABLES: 'app_op_tables_v3',
-  IMAGES: 'app_images_v3',
+  IMAGES: 'app_images_v4', 
   GENERAL_INFO: 'app_general_info_v3',
-  CAMERAS: 'app_cameras_v3',
+  CAMERAS: 'app_cameras_v4', 
   SCENARIOS: 'app_scenarios_v3',
   NOTIFICATIONS: 'app_notifications_v3',
   CURRENT_USER: 'app_current_user_v3',
   USERS_LIST: 'app_users_list_v3',
   WATER_LEVEL_RECORDS: 'app_water_level_records_v3',
-  SETTINGS: 'app_settings_v3',
+  SETTINGS: 'app_settings_v7', // Bumped settings version
   DOCUMENTS: 'app_documents_v3',
   ALERTS: 'app_alerts_v4',
   SENSORS: 'app_sensors_v2',
-  SIDEBAR_CONFIG: 'app_sidebar_config_v2' // Bumped to v2 for new defaults
+  SIDEBAR_CONFIG: 'app_sidebar_config_v2' 
 };
 
-// ... (Existing Default Data: defaultObservation, defaultForecast, defaultSpecs, etc.) ...
+// ... (Existing Default Data) ...
+// KEEP ALL EXISTING DEFAULT DATA ABOVE THIS LINE UNCHANGED
+
 const defaultObservation: ObservationData = {
   waterLevel: 45.2,
   capacity: 340.5,
@@ -251,18 +253,32 @@ const defaultOpTables: OperationTable[] = [
 const defaultImages: ImageGroup[] = [
   { 
     id: 'g1', 
-    title: 'Hồ chứa', 
-    images: Array(6).fill(0).map((_, i) => ({ id: `i${i}`, title: `Hồ chứa ${i+1}`, url: `https://picsum.photos/400/300?random=${i}` }))
+    title: 'Hồ chứa & Phong cảnh', 
+    images: [
+      { id: 'i1', title: 'Toàn cảnh hồ Tả Trạch', url: 'https://images.unsplash.com/photo-1522923898399-693dfa92938e?w=800&q=80' },
+      { id: 'i2', title: 'Mặt nước hồ mùa kiệt', url: 'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=800&q=80' },
+      { id: 'i3', title: 'Hoàng hôn trên hồ', url: 'https://images.unsplash.com/photo-1502083896352-259a9a770c32?w=800&q=80' },
+      { id: 'i4', title: 'Khu vực thượng lưu', url: 'https://images.unsplash.com/photo-1534764654921-209c730f5c3a?w=800&q=80' }
+    ]
   },
   { 
     id: 'g2', 
-    title: 'Tràn xả lũ', 
-    images: Array(4).fill(0).map((_, i) => ({ id: `t${i}`, title: `Tràn ${i+1}`, url: `https://picsum.photos/400/300?random=${20+i}` }))
+    title: 'Đập chính & Công trình', 
+    images: [
+      { id: 'd1', title: 'Thân đập chính nhìn từ hạ lưu', url: 'https://images.unsplash.com/photo-1582236879707-1647eb38c4b1?w=800&q=80' },
+      { id: 'd2', title: 'Cửa lấy nước tuynel', url: 'https://images.unsplash.com/photo-1463790589133-d731057885b7?w=800&q=80' },
+      { id: 'd3', title: 'Kiểm tra kỹ thuật đập', url: 'https://images.unsplash.com/photo-1581093806990-25699999a380?w=800&q=80' },
+      { id: 'd4', title: 'Nhà máy thủy điện', url: 'https://images.unsplash.com/photo-1574786198875-49f5d09ec2d3?w=800&q=80' }
+    ]
   },
   { 
     id: 'g3', 
-    title: 'Đập chính', 
-    images: Array(5).fill(0).map((_, i) => ({ id: `d${i}`, title: `Đập ${i+1}`, url: `https://picsum.photos/400/300?random=${40+i}` }))
+    title: 'Tràn xả lũ', 
+    images: [
+      { id: 't1', title: 'Vận hành xả lũ 2023', url: 'https://images.unsplash.com/photo-1621262923737-234293992823?w=800&q=80' },
+      { id: 't2', title: 'Dòng chảy sau tràn', url: 'https://images.unsplash.com/photo-1455582916367-25f75bfc6710?w=800&q=80' },
+      { id: 't3', title: 'Cửa van cung', url: 'https://images.unsplash.com/photo-1517511620798-cec17d42226b?w=800&q=80' }
+    ]
   },
 ];
 
@@ -284,9 +300,10 @@ const defaultGeneral: GeneralInfo = {
 };
 
 const defaultCameras: CameraInfo[] = [
-  { id: 'c1', name: 'Camera Đập Chính', url: 'https://www.youtube.com/embed/qRTVg8HHzUo?autoplay=1&mute=1', status: 'online' },
-  { id: 'c2', name: 'Camera Tràn Xả Lũ', url: 'https://www.youtube.com/embed/S2H378d3c50?autoplay=1&mute=1', status: 'online' },
-  { id: 'c3', name: 'Camera Thượng Lưu', url: 'https://www.youtube.com/embed/N9ppshL89dA?autoplay=1&mute=1', status: 'online' },
+  { id: 'c1', name: 'Đập Chính (Drone View)', url: 'https://www.youtube.com/embed/ScMzIvxBSi4', status: 'online' },
+  { id: 'c2', name: 'Giám sát Tràn xả lũ', url: 'https://www.youtube.com/embed/k7p3Y_QY6-o', status: 'online' },
+  { id: 'c3', name: 'Mặt hồ Thượng lưu', url: 'https://www.youtube.com/embed/ysz5S6PUM-U', status: 'online' },
+  { id: 'c4', name: 'Cửa lấy nước & Nhà máy', url: 'https://www.youtube.com/embed/3Q3eR6_s7iI', status: 'online' },
 ];
 
 const defaultNotifications: AppNotification[] = [
@@ -412,7 +429,10 @@ for(let h=0; h<24; h++) {
 const defaultWaterLevels = [...hourlyRecords, ...specific2026Records];
 
 const defaultSettings: SystemSettings = {
-  appName: 'Hệ thống Quản lý Hồ Tả Trạch',
+  appName: 'TP Geo Monitoring',
+  appSubtitle: 'Hệ thống quản lý',
+  appTitle: 'Hệ thống Quản lý TP Geo Monitoring', // ADDED APP TITLE
+  appFooter: 'Version 3.0.1 © 2026',
   maintenanceMode: false,
   language: 'vi',
   dateFormat: 'DD/MM/YYYY',
@@ -524,15 +544,15 @@ const generateMockSensors = (): SensorItem[] => {
   return sensors;
 };
 
-// --- DEFAULT SIDEBAR CONFIG (Updated order: Dashboard, Map, Alerts, Sensors, WaterLevel, Camera, Images) ---
+// --- DEFAULT SIDEBAR CONFIG ---
 const defaultSidebarConfig: SidebarConfigItem[] = [
   { path: '/dashboard', isVisible: true, order: 0 },
   { path: '/map', isVisible: true, order: 1 },
   { path: '/alerts', isVisible: true, order: 2 },
   { path: '/sensors', isVisible: true, order: 3 },
-  { path: '/water-level', isVisible: true, order: 4 }, // Immediately after Sensors
-  { path: '/camera', isVisible: true, order: 5 },      // Followed by Camera
-  { path: '/images', isVisible: true, order: 6 },      // Followed by Images
+  { path: '/water-level', isVisible: true, order: 4 }, 
+  { path: '/camera', isVisible: true, order: 5 },      
+  { path: '/images', isVisible: true, order: 6 },      
   { path: '/ai-safety', isVisible: true, order: 7 },
   { path: '/forecast', isVisible: true, order: 8 },
   { path: '/flood-forecast', isVisible: true, order: 9 },
@@ -601,7 +621,6 @@ export const db = {
       db.notifications.set(notifs.map(n => ({...n, read: true})));
     }
   },
-  // Added Alerts DB
   alerts: {
     get: () => db.get<AlertLog[]>(KEYS.ALERTS, generateMockAlerts()),
     set: (data: AlertLog[]) => db.set(KEYS.ALERTS, data),
@@ -614,7 +633,6 @@ export const db = {
         db.alerts.set(alerts.map(a => a.id === id ? { ...a, status: 'acknowledged' } : a));
     }
   },
-  // Added Sensor List DB
   sensors: {
     get: () => db.get<SensorItem[]>(KEYS.SENSORS, generateMockSensors()),
     set: (data: SensorItem[]) => db.set(KEYS.SENSORS, data),
@@ -666,7 +684,6 @@ export const db = {
     get: () => db.get<SystemSettings>(KEYS.SETTINGS, defaultSettings),
     set: (data: SystemSettings) => db.set(KEYS.SETTINGS, data),
   },
-  // Added Sidebar Config DB
   sidebar: {
     get: () => db.get<SidebarConfigItem[]>(KEYS.SIDEBAR_CONFIG, defaultSidebarConfig),
     set: (data: SidebarConfigItem[]) => db.set(KEYS.SIDEBAR_CONFIG, data),
