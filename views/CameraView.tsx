@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Camera, Plus, Trash2, ExternalLink, X } from 'lucide-react';
 import { db } from '../utils/db';
 import { CameraInfo } from '../types';
@@ -40,8 +41,17 @@ export const CameraView: React.FC = () => {
   const [cameras, setCameras] = useState<CameraInfo[]>(db.cameras.get());
   const [selectedCamera, setSelectedCamera] = useState<CameraInfo | null>(null);
   
-  // Grid View State (2, 3, or 4 columns)
-  const [gridCols, setGridCols] = useState<2 | 3 | 4>(2);
+  // Grid View State (2, 3, or 4 columns) - Persisted in localStorage
+  const [gridCols, setGridCols] = useState<2 | 3 | 4>(() => {
+    const saved = localStorage.getItem('camera_grid_cols');
+    const parsed = parseInt(saved || '2', 10);
+    return (parsed === 2 || parsed === 3 || parsed === 4) ? parsed : 2;
+  });
+
+  // Save preference whenever it changes
+  useEffect(() => {
+    localStorage.setItem('camera_grid_cols', gridCols.toString());
+  }, [gridCols]);
   
   const ui = useUI();
 
