@@ -12,27 +12,27 @@ import {
   Activity, 
   Edit3, 
   Waves,
-  Map as MapIcon,
-  BookOpen,
-  TrendingUp,
-  PieChart,
-  ChevronLeft,
-  ChevronRight,
-  Users,
-  BrainCircuit,
-  AlertTriangle,
-  Radio,
-  MoreHorizontal,
-  MoveUp,
-  MoveDown,
-  Eye,
-  EyeOff,
-  RotateCcw,
-  Save,
-  X,
-  Pencil,
-  Check,
-  GripVertical
+  Map as MapIcon, 
+  BookOpen, 
+  TrendingUp, 
+  PieChart, 
+  ChevronLeft, 
+  ChevronRight, 
+  Users, 
+  BrainCircuit, 
+  AlertTriangle, 
+  Radio, 
+  MoreHorizontal, 
+  MoveUp, 
+  MoveDown, 
+  Eye, 
+  EyeOff, 
+  RotateCcw, 
+  Save, 
+  X, 
+  Pencil, 
+  Check, 
+  GripVertical 
 } from 'lucide-react';
 import { db } from '../utils/db';
 import { SidebarConfigItem } from '../types';
@@ -292,8 +292,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
 
         {/* Navigation */}
         <nav className={`flex-1 py-6 sidebar-scrollbar ${isCollapsed ? 'px-0' : ''}`}>
-          {/* Changed padding logic here: Remove pl-[11px] when collapsed to allow justify-center to work perfectly */}
-          <ul className={`space-y-1.5 ${isCollapsed ? 'px-0 flex flex-col items-center' : 'px-3'}`}>
+          {/* Adjusted left margin to 4px as requested */}
+          <ul className={`space-y-1.5 ${isCollapsed ? 'px-0 flex flex-col items-center ml-[4px]' : 'px-3'}`}>
             {visibleItems.map((item) => {
               // Check if active (dashboard is also root)
               const isActive = location.pathname === item.path || (item.path === '/dashboard' && location.pathname === '/');
