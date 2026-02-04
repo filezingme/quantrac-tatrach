@@ -347,14 +347,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
         </nav>
 
         {/* Footer with Edit Menu */}
-        <div className={`p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/30 transition-all duration-300 flex items-center ${isCollapsed ? 'justify-center flex-col gap-2' : 'justify-between'}`}>
+        <div className={`p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/30 transition-all duration-300 flex items-center select-none ${isCollapsed ? 'justify-center flex-col gap-2' : 'relative justify-center'}`}>
           {!isCollapsed && (
-             <p className="text-[10px] text-slate-400 dark:text-slate-500 pl-2">Version 3.0.1 © 2026</p>
+             <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Version 3.0.1 © 2026</p>
           )}
           
           <button 
             onClick={handleOpenConfig}
-            className={`p-1.5 rounded-lg text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors ${isCollapsed ? '' : 'ml-auto'}`}
+            className={`p-1.5 rounded-lg text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors ${isCollapsed ? '' : 'absolute right-3'}`}
             title="Tùy chỉnh Menu"
           >
             <Settings size={16} />
