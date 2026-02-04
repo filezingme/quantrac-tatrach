@@ -260,3 +260,10 @@ export interface DocumentItem {
   type: string;
   category: 'legal' | 'internal' | 'emergency' | 'reports';
 }
+
+// New Interface for Sidebar Configuration
+export interface SidebarConfigItem {
+  path: string;
+  isVisible: boolean;
+  order: number;
+}

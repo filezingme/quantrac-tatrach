@@ -14,7 +14,8 @@ import {
   SystemSettings,
   DocumentItem,
   AlertLog,
-  SensorItem // Imported
+  SensorItem,
+  SidebarConfigItem
 } from '../types';
 
 // CHANGED: Version bump to v4
@@ -34,7 +35,8 @@ const KEYS = {
   SETTINGS: 'app_settings_v3',
   DOCUMENTS: 'app_documents_v3',
   ALERTS: 'app_alerts_v4',
-  SENSORS: 'app_sensors_v2' // Bump version to force regen
+  SENSORS: 'app_sensors_v2',
+  SIDEBAR_CONFIG: 'app_sidebar_config_v1' // New key
 };
 
 // ... (Existing Default Data: defaultObservation, defaultForecast, defaultSpecs, etc.) ...
@@ -522,6 +524,29 @@ const generateMockSensors = (): SensorItem[] => {
   return sensors;
 };
 
+// --- DEFAULT SIDEBAR CONFIG (With user requested order) ---
+// ORDER: Dashboard, Map, Alerts, Sensors, Water Level, Camera, Images, ...
+const defaultSidebarConfig: SidebarConfigItem[] = [
+  { path: '/dashboard', isVisible: true, order: 0 },
+  { path: '/map', isVisible: true, order: 1 },
+  { path: '/alerts', isVisible: true, order: 2 },
+  { path: '/sensors', isVisible: true, order: 3 },
+  { path: '/water-level', isVisible: true, order: 4 }, // Moved up
+  { path: '/camera', isVisible: true, order: 5 },      // Moved up
+  { path: '/images', isVisible: true, order: 6 },      // Moved up
+  { path: '/ai-safety', isVisible: true, order: 7 },
+  { path: '/forecast', isVisible: true, order: 8 },
+  { path: '/flood-forecast', isVisible: true, order: 9 },
+  { path: '/operation', isVisible: true, order: 10 },
+  { path: '/documents', isVisible: true, order: 11 },
+  { path: '/records', isVisible: true, order: 12 },
+  { path: '/demo-charts', isVisible: true, order: 13 },
+  { path: '/specs', isVisible: true, order: 14 },
+  { path: '/general-info', isVisible: true, order: 15 },
+  { path: '/manual-entry', isVisible: true, order: 16 },
+  { path: '/users', isVisible: true, order: 17 }
+];
+
 // --- DB Operations ---
 
 export const db = {
@@ -641,5 +666,11 @@ export const db = {
   settings: {
     get: () => db.get<SystemSettings>(KEYS.SETTINGS, defaultSettings),
     set: (data: SystemSettings) => db.set(KEYS.SETTINGS, data),
+  },
+  // Added Sidebar Config DB
+  sidebar: {
+    get: () => db.get<SidebarConfigItem[]>(KEYS.SIDEBAR_CONFIG, defaultSidebarConfig),
+    set: (data: SidebarConfigItem[]) => db.set(KEYS.SIDEBAR_CONFIG, data),
+    reset: () => db.set(KEYS.SIDEBAR_CONFIG, defaultSidebarConfig)
   }
 };
