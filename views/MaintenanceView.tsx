@@ -1,9 +1,13 @@
 
 import React from 'react';
-import { Hammer, ArrowRight } from 'lucide-react';
+import { Hammer, ArrowRight, LogOut } from 'lucide-react';
 import { db } from '../utils/db';
 
-export const MaintenanceView: React.FC = () => {
+interface MaintenanceViewProps {
+  onLogout?: () => void;
+}
+
+export const MaintenanceView: React.FC<MaintenanceViewProps> = ({ onLogout }) => {
   const settings = db.settings.get();
 
   return (
@@ -29,12 +33,23 @@ export const MaintenanceView: React.FC = () => {
            <p className="text-blue-600 dark:text-blue-400 font-medium mt-1">Vui lòng liên hệ quản trị viên</p>
         </div>
 
-        <button 
-          onClick={() => window.location.reload()}
-          className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-md shadow-blue-200 dark:shadow-blue-900/20"
-        >
-          Tải lại trang <ArrowRight size={18}/>
-        </button>
+        <div className="flex flex-col gap-3">
+            <button 
+              onClick={() => window.location.reload()}
+              className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-md shadow-blue-200 dark:shadow-blue-900/20"
+            >
+              Tải lại trang <ArrowRight size={18}/>
+            </button>
+
+            {onLogout && (
+                <button 
+                  onClick={onLogout}
+                  className="flex items-center justify-center gap-2 w-full py-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 rounded-xl font-bold transition-all"
+                >
+                  <LogOut size={18}/> Đăng nhập bằng tài khoản Admin
+                </button>
+            )}
+        </div>
 
         <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700">
            <p className="text-xs text-slate-400 dark:text-slate-500">

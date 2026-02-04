@@ -95,7 +95,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
 
   // --- MAINTENANCE MODE CHECK ---
   if (settings.maintenanceMode && user.role !== 'admin') {
-      return <MaintenanceView />;
+      return <MaintenanceView onLogout={onLogout} />;
   }
 
   // ... (Rest of existing logic: KeyDown, ClickOutside, Toggles, etc.)
