@@ -266,4 +266,5 @@ export interface SidebarConfigItem {
   path: string;
   isVisible: boolean;
   order: number;
+  customLabel?: string; // Added custom label for renaming
 }

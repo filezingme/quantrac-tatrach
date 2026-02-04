@@ -36,7 +36,7 @@ const KEYS = {
   DOCUMENTS: 'app_documents_v3',
   ALERTS: 'app_alerts_v4',
   SENSORS: 'app_sensors_v2',
-  SIDEBAR_CONFIG: 'app_sidebar_config_v1' // New key
+  SIDEBAR_CONFIG: 'app_sidebar_config_v2' // Bumped to v2 for new defaults
 };
 
 // ... (Existing Default Data: defaultObservation, defaultForecast, defaultSpecs, etc.) ...
@@ -524,16 +524,15 @@ const generateMockSensors = (): SensorItem[] => {
   return sensors;
 };
 
-// --- DEFAULT SIDEBAR CONFIG (With user requested order) ---
-// ORDER: Dashboard, Map, Alerts, Sensors, Water Level, Camera, Images, ...
+// --- DEFAULT SIDEBAR CONFIG (Updated order: Dashboard, Map, Alerts, Sensors, WaterLevel, Camera, Images) ---
 const defaultSidebarConfig: SidebarConfigItem[] = [
   { path: '/dashboard', isVisible: true, order: 0 },
   { path: '/map', isVisible: true, order: 1 },
   { path: '/alerts', isVisible: true, order: 2 },
   { path: '/sensors', isVisible: true, order: 3 },
-  { path: '/water-level', isVisible: true, order: 4 }, // Moved up
-  { path: '/camera', isVisible: true, order: 5 },      // Moved up
-  { path: '/images', isVisible: true, order: 6 },      // Moved up
+  { path: '/water-level', isVisible: true, order: 4 }, // Immediately after Sensors
+  { path: '/camera', isVisible: true, order: 5 },      // Followed by Camera
+  { path: '/images', isVisible: true, order: 6 },      // Followed by Images
   { path: '/ai-safety', isVisible: true, order: 7 },
   { path: '/forecast', isVisible: true, order: 8 },
   { path: '/flood-forecast', isVisible: true, order: 9 },

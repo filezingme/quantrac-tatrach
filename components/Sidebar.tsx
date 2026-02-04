@@ -29,7 +29,10 @@ import {
   EyeOff,
   RotateCcw,
   Save,
-  X
+  X,
+  Pencil,
+  Check,
+  GripVertical
 } from 'lucide-react';
 import { db } from '../utils/db';
 import { SidebarConfigItem } from '../types';
@@ -76,6 +79,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
   // Config Modal State
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [tempConfig, setTempConfig] = useState<SidebarConfigItem[]>([]);
+  
+  // Renaming State
+  const [editingPath, setEditingPath] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
+
+  // Drag and Drop State
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const ui = useUI();
 
@@ -138,6 +148,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
     }).sort((a, b) => a.order - b.order);
 
     setTempConfig(mergedConfig);
+    setEditingPath(null); // Reset edit mode
     setIsConfigOpen(true);
   };
 
@@ -162,6 +173,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
     ));
   };
 
+  const handleStartEdit = (path: string, currentLabel: string) => {
+    setEditingPath(path);
+    setEditValue(currentLabel);
+  };
+
+  const handleSaveLabel = (path: string) => {
+    setTempConfig(prev => prev.map(item => 
+        item.path === path ? { ...item, customLabel: editValue } : item
+    ));
+    setEditingPath(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingPath(null);
+    setEditValue('');
+  };
+
   const handleSaveConfig = () => {
     db.sidebar.set(tempConfig);
     setIsConfigOpen(false);
@@ -171,13 +199,43 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
   const handleResetConfig = () => {
     ui.confirm({
       title: 'Khôi phục mặc định',
-      message: 'Bạn có chắc muốn đặt lại thứ tự menu về mặc định?',
+      message: 'Bạn có chắc muốn đặt lại thứ tự và tên menu về mặc định?',
       onConfirm: () => {
         db.sidebar.reset();
         setIsConfigOpen(false);
         ui.showToast('info', 'Đã khôi phục menu mặc định');
       }
     });
+  };
+
+  // --- Drag and Drop Handlers ---
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    setDraggedIndex(index);
+    // Create a ghost image effects if needed, or stick to browser default
+    e.dataTransfer.effectAllowed = 'move';
+    // Firefox requires setting data
+    e.dataTransfer.setData('text/plain', index.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    e.preventDefault(); // Necessary to allow dropping
+    if (draggedIndex === null || draggedIndex === index) return;
+
+    const newConfig = [...tempConfig];
+    const draggedItem = newConfig[draggedIndex];
+    
+    // Remove dragged item
+    newConfig.splice(draggedIndex, 1);
+    // Insert at new position
+    newConfig.splice(index, 0, draggedItem);
+
+    // Update state immediately for visual feedback
+    setTempConfig(newConfig.map((item, idx) => ({ ...item, order: idx })));
+    setDraggedIndex(index);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
   };
 
   return (
@@ -238,7 +296,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
             {visibleItems.map((item) => {
               // Check if active (dashboard is also root)
               const isActive = location.pathname === item.path || (item.path === '/dashboard' && location.pathname === '/');
-              
+              const conf = config.find(c => c.path === item.path);
+              const label = conf?.customLabel || item.label;
+
               return (
                 <li key={item.path} className="group relative">
                   <button
@@ -255,7 +315,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
                         : 'hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-100 text-slate-500 dark:text-slate-400'
                       }
                     `}
-                    title={isCollapsed ? item.label : undefined}
+                    title={isCollapsed ? label : undefined}
                   >
                     <item.icon 
                       size={20} 
@@ -264,7 +324,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
                     
                     {/* Text Label - Hidden when collapsed */}
                     <span className={`ml-3 whitespace-nowrap transition-all duration-200 ${isCollapsed ? 'w-0 opacity-0 hidden' : 'w-auto opacity-100'}`}>
-                      {item.label}
+                      {label}
                     </span>
 
                     {/* Active Indicator Dot */}
@@ -276,7 +336,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
                   {/* Floating Tooltip for Collapsed State */}
                   {isCollapsed && (
                     <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-1.5 bg-slate-800 text-white text-xs font-bold rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 shadow-lg whitespace-nowrap z-50">
-                      {item.label}
+                      {label}
                       <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-2 h-2 bg-slate-800 rotate-45 transform"></div>
                     </div>
                   )}
@@ -289,7 +349,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
         {/* Footer with Edit Menu */}
         <div className={`p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/30 transition-all duration-300 flex items-center ${isCollapsed ? 'justify-center flex-col gap-2' : 'justify-between'}`}>
           {!isCollapsed && (
-             <p className="text-[10px] text-slate-400 dark:text-slate-500">v3.0.1 © 2026</p>
+             <p className="text-[10px] text-slate-400 dark:text-slate-500 pl-2">Version 3.0.1 © 2026</p>
           )}
           
           <button 
@@ -314,7 +374,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
               </div>
 
               <div className="p-2 bg-yellow-50 dark:bg-yellow-900/20 text-[11px] text-yellow-800 dark:text-yellow-400 text-center font-medium border-b border-yellow-100 dark:border-yellow-900/30">
-                 Kéo hoặc dùng nút mũi tên để sắp xếp. Ẩn các mục không cần thiết.
+                 Kéo thả để sắp xếp vị trí hoặc đổi tên các mục.
               </div>
 
               <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
@@ -322,25 +382,79 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
                     {tempConfig.map((item, index) => {
                        const masterItem = MASTER_MENU_ITEMS.find(m => m.path === item.path);
                        if (!masterItem) return null;
+                       
+                       const currentLabel = item.customLabel || masterItem.label;
+                       const isEditing = editingPath === item.path;
+                       const isDragging = draggedIndex === index;
 
                        return (
-                          <div key={item.path} className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${item.isVisible ? 'bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600' : 'bg-slate-50 dark:bg-slate-800/50 border-transparent opacity-60'}`}>
-                             <div className="flex flex-col gap-1 text-slate-400">
-                                <button onClick={() => moveItem(index, 'up')} disabled={index === 0} className="hover:text-blue-600 disabled:opacity-30"><MoveUp size={14}/></button>
-                                <button onClick={() => moveItem(index, 'down')} disabled={index === tempConfig.length - 1} className="hover:text-blue-600 disabled:opacity-30"><MoveDown size={14}/></button>
+                          <div 
+                            key={item.path} 
+                            draggable={!isEditing}
+                            onDragStart={(e) => handleDragStart(e, index)}
+                            onDragOver={(e) => handleDragOver(e, index)}
+                            onDragEnd={handleDragEnd}
+                            className={`
+                                flex items-center gap-3 p-3 rounded-lg border transition-all cursor-move
+                                ${item.isVisible 
+                                    ? 'bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600' 
+                                    : 'bg-slate-50 dark:bg-slate-800/50 border-transparent opacity-60'
+                                }
+                                ${isDragging ? 'opacity-50 scale-95 border-blue-400 border-dashed' : ''}
+                                hover:border-blue-300 dark:hover:border-slate-500
+                            `}
+                          >
+                             {/* Drag Handle */}
+                             <div className="text-slate-300 dark:text-slate-500 cursor-grab active:cursor-grabbing">
+                                <GripVertical size={16}/>
                              </div>
                              
                              <div className={`p-2 rounded-md ${item.isVisible ? 'bg-blue-50 dark:bg-slate-600 text-blue-600 dark:text-blue-300' : 'bg-slate-200 dark:bg-slate-700 text-slate-400'}`}>
                                 <masterItem.icon size={18}/>
                              </div>
                              
-                             <div className="flex-1 font-medium text-sm text-slate-700 dark:text-slate-200">
-                                {masterItem.label}
+                             <div className="flex-1 min-w-0">
+                                {isEditing ? (
+                                    <div className="flex items-center gap-2">
+                                        <input 
+                                            autoFocus
+                                            type="text" 
+                                            value={editValue} 
+                                            onChange={(e) => setEditValue(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') handleSaveLabel(item.path);
+                                                if (e.key === 'Escape') handleCancelEdit();
+                                            }}
+                                            className="w-full text-sm border border-blue-400 rounded px-2 py-1 outline-none bg-white dark:bg-slate-800 dark:text-white"
+                                        />
+                                        <button onClick={() => handleSaveLabel(item.path)} className="text-green-600 hover:bg-green-50 p-1 rounded"><Check size={14}/></button>
+                                        <button onClick={handleCancelEdit} className="text-red-500 hover:bg-red-50 p-1 rounded"><X size={14}/></button>
+                                    </div>
+                                ) : (
+                                    <div className="group flex items-center gap-2">
+                                        <span className="font-medium text-sm text-slate-700 dark:text-slate-200 truncate" title={currentLabel}>
+                                            {currentLabel}
+                                        </span>
+                                        <button 
+                                            onClick={() => handleStartEdit(item.path, currentLabel)}
+                                            className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-blue-500 transition-opacity"
+                                            title="Đổi tên"
+                                        >
+                                            <Pencil size={12}/>
+                                        </button>
+                                    </div>
+                                )}
+                             </div>
+
+                             {/* Manual Sort Buttons (kept for accessibility) */}
+                             <div className="flex flex-col gap-0.5 text-slate-300">
+                                <button onClick={() => moveItem(index, 'up')} disabled={index === 0} className="hover:text-blue-600 disabled:opacity-20"><MoveUp size={10}/></button>
+                                <button onClick={() => moveItem(index, 'down')} disabled={index === tempConfig.length - 1} className="hover:text-blue-600 disabled:opacity-20"><MoveDown size={10}/></button>
                              </div>
 
                              <button 
                                 onClick={() => toggleVisibility(item.path)}
-                                className={`p-2 rounded-lg transition-colors ${item.isVisible ? 'text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-600' : 'text-slate-300 hover:text-slate-500'}`}
+                                className={`p-2 rounded-lg transition-colors ml-1 ${item.isVisible ? 'text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-600' : 'text-slate-300 hover:text-slate-500'}`}
                                 title={item.isVisible ? "Đang hiện" : "Đang ẩn"}
                              >
                                 {item.isVisible ? <Eye size={18}/> : <EyeOff size={18}/>}
