@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Folder, Plus, ExternalLink, Image as ImageIcon, ArrowLeft, Upload, Grid, Maximize2, X, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import { Folder, Plus, ExternalLink, Image as ImageIcon, ArrowLeft, Upload, Grid, Maximize2, X, ChevronLeft, ChevronRight, Trash2, Edit2 } from 'lucide-react';
 import { db } from '../utils/db';
 import { ImageGroup, ImageItem } from '../types';
 import { useUI } from '../components/GlobalUI';
@@ -229,6 +229,33 @@ export const ImageView: React.FC = () => {
     });
   };
 
+  const handleEditImageTitle = (e: React.MouseEvent, imageId: string, currentTitle: string) => {
+    e.stopPropagation();
+    if (!activeGroupId) return;
+
+    ui.prompt({
+        title: 'Đổi tên hình ảnh',
+        message: 'Nhập tiêu đề mới cho hình ảnh:',
+        defaultValue: currentTitle,
+        placeholder: 'Tiêu đề...',
+        onConfirm: (newTitle) => {
+            const finalTitle = newTitle.trim();
+            if (!finalTitle) return;
+
+            const updated = groups.map(g => {
+                if (g.id !== activeGroupId) return g;
+                return {
+                    ...g,
+                    images: g.images.map(img => img.id === imageId ? { ...img, title: finalTitle } : img)
+                };
+            });
+            setGroups(updated);
+            db.images.set(updated);
+            ui.showToast('success', 'Đã cập nhật tiêu đề ảnh');
+        }
+    });
+  };
+
   return (
     <>
       <div className="space-y-6 pb-10 animate-fade-in h-[calc(100vh-8rem)] flex flex-col">
@@ -302,15 +329,19 @@ export const ImageView: React.FC = () => {
                                      {/* Action Buttons */}
                                      <div className="absolute top-2 right-2 flex gap-2">
                                         <button 
+                                          onClick={(e) => handleEditImageTitle(e, img.id, img.title)}
+                                          className="text-white/80 hover:text-white bg-blue-500/80 hover:bg-blue-600 p-1.5 rounded-full backdrop-blur-sm transition-colors"
+                                          title="Đổi tên"
+                                        >
+                                          <Edit2 size={16}/>
+                                        </button>
+                                        <button 
                                           onClick={(e) => handleDeleteImage(e, img.id)}
                                           className="text-white/80 hover:text-white bg-red-500/80 hover:bg-red-600 p-1.5 rounded-full backdrop-blur-sm transition-colors"
                                           title="Xóa ảnh"
                                         >
                                           <Trash2 size={16}/>
                                         </button>
-                                        <div className="text-white/80 hover:text-white bg-black/20 hover:bg-black/50 p-1.5 rounded-full backdrop-blur-sm">
-                                            <Maximize2 size={16}/>
-                                        </div>
                                      </div>
                                  </div>
                              </div>

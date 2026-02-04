@@ -69,7 +69,7 @@ export const GeneralInfoView: React.FC = () => {
                     rows={3} 
                     value={info.mission} 
                     onChange={e => handleChange('mission', e.target.value)} 
-                    className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none font-medium text-slate-700 dark:text-slate-200 bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 focus:text-slate-900 dark:focus:text-white transition-colors"
+                    className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none font-normal text-slate-600 dark:text-slate-300 bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 focus:text-slate-900 dark:focus:text-white transition-colors"
                   />
                </div>
             </div>
@@ -116,7 +116,7 @@ const Input = ({ label, val, onChange }: { label: string, val: string, onChange:
       type="text" 
       value={val} 
       onChange={(e) => onChange(e.target.value)} 
-      className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none font-medium text-slate-700 dark:text-slate-200 bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 focus:text-slate-900 dark:focus:text-white transition-colors" 
+      className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none font-normal text-slate-600 dark:text-slate-300 bg-slate-50/50 dark:bg-slate-700/50 focus:bg-white dark:focus:bg-slate-700 focus:text-slate-900 dark:focus:text-white transition-colors" 
     />
   </div>
 );
