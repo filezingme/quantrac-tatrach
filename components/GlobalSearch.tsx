@@ -1,17 +1,15 @@
 
-// ... (imports remain the same, ensure X is imported)
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   Search, X, FileText, Image as ImageIcon, LayoutDashboard, Settings, 
   Droplets, ArrowRight, Camera, Waves, Activity, Table as TableIcon, 
   CloudRain, User, Moon, Sun, LogOut, History, Bell, Mic, Command, 
-  CornerDownLeft, MoveUp, MoveDown, Trash2, MicOff
+  CornerDownLeft, MoveUp, MoveDown, Trash2, MicOff, Radio, AlertOctagon,
+  BrainCircuit, Map as MapIcon, BarChart2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../utils/db';
 import { useUI } from './GlobalUI';
-
-// ... (interfaces and helpers remain the same)
 
 interface GlobalSearchProps {
   isOpen: boolean;
@@ -22,7 +20,7 @@ type SearchType = 'all' | 'data' | 'navigation' | 'action' | 'user';
 
 interface SearchResult {
   id: string;
-  type: 'page' | 'document' | 'spec' | 'data' | 'image' | 'camera' | 'scenario' | 'operation' | 'user' | 'action' | 'history' | 'notification';
+  type: 'page' | 'document' | 'spec' | 'data' | 'image' | 'camera' | 'scenario' | 'operation' | 'user' | 'action' | 'history' | 'notification' | 'sensor' | 'alert';
   title: string;
   subtitle?: string;
   url?: string; 
@@ -52,7 +50,6 @@ const removeAccents = (str: string) => {
 };
 
 export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) => {
-  // ... (state remains the same)
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -86,7 +83,6 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
     }
   }, [isOpen]);
 
-  // ... (voice search logic remains the same)
   // Voice Search Handler
   const toggleListening = () => {
     if (isListening) {
@@ -194,7 +190,6 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
     }
   }, [selectedIndex]);
 
-  // ... (Main Search Logic remains the same)
   // Main Search Logic
   useEffect(() => {
     if (!query.trim()) {
@@ -218,28 +213,120 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
         }
     });
 
-    // 2. PAGES
+    // 2. PAGES (Expanded)
     const pages = [
-      { path: '/dashboard', label: 'Dashboard / Bảng điều khiển' },
-      { path: '/map', label: 'Bản đồ GIS' },
-      { path: '/forecast', label: 'Dự báo' },
-      { path: '/documents', label: 'Văn bản & Quy định' },
-      { path: '/images', label: 'Thư viện hình ảnh' },
-      { path: '/camera', label: 'Camera giám sát' },
-      { path: '/specs', label: 'Thông số kỹ thuật' },
-      { path: '/flood-forecast', label: 'Dự báo lũ' },
-      { path: '/operation', label: 'Quy trình vận hành' },
-      { path: '/ai-safety', label: 'An toàn AI' },
+      { path: '/dashboard', label: 'Dashboard / Bảng điều khiển / Tổng quan' },
+      { path: '/map', label: 'Bản đồ GIS / Vị trí địa lý / Maps' },
+      { path: '/sensors', label: 'Danh sách Cảm biến / Sensors List' },
+      { path: '/alerts', label: 'Lịch sử Cảnh báo / Sự kiện / Alerts' },
+      { path: '/ai-safety', label: 'An toàn AI / Phân tích thông minh / AI Safety' },
+      { path: '/water-level', label: 'Giám sát Mực nước / So sánh dữ liệu / Water Level' },
+      { path: '/forecast', label: 'Dự báo / Mưa / Forecast' },
+      { path: '/flood-forecast', label: 'Dự báo lũ / Kịch bản / Flood Sim' },
+      { path: '/documents', label: 'Văn bản & Quy định / Documents' },
+      { path: '/images', label: 'Thư viện hình ảnh / Gallery' },
+      { path: '/camera', label: 'Camera giám sát / CCTV' },
+      { path: '/specs', label: 'Thông số kỹ thuật / Technical Specs' },
+      { path: '/operation', label: 'Quy trình vận hành / Operation' },
+      { path: '/demo-charts', label: 'Thư viện Biểu đồ Demo / Charts' },
+      { path: '/profile', label: 'Hồ sơ cá nhân / Tài khoản / Profile' },
     ];
-    if (currentUser.role === 'admin') pages.push({ path: '/users', label: 'Quản lý người dùng' });
+    if (currentUser.role === 'admin') {
+        pages.push({ path: '/users', label: 'Quản lý người dùng / Users' });
+        pages.push({ path: '/settings', label: 'Cài đặt hệ thống / Settings' });
+        pages.push({ path: '/manual-entry', label: 'Nhập liệu thủ công / Manual Entry' });
+    }
 
     pages.forEach(page => {
       if (removeAccents(page.label).includes(lowerQuery)) {
-        rawResults.push({ id: `page-${page.path}`, type: 'page', category: 'navigation', title: page.label, url: page.path, icon: <LayoutDashboard size={16} /> });
+        // Extract main title from label (first part before /)
+        const mainTitle = page.label.split('/')[0].trim();
+        // Determine icon
+        let Icon = LayoutDashboard;
+        if (page.path.includes('map')) Icon = MapIcon;
+        else if (page.path.includes('sensor')) Icon = Radio;
+        else if (page.path.includes('alert')) Icon = AlertOctagon;
+        else if (page.path.includes('ai')) Icon = BrainCircuit;
+        else if (page.path.includes('water')) Icon = Droplets;
+        else if (page.path.includes('doc')) Icon = FileText;
+        else if (page.path.includes('cam')) Icon = Camera;
+        else if (page.path.includes('chart')) Icon = BarChart2;
+
+        rawResults.push({ 
+            id: `page-${page.path}`, 
+            type: 'page', 
+            category: 'navigation', 
+            title: mainTitle, 
+            subtitle: 'Điều hướng trang',
+            url: page.path, 
+            icon: <Icon size={16} /> 
+        });
       }
     });
 
-    // 3. DATA
+    // 3. SENSORS (New Data Source)
+    try {
+        const sensors = db.sensors.get();
+        const sensorResults = sensors.filter(s =>
+            removeAccents(s.name).includes(lowerQuery) ||
+            removeAccents(s.code).includes(lowerQuery) ||
+            removeAccents(s.type).includes(lowerQuery)
+        ).slice(0, 5); // Limit
+
+        sensorResults.forEach(s => {
+            rawResults.push({
+                id: `sensor-${s.id}`,
+                type: 'sensor',
+                category: 'data',
+                title: s.name,
+                subtitle: `${s.type} • ${s.station}`,
+                value: `${s.lastValue} ${s.unit}`,
+                url: '/sensors', // Link to list, ideally would filter list
+                icon: <Radio size={16} />
+            });
+        });
+    } catch(e) {}
+
+    // 4. ALERTS (New Data Source)
+    try {
+        const alerts = db.alerts.get();
+        const alertResults = alerts.filter(a =>
+            removeAccents(a.message).includes(lowerQuery) ||
+            removeAccents(a.sensor).includes(lowerQuery)
+        ).slice(0, 3); // Limit
+
+        alertResults.forEach(a => {
+            rawResults.push({
+                id: `alert-${a.id}`,
+                type: 'alert',
+                category: 'data',
+                title: `Cảnh báo: ${a.sensor}`,
+                subtitle: a.time,
+                url: '/alerts',
+                icon: <AlertOctagon size={16} className={a.severity === 'critical' ? 'text-red-500' : 'text-amber-500'} />
+            });
+        });
+    } catch(e) {}
+
+    // 5. SCENARIOS (New Data Source)
+    try {
+        const scenarios = db.scenarios.get();
+        const scenarioResults = scenarios.filter(s => removeAccents(s.name).includes(lowerQuery));
+        
+        scenarioResults.forEach(s => {
+            rawResults.push({
+                id: `sc-${s.id}`,
+                type: 'scenario',
+                category: 'data',
+                title: s.name,
+                subtitle: 'Kịch bản mô phỏng lũ',
+                url: '/flood-forecast',
+                icon: <Waves size={16} />
+            });
+        });
+    } catch(e) {}
+
+    // 6. OBSERVATION DATA (Existing)
     const obs = db.observation.get();
     if (removeAccents('mực nước hồ').includes(lowerQuery)) rawResults.push({ id: 'data-wl', type: 'data', category: 'data', title: 'Mực nước hồ', value: `${obs.waterLevel} m`, icon: <Droplets size={16}/>, url: '/dashboard' });
     if (removeAccents('dung tích').includes(lowerQuery)) rawResults.push({ id: 'data-cap', type: 'data', category: 'data', title: 'Dung tích', value: `${obs.capacity} tr.m³`, icon: <Activity size={16}/>, url: '/dashboard' });
@@ -249,7 +336,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
         }
     });
 
-    // 4. USERS (Admin)
+    // 7. USERS (Admin only)
     if (currentUser.role === 'admin') {
         db.users.getAll().forEach(u => {
             const str = removeAccents(`${u.name} ${u.email} ${u.phone}`);
@@ -259,7 +346,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
         });
     }
 
-    // 5. DEEP SEARCH (Docs, Specs, Cameras)
+    // 8. DOCUMENTS & CAMERAS (Deep Search)
     db.documents.get().forEach(d => {
         if (removeAccents(d.title).includes(lowerQuery) || removeAccents(d.number).includes(lowerQuery)) {
             rawResults.push({ id: `doc-${d.id}`, type: 'document', category: 'data', title: d.title, subtitle: d.number, url: '/documents', icon: <FileText size={16} /> });
@@ -275,7 +362,6 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
     setSelectedIndex(0);
   }, [query]);
 
-  // ... (History and Select helpers remain the same)
   const addToHistory = (text: string) => {
       const newHistory = [text, ...searchHistory.filter(h => h !== text)].slice(0, 5);
       setSearchHistory(newHistory);
@@ -288,7 +374,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
   }
 
   const handleSelect = (result: SearchResult) => {
-    addToHistory(result.title); // Save to history
+    addToHistory(result.title);
     if (result.action) {
         result.action();
     } else if (result.url) {
@@ -312,7 +398,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
             ref={inputRef}
             type="text"
             className="flex-1 bg-transparent outline-none text-xl text-slate-800 dark:text-white placeholder-slate-400 font-medium"
-            placeholder={isListening ? "Đang nghe... (Hãy nói từ khóa)" : "Tìm kiếm, ra lệnh, hoặc hỏi..."}
+            placeholder={isListening ? "Đang nghe... (Hãy nói từ khóa)" : "Tìm kiếm dữ liệu, cảm biến, ra lệnh..."}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             autoComplete="off"
@@ -326,7 +412,6 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
                 {isListening ? <MicOff size={20} /> : <Mic size={20} />}
              </button>
              
-             {/* Close Button (X) replacing the old ESC text button */}
              <button 
                 onClick={onClose} 
                 className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
@@ -337,16 +422,14 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
           </div>
         </div>
 
-        {/* ... (Rest of the component remains largely the same) */}
-        
         {/* 2. Smart Tabs (Filters) */}
         {results.length > 0 && (
             <div className="flex items-center gap-2 px-4 py-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 overflow-x-auto no-scrollbar">
                 {[
                     { id: 'all', label: 'Tất cả' },
-                    { id: 'data', label: 'Dữ liệu' },
+                    { id: 'data', label: 'Dữ liệu & Cảm biến' },
                     { id: 'navigation', label: 'Điều hướng' },
-                    { id: 'action', label: 'Lệnh' },
+                    { id: 'action', label: 'Lệnh hệ thống' },
                     { id: 'user', label: 'Người dùng' }
                 ].map(tab => (
                     <button
@@ -370,8 +453,8 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
              filteredResults.length > 0 ? (
                 <div className="p-2 space-y-1">
                     <div className="px-3 py-2 text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-wider flex justify-between">
-                        <span>Gợi ý tốt nhất</span>
-                        <span>{filteredResults.length} kết quả</span>
+                        <span>Kết quả tìm kiếm</span>
+                        <span>{filteredResults.length} mục</span>
                     </div>
                     {filteredResults.map((result, idx) => (
                         <div
@@ -425,8 +508,8 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
              ) : (
                 <div className="h-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-600 py-12">
                     <Search size={48} className="opacity-20 mb-4"/>
-                    <p className="font-medium">Không tìm thấy kết quả</p>
-                    <p className="text-sm mt-1">Thử từ khóa khác hoặc kiểm tra chính tả</p>
+                    <p className="font-medium">Không tìm thấy kết quả phù hợp</p>
+                    <p className="text-sm mt-1">Thử từ khóa khác (ví dụ: "cảm biến", "mực nước")</p>
                 </div>
              )
           ) : (
@@ -456,9 +539,11 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
                 <h4 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase mb-3 px-2">Gợi ý nhanh</h4>
                 <div className="grid grid-cols-2 gap-2">
                     <SuggestionItem icon={<Droplets size={14}/>} text="Mực nước hồ" onClick={() => setQuery("mực nước")} />
-                    <SuggestionItem icon={<User size={14}/>} text="Quản lý người dùng" onClick={() => setQuery("người dùng")} />
-                    <SuggestionItem icon={<Bell size={14}/>} text="Cảnh báo mới" onClick={() => setQuery("cảnh báo")} />
-                    <SuggestionItem icon={<Camera size={14}/>} text="Camera đập tràn" onClick={() => setQuery("camera")} />
+                    <SuggestionItem icon={<Radio size={14}/>} text="Cảm biến áp lực" onClick={() => setQuery("áp lực")} />
+                    <SuggestionItem icon={<AlertOctagon size={14}/>} text="Cảnh báo mới" onClick={() => setQuery("cảnh báo")} />
+                    <SuggestionItem icon={<BrainCircuit size={14}/>} text="An toàn AI" onClick={() => setQuery("an toàn")} />
+                    <SuggestionItem icon={<MapIcon size={14}/>} text="Bản đồ số" onClick={() => setQuery("bản đồ")} />
+                    <SuggestionItem icon={<Camera size={14}/>} text="Camera" onClick={() => setQuery("camera")} />
                 </div>
             </div>
           )}
@@ -472,7 +557,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
                 <span className="flex items-center gap-1"><kbd className="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded px-1 min-w-[20px] text-center font-sans">Tab</kbd> đổi nhóm</span>
             </div>
             <div className="hidden sm:flex items-center gap-2">
-                <Command size={10}/> Super Search v2.0
+                <Command size={10}/> Global Search v3.0
             </div>
         </div>
       </div>
