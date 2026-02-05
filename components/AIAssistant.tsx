@@ -43,7 +43,7 @@ export const AIAssistant: React.FC = () => {
       id: 'welcome',
       role: 'model',
       type: 'text',
-      content: 'Xin chào! Tôi là Trợ lý AI của Hồ Tả Trạch. Tôi có thể giúp bạn tra cứu số liệu, vẽ biểu đồ hoặc giải đáp quy trình vận hành. Hãy thử hỏi tôi xem!'
+      content: 'Xin chào! Tôi là Trợ lý AI. Tôi có thể giúp bạn tra cứu số liệu, vẽ biểu đồ hoặc giải đáp quy trình vận hành. Hãy thử hỏi tôi xem!'
     }
   ]);
   const [isLoading, setIsLoading] = useState(false);
@@ -168,7 +168,7 @@ export const AIAssistant: React.FC = () => {
 
       const systemInstruction = `
         Bạn là Trợ lý AI chuyên gia của Hệ thống Quản lý Hồ chứa Tả Trạch.
-        DỮ LIỆU HIỆN TẠI: ${JSON.stringify(contextData)}
+        DỮ LIỆN HIỆN TẠI: ${JSON.stringify(contextData)}
         NHIỆM VỤ: Trả lời câu hỏi dựa trên dữ liệu.
         QUY TẮC AN TOÀN: 
         1. Nếu người dùng yêu cầu vẽ biểu đồ, hãy trả về JSON với "type": "chart" và cấu trúc "chartConfig" đầy đủ (keys, data, xAxisKey).
@@ -383,7 +383,7 @@ export const AIAssistant: React.FC = () => {
             <Sparkles size={18} />
           </div>
           <div>
-            <h3 className="font-bold text-sm">Trợ lý ảo Tả Trạch</h3>
+            <h3 className="font-bold text-sm">Trợ lý AI</h3>
             <p className="text-[10px] text-white/80">Hệ thống hỗ trợ ra quyết định</p>
           </div>
         </div>
