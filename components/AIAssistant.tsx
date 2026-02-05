@@ -32,6 +32,68 @@ const SAMPLE_PROMPTS = [
   "Quy trình vận hành trong mùa lũ như thế nào?"
 ];
 
+// --- HELPER COMPONENT: MARKDOWN RENDERER ---
+const FormattedText = ({ content, isUser }: { content: string, isUser: boolean }) => {
+  // Split content by newlines to handle paragraphs and lists
+  const lines = content.split('\n');
+
+  return (
+    <div className="space-y-1.5 font-sans">
+      {lines.map((line, i) => {
+        const trimmed = line.trim();
+        if (!trimmed) return <div key={i} className="h-2" />; // Spacer for empty lines
+
+        // Detect List Items (- or * or 1.)
+        const isBullet = /^[*-]\s/.test(trimmed);
+        const isNumber = /^\d+\.\s/.test(trimmed);
+        
+        // Clean the markers from the text
+        const cleanText = trimmed
+          .replace(/^[*-]\s/, '')
+          .replace(/^\d+\.\s/, '');
+
+        // Parse Inline Formatting (Bold **text**)
+        const renderInline = (text: string) => {
+          // Split by bold markdown
+          const parts = text.split(/(\*\*.*?\*\*)/g);
+          return parts.map((part, idx) => {
+            if (part.startsWith('**') && part.endsWith('**')) {
+              // Remove ** and render bold
+              return (
+                <strong 
+                  key={idx} 
+                  className={isUser ? "font-bold text-white" : "font-bold text-slate-900 dark:text-white"}
+                >
+                  {part.slice(2, -2)}
+                </strong>
+              );
+            }
+            // Basic Italic check (*text*) if needed, simplified here
+            return part;
+          });
+        };
+
+        if (isBullet || isNumber) {
+          return (
+            <div key={i} className="flex gap-2 ml-1 items-start">
+               {isBullet ? (
+                 <span className={`mt-2 w-1.5 h-1.5 rounded-full shrink-0 ${isUser ? 'bg-white/80' : 'bg-slate-400 dark:bg-slate-500'}`}></span>
+               ) : (
+                 <span className={`font-bold text-xs mt-0.5 min-w-[12px] ${isUser ? 'text-white/90' : 'text-blue-600 dark:text-blue-400'}`}>
+                   {trimmed.match(/^\d+\./)?.[0]}
+                 </span>
+               )}
+               <p className="leading-relaxed flex-1">{renderInline(cleanText)}</p>
+            </div>
+          );
+        }
+
+        return <p key={i} className="leading-relaxed">{renderInline(trimmed)}</p>;
+      })}
+    </div>
+  );
+};
+
 export const AIAssistant: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -43,7 +105,7 @@ export const AIAssistant: React.FC = () => {
       id: 'welcome',
       role: 'model',
       type: 'text',
-      content: 'Xin chào! Tôi là Trợ lý AI. Tôi có thể giúp bạn tra cứu số liệu, vẽ biểu đồ hoặc giải đáp quy trình vận hành. Hãy thử hỏi tôi xem!'
+      content: db.settings.get().features.aiWelcomeMessage // Loaded from settings
     }
   ]);
   const [isLoading, setIsLoading] = useState(false);
@@ -168,12 +230,12 @@ export const AIAssistant: React.FC = () => {
 
       const systemInstruction = `
         Bạn là Trợ lý AI chuyên gia của Hệ thống Quản lý Hồ chứa Tả Trạch.
-        DỮ LIỆN HIỆN TẠI: ${JSON.stringify(contextData)}
+        DỮ LIỆU HIỆN TẠI: ${JSON.stringify(contextData)}
         NHIỆM VỤ: Trả lời câu hỏi dựa trên dữ liệu.
         QUY TẮC AN TOÀN: 
         1. Nếu người dùng yêu cầu vẽ biểu đồ, hãy trả về JSON với "type": "chart" và cấu trúc "chartConfig" đầy đủ (keys, data, xAxisKey).
         2. Nếu không vẽ biểu đồ, trả về JSON với "type": "text".
-        3. Luôn đảm bảo JSON hợp lệ.
+        3. Sử dụng Markdown để định dạng văn bản cho đẹp (ví dụ: dùng **in đậm** cho các con số quan trọng, dùng danh sách - để liệt kê).
         
         Cấu trúc JSON mong đợi:
         { 
@@ -229,7 +291,7 @@ export const AIAssistant: React.FC = () => {
            const wl = contextData.observation.waterLevel;
            responseText = JSON.stringify({
              type: "text",
-             content: `⚠️ **Chế độ mô phỏng** (Chưa có API Key)\n\nThông tin hiện tại:\n- Mực nước: ${wl} m\n- Dung tích: ${contextData.observation.capacity} triệu m³`
+             content: `⚠️ **Chế độ mô phỏng** (Chưa có API Key)\n\nThông tin hiện tại:\n- **Mực nước**: ${wl} m\n- **Dung tích**: ${contextData.observation.capacity} triệu m³`
            });
         }
       }
@@ -445,9 +507,11 @@ export const AIAssistant: React.FC = () => {
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[85%] ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-l-xl rounded-tr-xl' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-r-xl rounded-tl-xl'} p-3 shadow-sm`}>
-              <div className="text-sm whitespace-pre-wrap leading-relaxed">
-                {msg.content}
+              {/* Use the new FormattedText component */}
+              <div className="text-sm">
+                <FormattedText content={msg.content} isUser={msg.role === 'user'} />
               </div>
+              
               {msg.type === 'chart' && renderChart(msg.chartData!)}
               <div className={`text-[10px] mt-1 opacity-60 ${msg.role === 'user' ? 'text-white text-right' : 'text-slate-500'}`}>
                 {msg.role === 'model' ? 'Trợ lý AI' : 'Bạn'} • {new Date(parseInt(msg.id) || Date.now()).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})}

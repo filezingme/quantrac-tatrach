@@ -238,6 +238,7 @@ export interface SystemSettings {
   // Feature Toggles
   features: {
     enableAIAssistant: boolean;
+    aiWelcomeMessage: string; // New: Custom welcome message
     enableDemoCharts: boolean;
     enableFloodSimulation: boolean;
   };

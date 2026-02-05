@@ -18,13 +18,13 @@ import {
   SidebarConfigItem
 } from '../types';
 
-// CHANGED: Version bump to v8 (force refresh images and settings)
+// CHANGED: Version bump to v9 to apply new settings structure
 const KEYS = {
   OBSERVATION: 'app_observation_v3',
   FORECAST: 'app_forecast_v3',
   SPECS: 'app_specs_v3',
   OPERATION_TABLES: 'app_op_tables_v3',
-  IMAGES: 'app_images_v6', // Updated version for images
+  IMAGES: 'app_images_v6', 
   GENERAL_INFO: 'app_general_info_v3',
   CAMERAS: 'app_cameras_v4', 
   SCENARIOS: 'app_scenarios_v3',
@@ -32,7 +32,7 @@ const KEYS = {
   CURRENT_USER: 'app_current_user_v3',
   USERS_LIST: 'app_users_list_v3',
   WATER_LEVEL_RECORDS: 'app_water_level_records_v3',
-  SETTINGS: 'app_settings_v8', 
+  SETTINGS: 'app_settings_v9', 
   DOCUMENTS: 'app_documents_v3',
   ALERTS: 'app_alerts_v4',
   SENSORS: 'app_sensors_v2',
@@ -434,13 +434,14 @@ const defaultWaterLevels = [...hourlyRecords, ...specific2026Records];
 const defaultSettings: SystemSettings = {
   appName: 'TP Geo Monitoring',
   appSubtitle: 'Hệ thống quản lý',
-  appTitle: 'Hệ thống Quản lý TP Geo Monitoring', // ADDED APP TITLE
+  appTitle: 'Hệ thống Quản lý TP Geo Monitoring', 
   appFooter: 'Version 3.0.1 © 2026',
   maintenanceMode: false,
   language: 'vi',
   dateFormat: 'DD/MM/YYYY',
   features: {
     enableAIAssistant: true,
+    aiWelcomeMessage: 'Xin chào! Tôi là Trợ lý AI. Tôi có thể giúp bạn tra cứu số liệu, vẽ biểu đồ và giải đáp quy trình vận hành.', // Default Plain Text Message
     enableDemoCharts: true,
     enableFloodSimulation: true,
   },

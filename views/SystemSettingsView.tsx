@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Settings, Bell, Database, Shield, Globe, Monitor, Save, RefreshCw, Check, Zap, Layout, AlertTriangle } from 'lucide-react';
+import { Settings, Bell, Database, Shield, Globe, Monitor, Save, RefreshCw, Check, Zap, Layout, AlertTriangle, MessageSquare } from 'lucide-react';
 import { useUI } from '../components/GlobalUI';
 import { db } from '../utils/db';
 import { SystemSettings } from '../types';
@@ -65,6 +65,16 @@ export const SystemSettingsView: React.FC = () => {
 
   const handleChange = (key: keyof SystemSettings, value: any) => {
       setSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleFeatureChange = (key: keyof SystemSettings['features'], value: any) => {
+      setSettings(prev => ({
+          ...prev,
+          features: {
+              ...prev.features,
+              [key]: value
+          }
+      }));
   };
 
   const handleSave = () => {
@@ -191,12 +201,26 @@ export const SystemSettingsView: React.FC = () => {
                             <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Bật/Tắt các module chức năng của hệ thống.</p>
                             
                             <div className="space-y-4 max-w-xl divide-y divide-slate-100 dark:divide-slate-700">
-                                <div className="flex items-center justify-between py-3">
-                                    <div>
-                                        <p className="font-medium text-slate-800 dark:text-white">Trợ lý ảo AI (Gemini)</p>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">Hỗ trợ tra cứu nhanh và vẽ biểu đồ tự động.</p>
+                                <div className="py-3">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="font-medium text-slate-800 dark:text-white">Trợ lý ảo AI (Gemini)</p>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">Hỗ trợ tra cứu nhanh và vẽ biểu đồ tự động.</p>
+                                        </div>
+                                        <Switch checked={settings.features.enableAIAssistant} onChange={() => toggleFeature('enableAIAssistant')} />
                                     </div>
-                                    <Switch checked={settings.features.enableAIAssistant} onChange={() => toggleFeature('enableAIAssistant')} />
+                                    {settings.features.enableAIAssistant && (
+                                        <div className="mt-4 pl-4 border-l-2 border-slate-200 dark:border-slate-600">
+                                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Lời chào mặc định (Plain text)</label>
+                                            <textarea 
+                                                rows={3}
+                                                value={settings.features.aiWelcomeMessage}
+                                                onChange={(e) => handleFeatureChange('aiWelcomeMessage', e.target.value)}
+                                                className={inputStyle + " resize-none"}
+                                                placeholder="Nhập lời chào của AI khi mở cửa sổ..."
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="flex items-center justify-between py-3">
                                     <div>
