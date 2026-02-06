@@ -18,7 +18,7 @@ import {
   SidebarConfigItem
 } from '../types';
 
-// CHANGED: Version bump to v9 to apply new settings structure
+// CHANGED: Version bump to v10 due to AlertLog structure change
 const KEYS = {
   OBSERVATION: 'app_observation_v3',
   FORECAST: 'app_forecast_v3',
@@ -34,7 +34,7 @@ const KEYS = {
   WATER_LEVEL_RECORDS: 'app_water_level_records_v3',
   SETTINGS: 'app_settings_v9', 
   DOCUMENTS: 'app_documents_v3',
-  ALERTS: 'app_alerts_v4',
+  ALERTS: 'app_alerts_v10', // Version bumped
   SENSORS: 'app_sensors_v2',
   SIDEBAR_CONFIG: 'app_sidebar_config_v2' 
 };
@@ -250,7 +250,6 @@ const defaultOpTables: OperationTable[] = [
   }
 ];
 
-// UPDATED IMAGES WITH RELIABLE UNSPLASH URLS & MORE ITEMS
 const defaultImages: ImageGroup[] = [
   { 
     id: 'g1', 
@@ -455,13 +454,13 @@ const defaultSettings: SystemSettings = {
 };
 
 // Generate Mock Alerts
+// UPDATED: generateMockAlerts only produces 'critical', 'disconnected', 'faulty'
 const generateMockAlerts = (): AlertLog[] => {
   const sensors = [
     'Đo mực nước WL-01', 'Cảm biến áp lực P2-3', 'Quan trắc thấm KN4', 
     'Nhiệt kế bê tông T-22', 'Cảm biến thấm T1', 'Trạm mưa Hương Sơn', 
     'Hệ thống Camera', 'Máy biến áp T2', 'Cửa van cung số 1', 'Cảm biến dòng chảy F-02'
   ];
-  const types = ['Mất kết nối', 'Lỗi thiết bị', 'Vượt ngưỡng', 'Cảnh báo', 'Mưa lớn', 'Bảo trì', 'Điện áp thấp', 'Nhiệt độ cao'];
   const stations = ['Trạm đo đầu mối', 'Hành lang đập', 'Kênh xả', 'Khối K12', 'Đập chính (Vai phải)', 'Thượng lưu', 'Đập tràn', 'Nhà máy', 'Cửa lấy nước'];
   
   const alerts: AlertLog[] = [];
@@ -469,19 +468,36 @@ const generateMockAlerts = (): AlertLog[] => {
 
   for (let i = 0; i < 85; i++) {
     const t = new Date(baseTime.getTime() - i * Math.floor(Math.random() * 3600 * 1000 * 2)); // Spread over time
-    const severityRoll = Math.random();
-    const severity: 'critical' | 'warning' | 'info' = 
-        severityRoll > 0.85 ? 'critical' : severityRoll > 0.5 ? 'warning' : 'info';
+    
+    // Choose one of the 3 required categories
+    const r = Math.random();
+    let severity: 'critical' | 'disconnected' | 'faulty';
+    let typeDisplay: string;
+    let messagePrefix: string;
+
+    if (r > 0.7) {
+        severity = 'critical';
+        typeDisplay = 'Nguy hiểm';
+        messagePrefix = 'Vượt ngưỡng an toàn cho phép';
+    } else if (r > 0.4) {
+        severity = 'disconnected';
+        typeDisplay = 'Mất kết nối';
+        messagePrefix = 'Không nhận được tín hiệu từ thiết bị';
+    } else {
+        severity = 'faulty';
+        typeDisplay = 'Hỏng';
+        messagePrefix = 'Thiết bị báo lỗi phần cứng hoặc sai số lớn';
+    }
     
     alerts.push({
       id: `alert-${i}`,
       time: t.toLocaleString('vi-VN'),
       timestamp: t.toISOString(),
       sensor: sensors[i % sensors.length],
-      type: types[i % types.length],
+      type: typeDisplay,
       station: stations[i % stations.length],
       severity,
-      message: `Chi tiết: ${types[i % types.length]} tại ${stations[i % stations.length]}. Giá trị đo ghi nhận bất thường.`,
+      message: `${messagePrefix}. Giá trị đo ghi nhận bất thường.`,
       status: i < 3 ? 'new' : i < 10 ? 'acknowledged' : 'resolved'
     });
   }
