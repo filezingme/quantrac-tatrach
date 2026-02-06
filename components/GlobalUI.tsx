@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { X, CheckCircle, AlertCircle, AlertTriangle, Info, Check, Edit3 } from 'lucide-react';
 
@@ -100,12 +101,12 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     <UIContext.Provider value={{ showToast, confirm, prompt }}>
       {children}
 
-      {/* Toast Container */}
-      <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-3 pointer-events-none">
+      {/* Toast Container - Updated to Bottom Center */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-3 pointer-events-none items-center w-full max-w-md px-4">
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`pointer-events-auto min-w-[300px] max-w-md p-4 rounded-xl shadow-lg border flex items-start gap-3 animate-slide-up bg-white dark:bg-slate-800 ${
+            className={`pointer-events-auto w-full p-4 rounded-xl shadow-lg border flex items-start gap-3 animate-slide-up bg-white dark:bg-slate-800 ${
               toast.type === 'success' ? 'border-green-500 text-green-700 dark:text-green-400' :
               toast.type === 'error' ? 'border-red-500 text-red-700 dark:text-red-400' :
               toast.type === 'warning' ? 'border-amber-500 text-amber-700 dark:text-amber-400' :
