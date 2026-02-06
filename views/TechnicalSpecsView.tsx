@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { SpecGroup, SpecItem } from '../types';
-import { ChevronDown, Plus, Trash2, Save, FolderPlus, Check, Download } from 'lucide-react';
+import { ChevronDown, Plus, Trash2, Save, FolderPlus, Check, Download, RefreshCw } from 'lucide-react';
 import { db } from '../utils/db';
 import { exportToExcel } from '../utils/excel';
 import { useUI } from '../components/GlobalUI';
@@ -214,44 +214,36 @@ export const TechnicalSpecsView: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-20 max-w-5xl mx-auto animate-fade-in">
-      {/* Header - No longer sticky */}
-      <div className="bg-slate-50/95 dark:bg-slate-900/95 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Thông số kỹ thuật</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Quản lý các thông số thiết kế và hiện trạng công trình</p>
-        </div>
+      {/* Header - Styled like General Info View */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Thông số kỹ thuật</h2>
         
         <div className="flex items-center gap-3">
           <button 
             onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-blue-600 dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-blue-600 dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm transition-all"
           >
             <Download size={16}/> Xuất Excel
           </button>
           
-          {hasChanges && (
-            <span className="text-xs text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-900/30 px-2 py-1 rounded animate-pulse hidden sm:inline-block">
-              ● Có thay đổi chưa lưu
-            </span>
-          )}
           <button 
             onClick={handleSave} 
             disabled={saveStatus === 'saving' || !hasChanges}
             className={`
-              flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold shadow-md transition-all
+              flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-all duration-300
               ${saveStatus === 'saved' 
-                ? 'bg-green-600 text-white shadow-green-200 dark:shadow-none' 
+                ? 'bg-green-600 text-white hover:bg-green-700' 
                 : hasChanges 
-                  ? 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg shadow-blue-200 dark:shadow-blue-900/50 cursor-pointer' 
+                  ? 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md' 
                   : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed shadow-none'}
             `}
           >
             {saveStatus === 'saving' ? (
-              <>Đang lưu...</>
+              <><RefreshCw size={16} className="animate-spin" /> Đang lưu...</>
             ) : saveStatus === 'saved' ? (
-              <><Check size={18}/> Đã lưu</>
+              <><Check size={16}/> Đã lưu thành công</>
             ) : (
-              <><Save size={18}/> Lưu thay đổi</>
+              <><Save size={16}/> Lưu thay đổi</>
             )}
           </button>
         </div>
