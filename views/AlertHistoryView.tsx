@@ -68,7 +68,7 @@ const generateSensorHistoryForAlert = (sensorType: string, isAnomaly: boolean = 
 
 export const AlertHistoryView: React.FC = () => {
   const [alerts, setAlerts] = useState<AlertLog[]>([]);
-  const [filterSeverity, setFilterSeverity] = useState<'all' | 'critical' | 'warning' | 'info'>('all');
+  const [filterSeverity, setFilterSeverity] = useState<'all' | 'critical' | 'warning'>('all');
   const [filterStatus, setFilterStatus] = useState<'all' | 'new' | 'acknowledged' | 'resolved'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [visibleCount, setVisibleCount] = useState(20);
@@ -105,6 +105,9 @@ export const AlertHistoryView: React.FC = () => {
 
   // Filter Logic
   const filteredAlerts = alerts.filter(alert => {
+    // Exclude 'info' severity completely
+    if (alert.severity === 'info') return false;
+
     const matchSeverity = filterSeverity === 'all' || alert.severity === filterSeverity;
     const matchStatus = filterStatus === 'all' || alert.status === filterStatus;
     const matchSearch = alert.sensor.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -242,7 +245,7 @@ export const AlertHistoryView: React.FC = () => {
 
                 {/* Severity Filter */}
                 <div className="flex bg-slate-200 dark:bg-slate-700 rounded-lg p-1 overflow-x-auto no-scrollbar max-w-full">
-                    {['all', 'critical', 'warning', 'info'].map((sev) => (
+                    {['all', 'critical', 'warning'].map((sev) => (
                         <button
                         key={sev}
                         onClick={() => setFilterSeverity(sev as any)}
