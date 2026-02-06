@@ -138,7 +138,7 @@ export const UserProfileView: React.FC = () => {
                   <div className="relative mb-4 group">
                       {/* Main Avatar - Click to Zoom */}
                       <div 
-                          className={`w-32 h-32 rounded-full overflow-hidden flex items-center justify-center text-4xl font-bold text-white shadow-lg border-4 border-white dark:border-slate-700 ${!isImageAvatar ? 'bg-gradient-to-tr from-blue-500 to-indigo-600' : 'bg-slate-100'} ${isImageAvatar ? 'cursor-zoom-in' : ''}`}
+                          className={`w-40 h-40 rounded-full overflow-hidden flex items-center justify-center text-5xl font-bold text-white shadow-lg border-4 border-white dark:border-slate-700 ${!isImageAvatar ? 'bg-gradient-to-tr from-blue-500 to-indigo-600' : 'bg-slate-100'} ${isImageAvatar ? 'cursor-zoom-in' : ''}`}
                           onClick={() => isImageAvatar && setIsZoomOpen(true)}
                       >
                           {isImageAvatar ? (
@@ -150,7 +150,7 @@ export const UserProfileView: React.FC = () => {
                           {/* Zoom Hint Overlay (Only if image) - Also hidden by default */}
                           {isImageAvatar && (
                             <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center pointer-events-none">
-                                <Maximize2 size={24} className="text-white drop-shadow-md" />
+                                <Maximize2 size={32} className="text-white drop-shadow-md" />
                             </div>
                           )}
                       </div>
@@ -158,20 +158,20 @@ export const UserProfileView: React.FC = () => {
                       {/* Edit Button - Floating Bottom Right - Hidden by default, show on hover */}
                       <button
                           onClick={handleUploadClick}
-                          className="absolute bottom-0 right-0 p-2.5 bg-slate-800 text-white rounded-full hover:bg-blue-600 transition-all duration-300 shadow-md border-2 border-white dark:border-slate-800 z-10 opacity-0 group-hover:opacity-100 transform group-hover:translate-y-0 translate-y-2"
+                          className="absolute bottom-1 right-1 p-2.5 bg-slate-800 text-white rounded-full hover:bg-blue-600 transition-all duration-300 shadow-md border-2 border-white dark:border-slate-800 z-10 opacity-0 group-hover:opacity-100 transform group-hover:translate-y-0 translate-y-2"
                           title="Tải ảnh mới"
                       >
-                          <Camera size={16} />
+                          <Camera size={18} />
                       </button>
 
                       {/* Delete Button - Floating Bottom Left (Only if image exists) - Hidden by default, show on hover */}
                       {isImageAvatar && (
                           <button
                               onClick={handleRemoveAvatar}
-                              className="absolute bottom-0 left-0 p-2.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-all duration-300 shadow-md border-2 border-white dark:border-slate-800 z-10 opacity-0 group-hover:opacity-100 transform group-hover:translate-y-0 translate-y-2"
+                              className="absolute bottom-1 left-1 p-2.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-all duration-300 shadow-md border-2 border-white dark:border-slate-800 z-10 opacity-0 group-hover:opacity-100 transform group-hover:translate-y-0 translate-y-2"
                               title="Xóa ảnh"
                           >
-                              <Trash2 size={16} />
+                              <Trash2 size={18} />
                           </button>
                       )}
 
