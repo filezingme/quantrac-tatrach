@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -32,7 +32,8 @@ import {
   X, 
   Pencil, 
   Check, 
-  GripVertical 
+  GripVertical,
+  Sliders
 } from 'lucide-react';
 import { db } from '../utils/db';
 import { SidebarConfigItem } from '../types';
@@ -65,6 +66,8 @@ const MASTER_MENU_ITEMS = [
   { path: '/general-info', label: 'Thông tin chung', icon: Info, roles: ['admin', 'user'] },
   { path: '/manual-entry', label: 'Nhập liệu thủ công', icon: Edit3, roles: ['admin'] },
   { path: '/users', label: 'Quản lý người dùng', icon: Users, roles: ['admin'] },
+  // Note: System Settings is intentionally reachable via route '/settings' but we might hide it from main menu if desired by user config
+  // For now we keep it in MASTER list so permissions work, but users can hide it via the Customize Menu feature if they prefer the bottom icon.
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isCollapsed, toggleCollapse }) => {
@@ -89,6 +92,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
 
   // App Settings (Name/Subtitle)
   const [appSettings, setAppSettings] = useState(db.settings.get());
+
+  // Settings Menu Popover State
+  const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState(false);
+  const settingsMenuRef = useRef<HTMLDivElement>(null);
 
   const ui = useUI();
 
@@ -133,6 +140,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
     };
   }, []);
 
+  // Click outside listener for Settings Menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (settingsMenuRef.current && !settingsMenuRef.current.contains(event.target as Node)) {
+        setIsSettingsMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   // Filter items based on Role AND Visibility
   const visibleItems = useMemo(() => {
     return orderedItems.filter(item => {
@@ -160,6 +178,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
     setTempConfig(mergedConfig);
     setEditingPath(null); // Reset edit mode
     setIsConfigOpen(true);
+    setIsSettingsMenuOpen(false); // Close popover
+  };
+
+  const handleGoToSystemSettings = () => {
+    navigate('/settings');
+    setIsSettingsMenuOpen(false);
+    if (window.innerWidth < 768) toggleSidebar();
   };
 
   const moveItem = (index: number, direction: 'up' | 'down') => {
@@ -357,23 +382,51 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
           </ul>
         </nav>
 
-        {/* Footer with Edit Menu */}
-        <div className={`p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/30 transition-all duration-300 flex items-center select-none ${isCollapsed ? 'justify-center flex-col gap-2' : 'relative justify-center'}`}>
+        {/* Footer with Unified Settings Menu */}
+        <div 
+          className={`p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/30 transition-all duration-300 flex items-center select-none ${isCollapsed ? 'justify-center flex-col gap-2' : 'relative justify-center'}`}
+          ref={settingsMenuRef}
+        >
           {!isCollapsed && (
              <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium truncate max-w-[180px]">{appSettings.appFooter}</p>
           )}
           
+          {/* Popover Menu */}
+          {isSettingsMenuOpen && (
+            <div className={`absolute bottom-full mb-2 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 w-56 overflow-hidden z-[1100] animate-in slide-in-from-bottom-2 fade-in duration-200 ${isCollapsed ? 'left-full ml-2 bottom-0' : 'right-0'}`}>
+               <div className="p-1 space-y-0.5">
+                  <button 
+                    onClick={handleOpenConfig}
+                    className="w-full text-left px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 rounded-lg flex items-center gap-3 transition-colors"
+                  >
+                    <Sliders size={16} className="text-slate-400"/>
+                    Tùy chỉnh Menu
+                  </button>
+                  
+                  {userRole === 'admin' && (
+                    <button 
+                      onClick={handleGoToSystemSettings}
+                      className="w-full text-left px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 rounded-lg flex items-center gap-3 transition-colors"
+                    >
+                      <Settings size={16} className="text-slate-400"/>
+                      Cài đặt hệ thống
+                    </button>
+                  )}
+               </div>
+            </div>
+          )}
+
           <button 
-            onClick={handleOpenConfig}
-            className={`p-1.5 rounded-lg text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors ${isCollapsed ? '' : 'absolute right-3'}`}
-            title="Tùy chỉnh Menu"
+            onClick={() => setIsSettingsMenuOpen(!isSettingsMenuOpen)}
+            className={`p-1.5 rounded-lg transition-colors ${isSettingsMenuOpen ? 'text-blue-600 bg-blue-100 dark:bg-blue-900/30' : 'text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20'} ${isCollapsed ? '' : 'absolute right-3'}`}
+            title="Cài đặt & Tùy chỉnh"
           >
             <Settings size={16} />
           </button>
         </div>
       </div>
 
-      {/* --- CONFIGURATION MODAL --- */}
+      {/* --- CONFIGURATION MODAL (Existing logic preserved) --- */}
       {isConfigOpen && (
         <div className="fixed inset-0 z-[6000] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
            <div className="bg-white dark:bg-slate-800 w-full max-w-md rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
