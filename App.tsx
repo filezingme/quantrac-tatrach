@@ -64,6 +64,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
 
   const notifRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
+  const mainContentRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -93,13 +94,17 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
     document.title = settings.appTitle || 'Hệ thống Quản lý Hồ Tả Trạch';
   }, [settings.appTitle]);
 
+  // Scroll to top on route change
+  useEffect(() => {
+    if (mainContentRef.current) {
+      mainContentRef.current.scrollTop = 0;
+    }
+  }, [location.pathname]);
+
   // --- MAINTENANCE MODE CHECK ---
   if (settings.maintenanceMode && user.role !== 'admin') {
       return <MaintenanceView onLogout={onLogout} />;
   }
-
-  // ... (Rest of existing logic: KeyDown, ClickOutside, Toggles, etc.)
-  // We keep the logic as is, just wrapped in the conditional above.
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -416,7 +421,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
 
         <GlobalSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
 
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50/50 dark:bg-slate-900 transition-colors duration-200">
+        <main ref={mainContentRef} className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50/50 dark:bg-slate-900 transition-colors duration-200">
           <Routes>
             <Route path="/" element={<DashboardView />} />
             <Route path="/dashboard" element={<DashboardView />} />
@@ -483,7 +488,6 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
         {settings.features.enableAIAssistant && <AIAssistant />}
 
         {/* ... (Existing Notification Modal Logic) ... */}
-        {/* I am keeping the notification modal structure intact but omitted here for brevity as requested to minimize changes unless logic changes. The logic is unchanged. */}
         {showAllNotifications && (
           <div className="fixed inset-0 z-[5000] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl h-[80vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-slate-700">
