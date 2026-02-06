@@ -1,15 +1,17 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { User, Mail, Phone, MapPin, Briefcase, Save, Lock, Shield, CheckCircle, RefreshCw, Check, AlertCircle, Camera, X, Maximize2, Trash2 } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Briefcase, Save, Lock, Shield, CheckCircle, RefreshCw, Check, AlertCircle, Camera, X, Maximize2, Trash2, Settings } from 'lucide-react';
 import { db } from '../utils/db';
 import { UserProfile } from '../types';
 import { useUI } from '../components/GlobalUI';
+import { useNavigate } from 'react-router-dom';
 
 export const UserProfileView: React.FC = () => {
   const [user, setUser] = useState<UserProfile>(db.user.get());
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [isZoomOpen, setIsZoomOpen] = useState(false); // State for Lightbox
   const ui = useUI();
+  const navigate = useNavigate();
   
   // File Upload Ref
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -124,8 +126,26 @@ export const UserProfileView: React.FC = () => {
   return (
     <>
       <div className="max-w-5xl mx-auto pb-10 space-y-6 animate-fade-in">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Hồ sơ cá nhân</h2>
+          
+          {/* Quick Switcher (Only for Admins) */}
+          {user.role === 'admin' && (
+             <div className="flex bg-slate-200 dark:bg-slate-700/50 p-1 rounded-xl">
+                <button 
+                   className="px-4 py-2 rounded-lg text-sm font-bold bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-sm transition-all flex items-center gap-2"
+                   disabled
+                >
+                   <User size={16}/> Hồ sơ
+                </button>
+                <button 
+                   onClick={() => navigate('/settings')}
+                   className="px-4 py-2 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all flex items-center gap-2"
+                >
+                   <Settings size={16}/> Cài đặt hệ thống
+                </button>
+             </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

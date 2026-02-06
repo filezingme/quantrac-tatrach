@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Settings, Bell, Database, Shield, Globe, Monitor, Save, RefreshCw, Check, Zap, Layout, AlertTriangle, MessageSquare } from 'lucide-react';
+import { Settings, Bell, Database, Shield, Globe, Monitor, Save, RefreshCw, Check, Zap, Layout, AlertTriangle, MessageSquare, User } from 'lucide-react';
 import { useUI } from '../components/GlobalUI';
 import { db } from '../utils/db';
 import { SystemSettings } from '../types';
+import { useNavigate } from 'react-router-dom';
 
 export const SystemSettingsView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'general' | 'features' | 'notification' | 'data'>('general');
@@ -14,6 +15,7 @@ export const SystemSettingsView: React.FC = () => {
   const [settings, setSettings] = useState<SystemSettings>(db.settings.get());
   
   const ui = useUI();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Sync theme state with local storage on mount
@@ -92,7 +94,25 @@ export const SystemSettingsView: React.FC = () => {
 
   return (
     <div className="max-w-5xl mx-auto pb-10 space-y-6 animate-fade-in">
-        <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Cài đặt hệ thống</h2>
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Cài đặt hệ thống</h2>
+            
+            {/* Quick Switcher (Always visible here since only admins access this page) */}
+            <div className="flex bg-slate-200 dark:bg-slate-700/50 p-1 rounded-xl">
+                <button 
+                   onClick={() => navigate('/profile')}
+                   className="px-4 py-2 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all flex items-center gap-2"
+                >
+                   <User size={16}/> Hồ sơ
+                </button>
+                <button 
+                   className="px-4 py-2 rounded-lg text-sm font-bold bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-sm transition-all flex items-center gap-2"
+                   disabled
+                >
+                   <Settings size={16}/> Cài đặt hệ thống
+                </button>
+            </div>
+        </div>
 
         <div className="flex flex-col md:flex-row gap-6">
             
