@@ -140,6 +140,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
 
   const handleMarkAllRead = () => {
     db.notifications.markAllRead();
+    ui.showToast('success', 'Đã đánh dấu tất cả là đã đọc');
   };
 
   const handleMarkAsRead = (id: string) => {
