@@ -384,7 +384,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
 
         {/* Footer with Unified Settings Menu */}
         <div 
-          className={`p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/30 transition-all duration-300 flex items-center select-none ${isCollapsed ? 'justify-center flex-col gap-2' : 'relative justify-center'}`}
+          className={`relative p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/30 transition-all duration-300 flex items-center select-none ${isCollapsed ? 'justify-center flex-col gap-2' : 'justify-center'}`}
           ref={settingsMenuRef}
         >
           {!isCollapsed && (
@@ -393,7 +393,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
           
           {/* Popover Menu */}
           {isSettingsMenuOpen && (
-            <div className={`absolute bottom-full mb-2 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 w-56 overflow-hidden z-[1100] animate-in slide-in-from-bottom-2 fade-in duration-200 ${isCollapsed ? 'left-full ml-2 bottom-0' : 'right-0'}`}>
+            <div className={`absolute bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 w-56 overflow-hidden z-[1100] animate-in fade-in duration-200 ${
+              isCollapsed 
+                ? 'left-full ml-3 bottom-0 slide-in-from-left-2' 
+                : 'bottom-full mb-2 right-0 slide-in-from-bottom-2'
+            }`}>
                <div className="p-1 space-y-0.5">
                   <button 
                     onClick={handleOpenConfig}
