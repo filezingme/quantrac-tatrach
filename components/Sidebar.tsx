@@ -46,28 +46,26 @@ interface SidebarProps {
   toggleCollapse: () => void;
 }
 
-// Master list of all available items
+// Master list with specific colors for each icon
 const MASTER_MENU_ITEMS = [
-  { path: '/dashboard', label: 'Quan trắc & Giám sát', icon: LayoutDashboard, roles: ['admin', 'user'] },
-  { path: '/map', label: 'Bản đồ GIS', icon: MapIcon, roles: ['admin', 'user'] },
-  { path: '/alerts', label: 'Cảnh báo & Sự kiện', icon: AlertTriangle, roles: ['admin', 'user'] },
-  { path: '/sensors', label: 'Danh sách Cảm biến', icon: Radio, roles: ['admin', 'user'] },
-  { path: '/ai-safety', label: 'Giám sát An toàn AI', icon: BrainCircuit, roles: ['admin', 'user'] }, 
-  { path: '/water-level', label: 'Giám sát Mực nước', icon: TrendingUp, roles: ['admin', 'user'] },
-  { path: '/forecast', label: 'Thông tin Dự báo', icon: CloudRain, roles: ['admin', 'user'] },
-  { path: '/flood-forecast', label: 'Dự báo Lũ & Kịch bản', icon: Waves, roles: ['admin', 'user'] },
-  { path: '/operation', label: 'Quy trình vận hành', icon: Activity, roles: ['admin'] },
-  { path: '/documents', label: 'Văn bản & Quy định', icon: BookOpen, roles: ['admin', 'user'] },
-  { path: '/camera', label: 'Camera', icon: Camera, roles: ['admin', 'user'] },
-  { path: '/images', label: 'Thư viện Hình ảnh', icon: ImageIcon, roles: ['admin', 'user'] },
-  { path: '/records', label: 'Hồ sơ & Biểu đồ', icon: FileText, roles: ['admin', 'user'] },
-  { path: '/demo-charts', label: 'Thư viện Biểu đồ Demo', icon: PieChart, roles: ['admin', 'user'] },
-  { path: '/specs', label: 'Thông số kỹ thuật', icon: Settings, roles: ['admin'] },
-  { path: '/general-info', label: 'Thông tin chung', icon: Info, roles: ['admin', 'user'] },
-  { path: '/manual-entry', label: 'Nhập liệu thủ công', icon: Edit3, roles: ['admin'] },
-  { path: '/users', label: 'Quản lý người dùng', icon: Users, roles: ['admin'] },
-  // Note: System Settings is intentionally reachable via route '/settings' but we might hide it from main menu if desired by user config
-  // For now we keep it in MASTER list so permissions work, but users can hide it via the Customize Menu feature if they prefer the bottom icon.
+  { path: '/dashboard', label: 'Quan trắc & Giám sát', icon: LayoutDashboard, roles: ['admin', 'user'], color: 'text-blue-600 dark:text-blue-400' },
+  { path: '/map', label: 'Bản đồ GIS', icon: MapIcon, roles: ['admin', 'user'], color: 'text-emerald-500 dark:text-emerald-400' },
+  { path: '/alerts', label: 'Cảnh báo & Sự kiện', icon: AlertTriangle, roles: ['admin', 'user'], color: 'text-red-500 dark:text-red-400' },
+  { path: '/sensors', label: 'Danh sách Cảm biến', icon: Radio, roles: ['admin', 'user'], color: 'text-cyan-500 dark:text-cyan-400' },
+  { path: '/ai-safety', label: 'Giám sát An toàn AI', icon: BrainCircuit, roles: ['admin', 'user'], color: 'text-purple-600 dark:text-purple-400' }, 
+  { path: '/water-level', label: 'Giám sát Mực nước', icon: TrendingUp, roles: ['admin', 'user'], color: 'text-sky-500 dark:text-sky-400' },
+  { path: '/forecast', label: 'Thông tin Dự báo', icon: CloudRain, roles: ['admin', 'user'], color: 'text-indigo-500 dark:text-indigo-400' },
+  { path: '/flood-forecast', label: 'Dự báo Lũ & Kịch bản', icon: Waves, roles: ['admin', 'user'], color: 'text-blue-700 dark:text-blue-300' },
+  { path: '/operation', label: 'Quy trình vận hành', icon: Activity, roles: ['admin'], color: 'text-amber-500 dark:text-amber-400' },
+  { path: '/documents', label: 'Văn bản & Quy định', icon: BookOpen, roles: ['admin', 'user'], color: 'text-slate-500 dark:text-slate-400' },
+  { path: '/camera', label: 'Camera', icon: Camera, roles: ['admin', 'user'], color: 'text-rose-500 dark:text-rose-400' },
+  { path: '/images', label: 'Thư viện Hình ảnh', icon: ImageIcon, roles: ['admin', 'user'], color: 'text-pink-500 dark:text-pink-400' },
+  { path: '/records', label: 'Hồ sơ & Biểu đồ', icon: FileText, roles: ['admin', 'user'], color: 'text-teal-500 dark:text-teal-400' },
+  { path: '/demo-charts', label: 'Thư viện Biểu đồ Demo', icon: PieChart, roles: ['admin', 'user'], color: 'text-orange-500 dark:text-orange-400' },
+  { path: '/specs', label: 'Thông số kỹ thuật', icon: Settings, roles: ['admin'], color: 'text-gray-600 dark:text-gray-400' },
+  { path: '/general-info', label: 'Thông tin chung', icon: Info, roles: ['admin', 'user'], color: 'text-blue-400 dark:text-blue-300' },
+  { path: '/manual-entry', label: 'Nhập liệu thủ công', icon: Edit3, roles: ['admin'], color: 'text-green-600 dark:text-green-500' },
+  { path: '/users', label: 'Quản lý người dùng', icon: Users, roles: ['admin'], color: 'text-fuchsia-500 dark:text-fuchsia-400' },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isCollapsed, toggleCollapse }) => {
@@ -246,25 +244,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
   // --- Drag and Drop Handlers ---
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
     setDraggedIndex(index);
-    // Create a ghost image effects if needed, or stick to browser default
     e.dataTransfer.effectAllowed = 'move';
-    // Firefox requires setting data
     e.dataTransfer.setData('text/plain', index.toString());
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>, index: number) => {
-    e.preventDefault(); // Necessary to allow dropping
+    e.preventDefault(); 
     if (draggedIndex === null || draggedIndex === index) return;
 
     const newConfig = [...tempConfig];
     const draggedItem = newConfig[draggedIndex];
     
-    // Remove dragged item
     newConfig.splice(draggedIndex, 1);
-    // Insert at new position
     newConfig.splice(index, 0, draggedItem);
 
-    // Update state immediately for visual feedback
     setTempConfig(newConfig.map((item, idx) => ({ ...item, order: idx })));
     setDraggedIndex(index);
   };
@@ -327,10 +320,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
 
         {/* Navigation */}
         <nav className={`flex-1 py-6 sidebar-scrollbar ${isCollapsed ? 'px-0' : ''}`}>
-          {/* Adjusted left margin to 4px as requested */}
           <ul className={`space-y-1.5 ${isCollapsed ? 'px-0 flex flex-col items-center ml-[4px]' : 'px-3'}`}>
             {visibleItems.map((item) => {
-              // Check if active (dashboard is also root)
               const isActive = location.pathname === item.path || (item.path === '/dashboard' && location.pathname === '/');
               const conf = config.find(c => c.path === item.path);
               const label = conf?.customLabel || item.label;
@@ -347,7 +338,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
                       ${isCollapsed ? 'justify-center w-12 h-12 p-0' : 'justify-start w-full px-4 py-3'} 
                       text-sm font-medium rounded-xl transition-all duration-200 
                       ${isActive
-                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 shadow-sm'
+                        ? 'bg-blue-50 dark:bg-blue-900/30 shadow-sm'
                         : 'hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-100 text-slate-500 dark:text-slate-400'
                       }
                     `}
@@ -355,11 +346,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
                   >
                     <item.icon 
                       size={20} 
-                      className={`shrink-0 transition-colors ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} 
+                      className={`shrink-0 transition-colors ${item.color} ${isActive ? '' : 'opacity-70 group-hover:opacity-100'}`} 
                     />
                     
                     {/* Text Label - Hidden when collapsed */}
-                    <span className={`ml-3 whitespace-nowrap transition-all duration-200 ${isCollapsed ? 'w-0 opacity-0 hidden' : 'w-auto opacity-100'}`}>
+                    <span className={`ml-3 whitespace-nowrap transition-all duration-200 ${isActive ? 'text-slate-800 dark:text-blue-100' : ''} ${isCollapsed ? 'w-0 opacity-0 hidden' : 'w-auto opacity-100'}`}>
                       {label}
                     </span>
 
@@ -477,7 +468,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
                                 <GripVertical size={16}/>
                              </div>
                              
-                             <div className={`p-2 rounded-md ${item.isVisible ? 'bg-blue-50 dark:bg-slate-600 text-blue-600 dark:text-blue-300' : 'bg-slate-200 dark:bg-slate-700 text-slate-400'}`}>
+                             <div className={`p-2 rounded-md bg-slate-50 dark:bg-slate-600 ${masterItem.color}`}>
                                 <masterItem.icon size={18}/>
                              </div>
                              
