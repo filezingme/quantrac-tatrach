@@ -220,43 +220,43 @@ export const WaterLevelView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4 pb-10 animate-fade-in h-full flex flex-col">
+    <div className="space-y-6 pb-20 animate-fade-in relative">
       <div className="flex justify-between items-start">
         <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Giám sát Mực nước</h2>
       </div>
 
-      {/* FILTER SECTION - Compact Single Row Layout */}
-      <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col lg:flex-row gap-3 items-end lg:items-center">
+      {/* FILTER SECTION - More Spacious */}
+      <div className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col lg:flex-row gap-6 items-end lg:items-center">
         
         {/* Date Inputs */}
-        <div className="flex items-center gap-3 w-full lg:w-auto">
-            <div className="flex-1 lg:w-auto">
-               <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Từ ngày giờ</label>
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+            <div className="flex-1 w-full sm:w-auto">
+               <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1.5">Từ ngày giờ</label>
                <input 
                  type="datetime-local" 
                  value={fromDate}
                  onChange={(e) => setFromDate(e.target.value)}
-                 className="w-full lg:w-40 h-9 border border-slate-300 dark:border-slate-600 rounded-lg px-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none font-medium text-slate-700 dark:text-white dark:bg-slate-700"
+                 className="w-full lg:w-44 h-10 border border-slate-300 dark:border-slate-600 rounded-lg px-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none font-medium text-slate-700 dark:text-white dark:bg-slate-700 transition-shadow"
                />
             </div>
 
-            <div className="flex-1 lg:w-auto">
-               <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Đến ngày giờ</label>
+            <div className="flex-1 w-full sm:w-auto">
+               <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1.5">Đến ngày giờ</label>
                <input 
                  type="datetime-local" 
                  value={toDate}
                  onChange={(e) => setToDate(e.target.value)}
-                 className="w-full lg:w-40 h-9 border border-slate-300 dark:border-slate-600 rounded-lg px-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none font-medium text-slate-700 dark:text-white dark:bg-slate-700"
+                 className="w-full lg:w-44 h-10 border border-slate-300 dark:border-slate-600 rounded-lg px-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none font-medium text-slate-700 dark:text-white dark:bg-slate-700 transition-shadow"
                />
             </div>
         </div>
 
-        {/* Year Selector */}
-        <div className="flex-1 w-full lg:w-auto">
-          <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 flex items-center gap-1">
-             <CalendarDays size={10}/> Năm so sánh
+        {/* Year Selector - Separated by border on large screens */}
+        <div className="flex-1 w-full lg:w-auto border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-700 pt-4 lg:pt-0 lg:pl-6">
+          <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 flex items-center gap-1">
+             <CalendarDays size={12}/> Năm so sánh
           </label>
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-2">
             {AVAILABLE_YEARS.map((year, index) => {
               const isSelected = selectedYears.includes(year);
               const color = COLORS[index % COLORS.length];
@@ -265,14 +265,14 @@ export const WaterLevelView: React.FC = () => {
                   key={year}
                   onClick={() => toggleYear(year)}
                   className={`
-                    px-2.5 py-1.5 rounded-lg text-xs font-bold border transition-all flex items-center gap-1.5
+                    px-3 py-1.5 rounded-lg text-sm font-bold border transition-all flex items-center gap-1.5
                     ${isSelected 
-                      ? 'bg-slate-200 dark:bg-slate-600 text-slate-800 dark:text-white border-slate-300 dark:border-slate-500 shadow-inner' 
-                      : 'bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 hover:bg-slate-50 dark:hover:bg-slate-600'}
+                      ? 'bg-slate-100 dark:bg-slate-600 text-slate-800 dark:text-white border-slate-300 dark:border-slate-500 shadow-sm' 
+                      : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700'}
                   `}
                 >
                   {year}
-                  {isSelected && <span className="w-1.5 h-1.5 rounded-full ring-1 ring-white" style={{ backgroundColor: color }}></span>}
+                  {isSelected && <span className="w-2 h-2 rounded-full ring-2 ring-slate-100 dark:ring-slate-600" style={{ backgroundColor: color }}></span>}
                 </button>
               );
             })}
@@ -280,9 +280,9 @@ export const WaterLevelView: React.FC = () => {
         </div>
 
         {/* Filter Button */}
-        <div className="w-full lg:w-auto">
-           <button className="w-full lg:w-auto h-9 bg-blue-600 hover:bg-blue-700 text-white px-4 rounded-lg text-xs font-bold transition-all shadow-md shadow-blue-200 dark:shadow-blue-900/50 flex items-center justify-center gap-2 whitespace-nowrap mt-4 lg:mt-0">
-             <Filter size={14}/> Lọc dữ liệu
+        <div className="w-full lg:w-auto flex-none">
+           <button className="w-full lg:w-auto h-10 bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-lg text-sm font-bold transition-all shadow-md shadow-blue-200 dark:shadow-blue-900/50 flex items-center justify-center gap-2 whitespace-nowrap active:scale-95">
+             <Filter size={16}/> Lọc dữ liệu
            </button>
         </div>
       </div>
@@ -312,12 +312,12 @@ export const WaterLevelView: React.FC = () => {
       </div>
 
       {/* CONTENT */}
-      <div className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm overflow-hidden flex flex-col min-h-[500px]">
+      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm overflow-hidden flex flex-col min-h-[600px]">
         
         {activeTab === 'chart' ? (
-          <div className="p-6 h-full flex flex-col">
+          <div className="p-6 h-[600px] flex flex-col">
             <h3 className="font-bold text-slate-800 dark:text-white mb-4 text-center">Biểu đồ so sánh mực nước qua các năm</h3>
-            <div className="flex-1 w-full min-h-[400px]">
+            <div className="flex-1 w-full">
               {chartData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -372,7 +372,7 @@ export const WaterLevelView: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col h-full">
+          <div className="flex flex-col">
             <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
                <div className="flex items-center gap-3">
                  <h3 className="font-bold text-slate-800 dark:text-white">Dữ liệu chi tiết</h3>
@@ -409,7 +409,7 @@ export const WaterLevelView: React.FC = () => {
                </div>
             </div>
             
-            <div className="overflow-auto flex-1 custom-scrollbar">
+            <div className="overflow-x-auto">
               <table className="w-full text-sm text-left border-collapse">
                 <thead className="bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-400 font-semibold sticky top-0 z-10 shadow-sm">
                   <tr>
