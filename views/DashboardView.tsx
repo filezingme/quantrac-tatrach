@@ -9,11 +9,11 @@ import {
   Table as TableIcon, Filter, Download, Check, ChevronDown, ChevronUp,
   Radio, BarChart3, AlertCircle, CloudRain, Clock, Zap, ShieldCheck,
   Wifi, WifiOff, AlertTriangle, ArrowRight, Settings, MapPin, Sliders,
-  ExternalLink, Thermometer, Gauge // Added Thermometer, Gauge
+  ExternalLink // Added Import
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend, BarChart, Bar, ComposedChart, Line, ReferenceLine // Added ReferenceLine
+  PieChart, Pie, Cell, Legend, BarChart, Bar, ComposedChart, Line
 } from 'recharts';
 import { useUI } from '../components/GlobalUI';
 import { useNavigate } from 'react-router-dom';
@@ -88,44 +88,6 @@ const generateRainfallData = (isForecast: boolean) => {
   return data;
 };
 
-// --- Helper: Generate Mock History for Alert Popup (Consistent with AlertHistoryView) ---
-const generateSensorHistoryForAlert = (sensorType: string, isAnomaly: boolean = false) => {
-  const data = [];
-  const now = new Date();
-  
-  // Determine base characteristics
-  let baseValue = 0;
-  let volatility = 5;
-  
-  if (sensorType.toLowerCase().includes('áp lực')) { baseValue = 1300; volatility = 20; }
-  else if (sensorType.toLowerCase().includes('nhiệt độ')) { baseValue = 35; volatility = 2; }
-  else if (sensorType.toLowerCase().includes('mưa')) { baseValue = 0; volatility = 0; }
-  else { baseValue = 20; volatility = 5; }
-
-  // Generate 24 hours of data
-  for (let i = 24; i >= 0; i--) {
-    const date = new Date(now.getTime() - i * 60 * 60 * 1000);
-    const timeLabel = `${date.getHours()}:00`;
-    
-    let val = 0;
-    // Make the value "spike" or change drastically if it's near "now" (index 0 or 1) to simulate the alert cause
-    if (isAnomaly && i < 2) {
-        val = baseValue + (volatility * 3); // Spike
-    } else {
-        const trend = Math.sin(i / 5) * volatility;
-        const noise = (Math.random() - 0.5) * (volatility / 2);
-        val = baseValue + trend + noise;
-    }
-
-    data.push({
-      time: date.toISOString(),
-      label: timeLabel,
-      value: Math.max(0, parseFloat(val.toFixed(2)))
-    });
-  }
-  return data;
-};
-
 // Mock Data for Rainfall Widgets (Summary)
 const recentRainData = [
   { name: '3 ngày trước', value: 120.5, fullMark: 150 },
@@ -147,17 +109,12 @@ export const DashboardView: React.FC = () => {
   const ui = useUI();
   const navigate = useNavigate();
   
-  // Modal State (Metrics)
+  // Modal State
   const [selectedMetric, setSelectedMetric] = useState<MetricDetail | null>(null);
   const [modalTab, setModalTab] = useState<'chart' | 'table'>('chart');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showFilters, setShowFilters] = useState(true); // State to toggle filter visibility
   
-  // Modal State (Alert Detail)
-  const [selectedAlert, setSelectedAlert] = useState<AlertLog | null>(null);
-  const [alertChartData, setAlertChartData] = useState<any[]>([]);
-  const [isAlertFullScreen, setIsAlertFullScreen] = useState(false);
-
   // Health Settings State
   const [showHealthSettings, setShowHealthSettings] = useState(false);
   const [healthScore, setHealthScore] = useState(92);
@@ -214,15 +171,6 @@ export const DashboardView: React.FC = () => {
       const score = ((sensorCounts.good * 1 + sensorCounts.warning * 0.6 + sensorCounts.critical * 0) / total) * 100;
       setHealthScore(Math.round(score));
   }, [sensorCounts]);
-
-  // Generate chart data for selected alert
-  useEffect(() => {
-    if (selectedAlert) {
-        const isAnomaly = selectedAlert.severity !== 'info';
-        const data = generateSensorHistoryForAlert(selectedAlert.sensor, isAnomaly);
-        setAlertChartData(data);
-    }
-  }, [selectedAlert]);
 
   // Force chart resize on modal open/tab change/filter toggle
   useEffect(() => {
@@ -486,12 +434,6 @@ export const DashboardView: React.FC = () => {
      return COMPARE_COLORS[(index - 1) % COMPARE_COLORS.length];
   };
 
-  // Alert Click Handler
-  const handleAlertClick = (alert: AlertLog) => {
-      setSelectedAlert(alert);
-      setIsAlertFullScreen(false);
-  };
-
   // Filter alerts based on active tab
   const filteredAlerts = alertData.filter(item => {
       if (alertFilter === 'all') return true;
@@ -563,122 +505,243 @@ export const DashboardView: React.FC = () => {
           </div>
         </div>
 
-        {/* ... (Metrics Cards) ... */}
         {/* Main Metric Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-          {/* ... (Existing Metric Cards: WaterLevel, Capacity, Inflow, Outflow) ... */}
-          {Object.values(metrics).slice(0, 4).map(metric => (
-             <div 
-                key={metric.id}
-                onClick={() => handleOpenModal(metric)}
-                className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden group h-56 flex flex-col p-5"
-             >
-                {/* Simplified re-render of cards for brevity, preserving logic */}
-                <div className="flex justify-between items-start mb-2 relative z-10">
-                    <div className="flex items-center gap-2">
-                        <div className={`p-1.5 rounded-lg ${metric.id === 'waterLevel' ? 'bg-blue-100 text-blue-600' : metric.id === 'capacity' ? 'bg-cyan-100 text-cyan-600' : metric.id === 'inflow' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'} dark:bg-opacity-20`}>
-                            {metric.id === 'waterLevel' ? <Droplets size={18}/> : 
-                             metric.id === 'capacity' ? <Activity size={18}/> : 
-                             metric.id === 'inflow' ? <TrendingUp size={18}/> : <TrendingDown size={18}/>}
-                        </div>
-                        <span className="font-semibold text-slate-600 dark:text-slate-300 text-sm uppercase">{metric.label}</span>
-                    </div>
-                    <Maximize2 size={16} className="text-slate-300 dark:text-slate-500 group-hover:text-blue-500 transition-colors"/>
-                </div>
-                
-                <div className="flex-1 flex flex-col relative z-10">
-                    <div className="flex items-baseline gap-1 mt-auto">
-                        <span className={`text-4xl font-bold tracking-tight ${metric.id === 'waterLevel' ? 'text-slate-800 dark:text-white' : metric.id === 'capacity' ? 'text-slate-800 dark:text-white' : metric.id === 'inflow' ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>
-                            {metric.value.toFixed(metric.id === 'capacity' ? 0 : 2)}
-                        </span>
-                        <span className="text-sm font-medium text-slate-500 dark:text-slate-400">{metric.unit}</span>
-                    </div>
-                    {/* Visualizer logic simplified for display */}
-                    {metric.id === 'waterLevel' ? (
-                       <div className="mt-2 space-y-1">
+          
+          {/* 1. Water Level */}
+          <div 
+            onClick={() => handleOpenModal(metrics.waterLevel)}
+            className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden group h-56 flex flex-col p-5"
+          >
+               <div className="flex justify-between items-start mb-2">
+                  <div className="flex items-center gap-2">
+                      <div className="p-1.5 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg">
+                          <Droplets size={18} />
+                      </div>
+                      <span className="font-semibold text-slate-600 dark:text-slate-300 text-sm uppercase">Mực nước</span>
+                  </div>
+                  <Maximize2 size={16} className="text-slate-300 dark:text-slate-500 group-hover:text-blue-500 transition-colors"/>
+               </div>
+
+               <div className="flex-1 flex gap-4 items-end">
+                  <div className="flex-1 flex flex-col justify-end pb-2">
+                      <div className="flex items-baseline gap-1">
+                           <span className="text-4xl font-bold text-slate-800 dark:text-white tracking-tight">{metrics.waterLevel.value.toFixed(2)}</span>
+                           <span className="text-sm font-medium text-slate-500 dark:text-slate-400">m</span>
+                      </div>
+                      <div className="mt-2 space-y-1">
                           <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400">
                              <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div> 
                              <span>MNDBT: <b>{NORMAL_LEVEL}m</b></span>
                           </div>
-                       </div>
-                    ) : (
-                       <span className="text-[10px] bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-full font-bold w-fit mt-1">
-                          {metric.subLabel}
-                       </span>
-                    )}
-                </div>
-                
-                {metric.id === 'waterLevel' ? (
-                    // Water Tank
-                    <div className="absolute right-5 bottom-5 h-[calc(100%-3rem)] w-24 bg-slate-100 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-600 overflow-hidden shadow-inner flex-none">
-                        <div className="absolute bottom-0 left-0 w-full transition-all duration-1000 ease-in-out z-10 bg-gradient-to-t from-blue-600 to-cyan-400 opacity-90" style={{ height: `${waterPercent}%` }}>
-                            <div className="wave-bg absolute -top-3 left-0 w-full h-4"></div>
-                        </div>
-                    </div>
-                ) : metric.id === 'capacity' ? (
-                    // Pie
-                    <div className="absolute right-5 bottom-5 w-28 h-28">
+                      </div>
+                  </div>
+
+                  {/* Water Tank Visualizer */}
+                  <div className="relative h-full w-24 bg-slate-100 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-600 overflow-hidden shadow-inner flex-none ml-2">
+                      <div className="absolute right-0 top-0 bottom-0 w-full z-20 pointer-events-none flex flex-col justify-between py-2 px-1">
+                          {[...Array(6)].map((_, i) => (
+                              <div key={i} className="flex items-center justify-end w-full gap-1 opacity-40">
+                                  <span className="text-[8px] font-mono">{60 - i*10}</span>
+                                  <div className="w-2 h-[1px] bg-slate-500"></div>
+                              </div>
+                          ))}
+                      </div>
+                      <div className="absolute top-[25%] left-0 w-full flex items-center z-30" title="MNDBT (45m)">
+                          <div className="h-[1px] w-full bg-red-500 opacity-70"></div>
+                      </div>
+                      <div className="absolute bottom-[38%] left-0 w-full flex items-center z-30" title="MNC (23m)">
+                          <div className="h-[1px] w-full bg-slate-500 dark:bg-slate-300 opacity-70"></div>
+                      </div>
+                      <div className="absolute bottom-0 left-0 w-full transition-all duration-1000 ease-in-out z-10 bg-gradient-to-t from-blue-600 to-cyan-400 opacity-90" style={{ height: `${waterPercent}%` }}>
+                          <div className="absolute top-0 left-0 w-full h-[1px] bg-white/50 z-20"></div>
+                          <div className="absolute -top-3 left-0 w-full h-4"><div className="wave-bg"></div></div>
+                          <div className="bubble w-1 h-1 left-1/3 bottom-2 delay-100"></div>
+                          <div className="bubble w-1.5 h-1.5 left-2/3 bottom-5 delay-700"></div>
+                      </div>
+                  </div>
+               </div>
+          </div>
+
+          {/* 2. Capacity */}
+          <div 
+            onClick={() => handleOpenModal(metrics.capacity)}
+            className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden group h-56 flex flex-col p-5"
+          >
+               <div className="flex justify-between items-start mb-2">
+                  <div className="flex items-center gap-2">
+                      <div className="p-1.5 bg-cyan-100 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 rounded-lg">
+                          <Activity size={18} />
+                      </div>
+                      <span className="font-semibold text-slate-600 dark:text-slate-300 text-sm uppercase">Dung tích</span>
+                  </div>
+                  <Maximize2 size={16} className="text-slate-300 dark:text-slate-500 group-hover:text-blue-500 transition-colors"/>
+               </div>
+
+               <div className="flex-1 flex items-center justify-between gap-2">
+                   <div className="flex flex-col justify-center">
+                      <div className="flex items-baseline gap-1">
+                          <span className="text-3xl font-bold text-slate-800 dark:text-white">{metrics.capacity.value.toFixed(0)}</span>
+                      </div>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">triệu m³</span>
+                      <div className="mt-4 text-xs space-y-1">
+                          <div className="text-slate-400 dark:text-slate-500">Còn trống</div>
+                          <div className="font-bold text-cyan-600 dark:text-cyan-400 text-lg">{(646 - metrics.capacity.value).toFixed(0)}</div>
+                      </div>
+                   </div>
+                   <div className="w-32 h-32 relative flex-none">
                        <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
-                            <Pie data={capacityChartData} innerRadius={30} outerRadius={40} startAngle={90} endAngle={-270} dataKey="value" stroke="none" paddingAngle={2}>
+                            <Pie
+                              data={capacityChartData}
+                              cx="50%" cy="50%"
+                              innerRadius={35} outerRadius={45}
+                              startAngle={90} endAngle={-270}
+                              dataKey="value"
+                              stroke="none"
+                              paddingAngle={2}
+                            >
                               <Cell fill="#06b6d4" />
                               <Cell fill="#e2e8f0" className="dark:fill-slate-700"/>
                             </Pie>
                           </PieChart>
                        </ResponsiveContainer>
-                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-cyan-700 dark:text-cyan-400 font-bold text-sm">
-                           {Math.round((metrics.capacity.value / 646) * 100)}%
+                       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                           <span className="text-lg font-bold text-cyan-700 dark:text-cyan-400">
+                               {Math.round((metrics.capacity.value / 646) * 100)}%
+                           </span>
                        </div>
-                    </div>
-                ) : (
-                    // Area Chart
-                    <div className="h-24 w-[calc(100%+2.5rem)] -ml-5 -mb-5 mt-auto absolute bottom-0 left-0">
-                       <ResponsiveContainer width="100%" height="100%">
-                          <AreaChart data={metric.historyData}>
-                              <defs>
-                                  <linearGradient id={`grad-${metric.id}`} x1="0" y1="0" x2="0" y2="1">
-                                      <stop offset="5%" stopColor={metric.color} stopOpacity={0.2}/>
-                                      <stop offset="95%" stopColor={metric.color} stopOpacity={0}/>
-                                  </linearGradient>
-                              </defs>
-                              <Area type="monotone" dataKey="value" stroke={metric.color} strokeWidth={2} fill={`url(#grad-${metric.id})`} isAnimationActive={false}/>
-                          </AreaChart>
-                       </ResponsiveContainer>
-                    </div>
-                )}
-             </div>
-          ))}
+                   </div>
+               </div>
+          </div>
+
+          {/* 3. Inflow */}
+          <div 
+            onClick={() => handleOpenModal(metrics.inflow)}
+            className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden group h-56 flex flex-col p-5"
+          >
+               <div className="flex justify-between items-start mb-2 relative z-10">
+                  <div className="flex items-center gap-2">
+                      <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-lg">
+                          <TrendingUp size={18} />
+                      </div>
+                      <span className="font-semibold text-slate-600 dark:text-slate-300 text-sm uppercase">Lưu lượng đến</span>
+                  </div>
+                  <Maximize2 size={16} className="text-slate-300 dark:text-slate-500 group-hover:text-blue-500 transition-colors"/>
+               </div>
+               
+               <div className="flex-1 flex flex-col relative z-10">
+                  <div className="flex items-baseline gap-1 mt-2">
+                      <span className="text-4xl font-bold text-emerald-700 dark:text-emerald-400">{metrics.inflow.value}</span>
+                      <span className="text-sm font-medium text-slate-500 dark:text-slate-400">m³/s</span>
+                  </div>
+                  <span className="text-[10px] bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-bold w-fit mt-1">Trung bình 1h</span>
+               </div>
+
+               <div className="h-24 w-[calc(100%+2.5rem)] -ml-5 -mb-5 mt-auto">
+                  <ResponsiveContainer width="99%" height="100%">
+                      <AreaChart data={metrics.inflow.historyData}>
+                          <defs>
+                              <linearGradient id="colorInflow" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
+                                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                              </linearGradient>
+                          </defs>
+                          <Area type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2} fill="url(#colorInflow)" isAnimationActive={true}/>
+                      </AreaChart>
+                  </ResponsiveContainer>
+               </div>
+          </div>
+
+          {/* 4. Outflow */}
+          <div 
+            onClick={() => handleOpenModal(metrics.outflow)}
+            className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden group h-56 flex flex-col p-5"
+          >
+               <div className="flex justify-between items-start mb-2 relative z-10">
+                  <div className="flex items-center gap-2">
+                      <div className="p-1.5 bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 rounded-lg">
+                          <TrendingDown size={18} />
+                      </div>
+                      <span className="font-semibold text-slate-600 dark:text-slate-300 text-sm uppercase">Tổng xả</span>
+                  </div>
+                  <Maximize2 size={16} className="text-slate-300 dark:text-slate-500 group-hover:text-blue-500 transition-colors"/>
+               </div>
+               
+               <div className="flex-1 flex flex-col relative z-10">
+                  <div className="flex items-baseline gap-1 mt-2">
+                      <span className="text-4xl font-bold text-amber-700 dark:text-amber-400">{metrics.outflow.value}</span>
+                      <span className="text-sm font-medium text-slate-500 dark:text-slate-400">m³/s</span>
+                  </div>
+                  <span className="text-[10px] bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full font-bold w-fit mt-1">Qua 2 tổ máy</span>
+               </div>
+
+               <div className="h-24 w-[calc(100%+2.5rem)] -ml-5 -mb-5 mt-auto">
+                  <ResponsiveContainer width="99%" height="100%">
+                      <AreaChart data={metrics.outflow.historyData}>
+                          <defs>
+                              <linearGradient id="colorOutflow" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.2}/>
+                                  <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
+                              </linearGradient>
+                          </defs>
+                          <Area type="monotone" dataKey="value" stroke="#f59e0b" strokeWidth={2} fill="url(#colorOutflow)" isAnimationActive={true}/>
+                      </AreaChart>
+                  </ResponsiveContainer>
+               </div>
+          </div>
         </div>
 
-        {/* --- RAINFALL ANALYSIS --- */}
+        {/* --- NEW SECTION: RAINFALL ANALYSIS --- */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-           {/* ... (Rainfall Charts) ... */}
-           {/* Recent Rainfall */}
-           <div onClick={() => handleOpenModal(metrics.rain_recent)} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5 flex flex-col cursor-pointer hover:shadow-lg transition-all">
+           
+           {/* Recent Rainfall (Clickable) */}
+           <div 
+             onClick={() => handleOpenModal(metrics.rain_recent)}
+             className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5 flex flex-col cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all group"
+           >
               <div className="flex justify-between items-center mb-4">
-                 <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2"><CloudRain className="text-blue-500" size={18} /> Lượng mưa 3 ngày gần nhất (mm)</h3>
-                 <Maximize2 size={16} className="text-slate-300"/>
+                 <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                   <CloudRain className="text-blue-500" size={18} />
+                   Lượng mưa 3 ngày gần nhất (mm)
+                 </h3>
+                 <Maximize2 size={16} className="text-slate-300 dark:text-slate-500 group-hover:text-blue-500 transition-colors"/>
               </div>
               <div className="flex-1 min-h-[200px]">
                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={recentRainData} barSize={40}>
+                    <BarChart data={recentRainData} margin={{top: 10, right: 30, left: 0, bottom: 0}} barSize={40}>
                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" strokeOpacity={0.5} />
                        <XAxis dataKey="name" tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} />
-                       <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                       <YAxis tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} />
+                       <RechartsTooltip 
+                          cursor={{fill: 'transparent'}}
+                          contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', backgroundColor: 'var(--tooltip-bg, #fff)'}}
+                       />
+                       <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]}>
+                          {recentRainData.map((entry, index) => (
+                             <Cell key={`cell-${index}`} fill={index === recentRainData.length - 1 ? '#06b6d4' : '#94a3b8'} />
+                          ))}
+                       </Bar>
                     </BarChart>
                  </ResponsiveContainer>
               </div>
            </div>
-           
-           {/* Forecast Rainfall */}
-           <div onClick={() => handleOpenModal(metrics.rain_forecast)} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5 flex flex-col cursor-pointer hover:shadow-lg transition-all">
+
+           {/* Rainfall Forecast (Clickable) */}
+           <div 
+             onClick={() => handleOpenModal(metrics.rain_forecast)}
+             className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-5 flex flex-col cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all group"
+           >
               <div className="flex justify-between items-center mb-4">
-                 <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2"><Clock className="text-purple-500" size={18} /> Dự báo lượng mưa tích lũy (mm)</h3>
-                 <Maximize2 size={16} className="text-slate-300"/>
+                 <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                   <Clock className="text-purple-500" size={18} />
+                   Dự báo lượng mưa tích lũy (mm)
+                 </h3>
+                 <Maximize2 size={16} className="text-slate-300 dark:text-slate-500 group-hover:text-purple-500 transition-colors"/>
               </div>
               <div className="flex-1 min-h-[200px]">
                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={forecastRainData}>
+                    <AreaChart data={forecastRainData} margin={{top: 10, right: 30, left: 0, bottom: 0}}>
                        <defs>
                           <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
                              <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
@@ -687,11 +750,16 @@ export const DashboardView: React.FC = () => {
                        </defs>
                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" strokeOpacity={0.5} />
                        <XAxis dataKey="name" tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} />
+                       <YAxis tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} />
+                       <RechartsTooltip 
+                          contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', backgroundColor: 'var(--tooltip-bg, #fff)'}}
+                       />
                        <Area type="monotone" dataKey="value" stroke="#8b5cf6" strokeWidth={3} fill="url(#colorForecast)" />
                     </AreaChart>
                  </ResponsiveContainer>
               </div>
            </div>
+
         </div>
 
         {/* Secondary Data Sections - REDESIGNED */}
@@ -752,12 +820,7 @@ export const DashboardView: React.FC = () => {
                        {/* Content Column */}
                        <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-start">
-                             <h4 
-                                className="font-bold text-sm text-blue-600 dark:text-blue-400 hover:underline cursor-pointer truncate pr-2"
-                                onClick={() => setSelectedAlert(row)}
-                             >
-                                {row.sensor}
-                             </h4>
+                             <h4 className="font-bold text-sm text-slate-800 dark:text-slate-200 truncate pr-2">{row.sensor}</h4>
                              {/* UPDATED: Format date using formatDateTime on timestamp if available, else rely on generated time */}
                              <span className="text-[10px] text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 whitespace-nowrap font-mono">
                                {row.timestamp ? formatDateTime(row.timestamp) : row.time}
@@ -884,7 +947,6 @@ export const DashboardView: React.FC = () => {
       {showHealthSettings && (
         <div className="fixed inset-0 z-[2000] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
            <div className="bg-white dark:bg-slate-800 w-full max-w-sm rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-in zoom-in-95 duration-200">
-              {/* ... (Existing modal content) ... */}
               <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
                  <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
                     <Sliders size={18} className="text-blue-500"/> Cấu hình đánh giá
@@ -975,13 +1037,12 @@ export const DashboardView: React.FC = () => {
         </div>
       )}
 
-      {/* --- DETAIL METRIC MODAL --- */}
+      {/* --- ADVANCED DETAIL MODAL (Moved outside main div to avoid transform conflicts) --- */}
       {selectedMetric && (
         <div 
           className="fixed inset-0 z-[2000] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-0 animate-in fade-in duration-200"
           style={{ marginTop: 0 }}
         >
-          {/* ... (Existing Metric Modal) ... */}
           <div className={`bg-white dark:bg-slate-800 shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ${isFullscreen ? 'w-screen h-screen' : 'w-[90vw] h-[90vh] rounded-2xl border border-slate-200 dark:border-slate-700'}`}>
             
             {/* Modal Header */}
@@ -1273,99 +1334,6 @@ export const DashboardView: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
-
-      {/* --- ALERT DETAIL MODAL (NEW) --- */}
-      {selectedAlert && (
-            <div 
-                className="fixed inset-0 z-[2000] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-0 animate-in fade-in duration-200"
-                style={{ marginTop: 0 }}
-            >
-                <div className={`bg-white dark:bg-slate-800 shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ${isAlertFullScreen ? 'w-screen h-screen' : 'w-[90vw] h-[90vh] rounded-2xl border border-slate-200 dark:border-slate-700'}`}>
-                    
-                    {/* Header */}
-                    <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 flex justify-between items-center flex-none">
-                        <div className="flex items-center gap-3">
-                            <div className={`p-2 rounded-lg text-white shadow-md ${selectedAlert.severity === 'critical' ? 'bg-red-600' : selectedAlert.severity === 'warning' ? 'bg-amber-500' : 'bg-blue-500'}`}>
-                                {selectedAlert.sensor.toLowerCase().includes('mưa') ? <CloudRain size={24}/> : 
-                                 selectedAlert.sensor.toLowerCase().includes('nhiệt') ? <Thermometer size={24}/> :
-                                 <Gauge size={24}/>}
-                            </div>
-                            
-                            <div>
-                                <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                    {selectedAlert.sensor}
-                                </h3>
-                                <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                                    <span className="font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1"><MapPin size={12}/> {selectedAlert.station}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                            <button 
-                                onClick={() => setIsAlertFullScreen(!isAlertFullScreen)}
-                                className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-full transition-colors hidden md:block"
-                            >
-                                {isAlertFullScreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
-                            </button>
-                            <button 
-                                onClick={() => setSelectedAlert(null)}
-                                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-slate-700 rounded-full transition-colors"
-                            >
-                                <X size={24} />
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Context Banner */}
-                    <div className={`px-6 py-3 border-b flex items-start gap-3 ${selectedAlert.severity === 'critical' ? 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-900/50' : 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-900/50'}`}>
-                        <AlertCircle size={20} className={`shrink-0 mt-0.5 ${selectedAlert.severity === 'critical' ? 'text-red-600' : 'text-amber-600'}`} />
-                        <div>
-                            <p className={`text-sm font-bold ${selectedAlert.severity === 'critical' ? 'text-red-800 dark:text-red-200' : 'text-amber-800 dark:text-amber-200'}`}>
-                                {selectedAlert.type}: {selectedAlert.message}
-                            </p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
-                                <Clock size={10}/> Thời điểm ghi nhận: {selectedAlert.timestamp ? formatDateTime(selectedAlert.timestamp) : selectedAlert.time}
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 flex flex-col overflow-hidden bg-slate-50 dark:bg-slate-900 p-6 space-y-4">
-                        <div className="h-full bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 flex flex-col">
-                            <div className="flex-1 w-full min-h-[300px]">
-                                <ResponsiveContainer width="99%" height="100%">
-                                    <AreaChart data={alertChartData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
-                                        <defs>
-                                            <linearGradient id="colorValueAlert" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor={selectedAlert.severity === 'critical' ? '#ef4444' : '#3b82f6'} stopOpacity={0.3}/>
-                                                <stop offset="95%" stopColor={selectedAlert.severity === 'critical' ? '#ef4444' : '#3b82f6'} stopOpacity={0}/>
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#e2e8f0" strokeOpacity={0.5} />
-                                        <XAxis dataKey="label" tick={{fontSize: 12, fill: '#64748b'}} interval={4} />
-                                        <YAxis label={{ value: 'Giá trị', angle: -90, position: 'insideLeft', fill: '#64748b' }} tick={{fontSize: 12, fill: '#64748b'}} />
-                                        <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                                        
-                                        {/* Reference Line showing Alert Time (Simulated at recent points) */}
-                                        <ReferenceLine x={alertChartData[alertChartData.length - 2]?.label} stroke="red" strokeDasharray="3 3" label={{ value: 'Thời điểm cảnh báo', position: 'insideTopLeft', fill: 'red', fontSize: 12 }} />
-                                        
-                                        <Area 
-                                            type="monotone" 
-                                            dataKey="value" 
-                                            stroke={selectedAlert.severity === 'critical' ? '#ef4444' : '#3b82f6'} 
-                                            fill="url(#colorValueAlert)" 
-                                            strokeWidth={3}
-                                            name={selectedAlert.sensor}
-                                        />
-                                    </AreaChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
       )}
     </>
   );
