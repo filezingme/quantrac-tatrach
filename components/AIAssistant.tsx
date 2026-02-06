@@ -114,6 +114,9 @@ export const AIAssistant: React.FC = () => {
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
 
+  // Chart Modal State
+  const [chartModalConfig, setChartModalConfig] = useState<ChartConfig | null>(null);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const ui = useUI(); 
   
@@ -346,25 +349,23 @@ export const AIAssistant: React.FC = () => {
     }
   };
 
-  const renderChart = (config: ChartConfig) => {
+  // --- CHART RENDERING ---
+  const renderChartContent = (config: ChartConfig) => {
     // Robust safety check to prevent white screen crashes
     if (!config || !Array.isArray(config.data) || config.data.length === 0 || !Array.isArray(config.keys) || config.keys.length === 0) {
         return (
-            <div className="mt-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 text-red-600 dark:text-red-400 text-xs flex items-center gap-2">
-                <AlertTriangle size={16} />
-                <span>Không thể hiển thị biểu đồ: Dữ liệu không hợp lệ.</span>
+            <div className="flex items-center justify-center h-full bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 text-red-600 dark:text-red-400 text-xs">
+                <AlertTriangle size={16} className="mr-2"/>
+                <span>Dữ liệu biểu đồ không hợp lệ.</span>
             </div>
         );
     }
 
     const ChartComponent = config.type === 'bar' ? BarChart : config.type === 'line' ? LineChart : AreaChart;
-    const height = isFullScreen ? 450 : 256;
 
     try {
         return (
-        <div className={`mt-3 bg-white dark:bg-slate-900 rounded-lg p-2 border border-slate-200 dark:border-slate-700 w-full`} style={{ height: `${height}px` }}>
-            <p className="text-xs font-bold text-center text-slate-500 mb-2">{config.title}</p>
-            <ResponsiveContainer width="100%" height="90%">
+            <ResponsiveContainer width="100%" height="100%">
             <ChartComponent data={config.data} margin={{top: 5, right: 0, left: -20, bottom: 0}}>
                 <defs>
                 {config.keys.map((k, i) => (
@@ -388,16 +389,36 @@ export const AIAssistant: React.FC = () => {
                 ))}
             </ChartComponent>
             </ResponsiveContainer>
-        </div>
         );
     } catch (renderError) {
         console.error("Chart Render Error:", renderError);
         return (
-            <div className="mt-3 bg-amber-50 border border-amber-200 rounded p-2 text-amber-700 text-xs">
+            <div className="flex items-center justify-center h-full bg-amber-50 border border-amber-200 rounded p-2 text-amber-700 text-xs">
                 Lỗi render biểu đồ.
             </div>
         );
     }
+  };
+
+  const renderMessageChart = (config: ChartConfig) => {
+      const height = isFullScreen ? 450 : 256;
+      return (
+        <div className={`mt-3 bg-white dark:bg-slate-900 rounded-lg p-2 border border-slate-200 dark:border-slate-700 w-full`} style={{ height: `${height}px` }}>
+            <div className="flex justify-between items-center mb-1 px-1">
+                <p className="text-xs font-bold text-slate-500">{config.title}</p>
+                <button 
+                    onClick={() => setChartModalConfig(config)} 
+                    className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700 rounded transition-colors"
+                    title="Phóng to"
+                >
+                    <Maximize2 size={14} />
+                </button>
+            </div>
+            <div className="flex-1 h-[90%]">
+                {renderChartContent(config)}
+            </div>
+        </div>
+      );
   };
 
   const handleToggleSize = () => {
@@ -436,141 +457,168 @@ export const AIAssistant: React.FC = () => {
       : 'bottom-6 right-6 w-[90vw] md:w-[400px] h-[600px] z-[3000] rounded-2xl';
 
   return (
-    <div className={`fixed transition-all duration-300 ease-in-out shadow-2xl flex flex-col bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden ${containerClasses}`}>
-      
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-600 to-blue-600 text-white shrink-0">
-        <div className="flex items-center gap-2">
-          <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm">
-            <Sparkles size={18} />
-          </div>
-          <div>
-            <h3 className="font-bold text-sm">Trợ lý AI</h3>
-            <p className="text-[10px] text-white/80">Hệ thống hỗ trợ ra quyết định</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-1">
-          {canSelectKey && !process.env.API_KEY && (
-             <button 
-                onClick={handleSelectKey} 
-                className="p-1.5 bg-yellow-400 text-yellow-900 rounded-lg transition-colors text-xs font-bold mr-2 hover:bg-yellow-300" 
-                title="Chọn API Key"
-             >
-                <Key size={14} className="inline mr-1"/> Key
-             </button>
-          )}
-          <button onClick={() => setShowGuide(!showGuide)} className="p-1.5 hover:bg-white/20 rounded-lg transition-colors" title="Hướng dẫn">
-            <HelpCircle size={18} />
-          </button>
-          
-          {/* Unified Size Toggle Button */}
-          <button 
-            onClick={handleToggleSize}
-            className="p-1.5 hover:bg-white/20 rounded-lg transition-colors" 
-            title={isFullScreen ? "Thu nhỏ về mặc định" : (isExpanded ? "Chế độ toàn màn hình" : "Mở rộng cửa sổ")}
-          >
-            {isFullScreen ? <Minimize2 size={18} /> : (isExpanded ? <Maximize2 size={18} /> : <Scaling size={18} />)}
-          </button>
-
-          <button onClick={() => setIsOpen(false)} className="p-1.5 hover:bg-white/20 rounded-lg transition-colors" title="Đóng">
-            <X size={18} />
-          </button>
-        </div>
-      </div>
-
-      {/* Guide Panel */}
-      {showGuide && (
-        <div className="absolute top-16 left-0 right-0 z-10 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md p-4 border-b border-slate-200 dark:border-slate-700 animate-in slide-in-from-top-2">
-          <div className="flex justify-between items-center mb-3">
-            <h4 className="font-bold text-slate-700 dark:text-white flex items-center gap-2 text-sm">
-              <HelpCircle size={16} className="text-blue-500"/> Gợi ý câu hỏi
-            </h4>
-            <button onClick={() => setShowGuide(false)} className="text-slate-400 hover:text-slate-600"><X size={16}/></button>
-          </div>
-          <div className="grid grid-cols-1 gap-2">
-            {SAMPLE_PROMPTS.map((prompt, idx) => (
-              <button 
-                key={idx}
-                onClick={() => { setInput(prompt); setShowGuide(false); }}
-                className="text-left text-xs text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 p-2 rounded-lg transition-colors border border-slate-100 dark:border-slate-700 flex items-center justify-between group"
-              >
-                {prompt}
-                <ChevronRight size={14} className="opacity-0 group-hover:opacity-100 text-indigo-500"/>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 dark:bg-slate-900 custom-scrollbar relative" ref={scrollRef}>
-        {messages.map((msg) => (
-          <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-l-xl rounded-tr-xl' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-r-xl rounded-tl-xl'} p-3 shadow-sm`}>
-              {/* Use the new FormattedText component */}
-              <div className="text-sm">
-                <FormattedText content={msg.content} isUser={msg.role === 'user'} />
-              </div>
-              
-              {msg.type === 'chart' && renderChart(msg.chartData!)}
-              <div className={`text-[10px] mt-1 opacity-60 ${msg.role === 'user' ? 'text-white text-right' : 'text-slate-500'}`}>
-                {msg.role === 'model' ? 'Trợ lý AI' : 'Bạn'} • {new Date(parseInt(msg.id) || Date.now()).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})}
-              </div>
+    <>
+        <div className={`fixed transition-all duration-300 ease-in-out shadow-2xl flex flex-col bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden ${containerClasses}`}>
+        
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-600 to-blue-600 text-white shrink-0">
+            <div className="flex items-center gap-2">
+            <div className="bg-white/20 p-1.5 rounded-lg backdrop-blur-sm">
+                <Sparkles size={18} />
             </div>
-          </div>
-        ))}
-        {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-white dark:bg-slate-800 p-3 rounded-r-xl rounded-tl-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-2">
-              <Loader2 size={16} className="animate-spin text-blue-600"/>
-              <span className="text-xs text-slate-500">Đang phân tích dữ liệu...</span>
+            <div>
+                <h3 className="font-bold text-sm">Trợ lý AI</h3>
+                <p className="text--[10px] text-white/80">Hệ thống hỗ trợ ra quyết định</p>
             </div>
-          </div>
+            </div>
+            <div className="flex items-center gap-1">
+            {canSelectKey && !process.env.API_KEY && (
+                <button 
+                    onClick={handleSelectKey} 
+                    className="p-1.5 bg-yellow-400 text-yellow-900 rounded-lg transition-colors text-xs font-bold mr-2 hover:bg-yellow-300" 
+                    title="Chọn API Key"
+                >
+                    <Key size={14} className="inline mr-1"/> Key
+                </button>
+            )}
+            <button onClick={() => setShowGuide(!showGuide)} className="p-1.5 hover:bg-white/20 rounded-lg transition-colors" title="Hướng dẫn">
+                <HelpCircle size={18} />
+            </button>
+            
+            {/* Unified Size Toggle Button */}
+            <button 
+                onClick={handleToggleSize}
+                className="p-1.5 hover:bg-white/20 rounded-lg transition-colors" 
+                title={isFullScreen ? "Thu nhỏ về mặc định" : (isExpanded ? "Chế độ toàn màn hình" : "Mở rộng cửa sổ")}
+            >
+                {isFullScreen ? <Minimize2 size={18} /> : (isExpanded ? <Maximize2 size={18} /> : <Scaling size={18} />)}
+            </button>
+
+            <button onClick={() => setIsOpen(false)} className="p-1.5 hover:bg-white/20 rounded-lg transition-colors" title="Đóng">
+                <X size={18} />
+            </button>
+            </div>
+        </div>
+
+        {/* Guide Panel */}
+        {showGuide && (
+            <div className="absolute top-16 left-0 right-0 z-10 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md p-4 border-b border-slate-200 dark:border-slate-700 animate-in slide-in-from-top-2">
+            <div className="flex justify-between items-center mb-3">
+                <h4 className="font-bold text-slate-700 dark:text-white flex items-center gap-2 text-sm">
+                <HelpCircle size={16} className="text-blue-500"/> Gợi ý câu hỏi
+                </h4>
+                <button onClick={() => setShowGuide(false)} className="text-slate-400 hover:text-slate-600"><X size={16}/></button>
+            </div>
+            <div className="grid grid-cols-1 gap-2">
+                {SAMPLE_PROMPTS.map((prompt, idx) => (
+                <button 
+                    key={idx}
+                    onClick={() => { setInput(prompt); setShowGuide(false); }}
+                    className="text-left text-xs text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 p-2 rounded-lg transition-colors border border-slate-100 dark:border-slate-700 flex items-center justify-between group"
+                >
+                    {prompt}
+                    <ChevronRight size={14} className="opacity-0 group-hover:opacity-100 text-indigo-500"/>
+                </button>
+                ))}
+            </div>
+            </div>
         )}
-      </div>
 
-      {/* Input */}
-      <div className="p-3 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 shrink-0">
-        <div className="relative flex items-center gap-2">
-          <button 
-            onClick={() => setShowGuide(!showGuide)}
-            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-700 rounded-full transition-colors"
-            title="Gợi ý"
-          >
-            <BarChart2 size={20} />
-          </button>
-          <div className="flex-1 relative flex items-center">
-             <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyPress}
-                placeholder={isListening ? "Đang nghe..." : "Nhập câu hỏi hoặc nói..."}
-                className="w-full bg-slate-100 dark:bg-slate-700 border-0 rounded-full pl-4 pr-10 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white transition-all"
-                autoFocus
-             />
-             <button 
-                onClick={toggleListening}
-                className={`absolute right-1 p-1.5 rounded-full transition-all ${isListening ? 'bg-red-500 text-white animate-pulse' : 'text-slate-400 hover:text-indigo-600 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
-                title={isListening ? "Dừng nghe" : "Nói để nhập liệu"}
-             >
-                {isListening ? <MicOff size={16} /> : <Mic size={16} />}
-             </button>
-          </div>
-          <button 
-            onClick={handleSend}
-            disabled={!input.trim() || isLoading}
-            className="p-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-full transition-all shadow-md"
-          >
-            <Send size={18} />
-          </button>
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 dark:bg-slate-900 custom-scrollbar relative" ref={scrollRef}>
+            {messages.map((msg) => (
+            <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[85%] ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-l-xl rounded-tr-xl' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-r-xl rounded-tl-xl'} p-3 shadow-sm`}>
+                {/* Use the new FormattedText component */}
+                <div className="text-sm">
+                    <FormattedText content={msg.content} isUser={msg.role === 'user'} />
+                </div>
+                
+                {msg.type === 'chart' && renderMessageChart(msg.chartData!)}
+                <div className={`text-[10px] mt-1 opacity-60 ${msg.role === 'user' ? 'text-white text-right' : 'text-slate-500'}`}>
+                    {msg.role === 'model' ? 'Trợ lý AI' : 'Bạn'} • {new Date(parseInt(msg.id) || Date.now()).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})}
+                </div>
+                </div>
+            </div>
+            ))}
+            {isLoading && (
+            <div className="flex justify-start">
+                <div className="bg-white dark:bg-slate-800 p-3 rounded-r-xl rounded-tl-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-2">
+                <Loader2 size={16} className="animate-spin text-blue-600"/>
+                <span className="text-xs text-slate-500">Đang phân tích dữ liệu...</span>
+                </div>
+            </div>
+            )}
         </div>
-        <div className="text-center mt-2">
-           <p className="text-[10px] text-slate-400 dark:text-slate-500">
-             {!process.env.API_KEY ? 'Chế độ mô phỏng (Chưa cấu hình API Key)' : 'AI có thể đưa ra thông tin không chính xác.'}
-           </p>
+
+        {/* Input */}
+        <div className="p-3 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 shrink-0">
+            <div className="relative flex items-center gap-2">
+            <button 
+                onClick={() => setShowGuide(!showGuide)}
+                className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-700 rounded-full transition-colors"
+                title="Gợi ý"
+            >
+                <BarChart2 size={20} />
+            </button>
+            <div className="flex-1 relative flex items-center">
+                <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    placeholder={isListening ? "Đang nghe..." : "Nhập câu hỏi hoặc nói..."}
+                    className="w-full bg-slate-100 dark:bg-slate-700 border-0 rounded-full pl-4 pr-10 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white transition-all"
+                    autoFocus
+                />
+                <button 
+                    onClick={toggleListening}
+                    className={`absolute right-1 p-1.5 rounded-full transition-all ${isListening ? 'bg-red-500 text-white animate-pulse' : 'text-slate-400 hover:text-indigo-600 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
+                    title={isListening ? "Dừng nghe" : "Nói để nhập liệu"}
+                >
+                    {isListening ? <MicOff size={16} /> : <Mic size={16} />}
+                </button>
+            </div>
+            <button 
+                onClick={handleSend}
+                disabled={!input.trim() || isLoading}
+                className="p-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-full transition-all shadow-md"
+            >
+                <Send size={18} />
+            </button>
+            </div>
+            <div className="text-center mt-2">
+            <p className="text-[10px] text-slate-400 dark:text-slate-500">
+                {!process.env.API_KEY ? 'Chế độ mô phỏng (Chưa cấu hình API Key)' : 'AI có thể đưa ra thông tin không chính xác.'}
+            </p>
+            </div>
         </div>
-      </div>
-    </div>
+        </div>
+
+        {/* --- FULLSCREEN CHART MODAL --- */}
+        {chartModalConfig && (
+            <div 
+                className="fixed inset-0 z-[5000] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+                style={{ marginTop: 0 }}
+            >
+                <div className="bg-white dark:bg-slate-800 w-full h-full max-w-[95vw] max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+                    <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
+                        <h3 className="text-lg font-bold text-slate-800 dark:text-white uppercase flex items-center gap-2">
+                            <Maximize2 size={18} className="text-blue-600 dark:text-blue-400"/> {chartModalConfig.title}
+                        </h3>
+                        <button 
+                            onClick={() => setChartModalConfig(null)}
+                            className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 rounded-full transition-colors"
+                        >
+                            <X size={24} />
+                        </button>
+                    </div>
+                    <div className="flex-1 p-6 bg-white dark:bg-slate-800 overflow-hidden">
+                        {renderChartContent(chartModalConfig)}
+                    </div>
+                </div>
+            </div>
+        )}
+    </>
   );
 };
