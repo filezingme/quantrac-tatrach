@@ -181,7 +181,15 @@ export const DashboardView: React.FC = () => {
   const currentCapacity = data?.capacity ?? 0;
   const currentInflow = data?.inflow ?? 0;
   const currentOutflow = data?.outflow ?? 0;
-  const lastUpdated = data?.lastUpdated ? new Date(data.lastUpdated).toLocaleString('vi-VN') : 'N/A';
+  
+  // Updated Last Updated formatting
+  const lastUpdated = useMemo(() => {
+      if (!data?.lastUpdated) return 'N/A';
+      const d = new Date(data.lastUpdated);
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }, [data?.lastUpdated]);
+
   const waterPercent = Math.min(100, Math.max(0, (currentWaterLevel / MAX_DAM_HEIGHT) * 100));
 
   const metrics: Record<MetricType, MetricDetail> = {
@@ -265,13 +273,15 @@ export const DashboardView: React.FC = () => {
     const totalHours = Math.ceil(diffMs / (1000 * 60 * 60)); 
     const newData = [];
 
+    const pad = (n: number) => n.toString().padStart(2, '0');
+
     if (metric.chartType === 'bar_line') {
        const accumulators: Record<number, number> = {};
        years.forEach(y => accumulators[y] = 0);
 
        for (let i = 0; i <= totalHours; i++) {
            const date = new Date(start.getTime() + i * 60 * 60 * 1000);
-           const timeLabel = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:00`;
+           const timeLabel = `${pad(date.getDate())}/${pad(date.getMonth() + 1)} ${pad(date.getHours())}:00:00`;
            const row: any = { timeLabel };
 
            years.forEach(year => {
@@ -296,7 +306,7 @@ export const DashboardView: React.FC = () => {
     const baseVal = metric.value;
     for (let i = 0; i <= totalHours; i++) {
        const date = new Date(start.getTime() + i * 60 * 60 * 1000);
-       const timeLabel = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:00`;
+       const timeLabel = `${pad(date.getDate())}/${pad(date.getMonth() + 1)} ${pad(date.getHours())}:00:00`;
        const row: any = { timeLabel };
 
        years.forEach(year => {

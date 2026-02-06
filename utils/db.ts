@@ -18,7 +18,7 @@ import {
   SidebarConfigItem
 } from '../types';
 
-// CHANGED: Version bump to v10 due to AlertLog structure change
+// CHANGED: Version bump to v11 to reflect data format changes
 const KEYS = {
   OBSERVATION: 'app_observation_v3',
   FORECAST: 'app_forecast_v3',
@@ -34,9 +34,15 @@ const KEYS = {
   WATER_LEVEL_RECORDS: 'app_water_level_records_v3',
   SETTINGS: 'app_settings_v9', 
   DOCUMENTS: 'app_documents_v3',
-  ALERTS: 'app_alerts_v10', // Version bumped
-  SENSORS: 'app_sensors_v2',
+  ALERTS: 'app_alerts_v11', // Version bumped
+  SENSORS: 'app_sensors_v3', // Version bumped
   SIDEBAR_CONFIG: 'app_sidebar_config_v2' 
+};
+
+// Helper to format date strictly as dd/mm/yyyy hh:mm:ss
+const formatFullDateTime = (date: Date): string => {
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 };
 
 // ... (Existing Default Data) ...
@@ -455,6 +461,7 @@ const defaultSettings: SystemSettings = {
 
 // Generate Mock Alerts
 // UPDATED: generateMockAlerts only produces 'critical', 'disconnected', 'faulty'
+// AND USES formatFullDateTime
 const generateMockAlerts = (): AlertLog[] => {
   const sensors = [
     'Đo mực nước WL-01', 'Cảm biến áp lực P2-3', 'Quan trắc thấm KN4', 
@@ -491,7 +498,7 @@ const generateMockAlerts = (): AlertLog[] => {
     
     alerts.push({
       id: `alert-${i}`,
-      time: t.toLocaleString('vi-VN'),
+      time: formatFullDateTime(t), // CHANGED TO FULL FORMAT
       timestamp: t.toISOString(),
       sensor: sensors[i % sensors.length],
       type: typeDisplay,
@@ -506,6 +513,7 @@ const generateMockAlerts = (): AlertLog[] => {
 };
 
 // --- MOCK DATA FOR SENSORS ---
+// Updated to use formatFullDateTime
 const generateMockSensors = (): SensorItem[] => {
   const sensors: SensorItem[] = [];
   const stations = ['Trạm an toàn đập', 'Trạm thủy văn', 'Đập tràn', 'Nhà máy thủy điện', 'Cửa lấy nước'];
@@ -521,11 +529,7 @@ const generateMockSensors = (): SensorItem[] => {
   const getRandomTime = () => {
       const date = new Date();
       date.setMinutes(date.getMinutes() - Math.floor(Math.random() * 60));
-      // Format: DD/MM/YYYY HH:mm:ss
-      return date.toLocaleString('vi-VN', {
-          day: '2-digit', month: '2-digit', year: 'numeric',
-          hour: '2-digit', minute: '2-digit', second: '2-digit'
-      });
+      return formatFullDateTime(date); // CHANGED TO FULL FORMAT
   }
 
   // Helper to get random value

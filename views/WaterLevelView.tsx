@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
   LineChart, 
@@ -200,7 +201,9 @@ export const WaterLevelView: React.FC = () => {
     
     const exportData = processedData.map(row => {
       const d = new Date(row.time);
-      const formattedTime = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      // Format: dd/mm/yyyy hh:mm:ss
+      const formattedTime = `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
       
       return {
         'Năm': row.year,
@@ -413,7 +416,7 @@ export const WaterLevelView: React.FC = () => {
                 <thead className="bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-400 font-semibold sticky top-0 z-10 shadow-sm">
                   <tr>
                     <th className="px-6 py-4 w-24 text-center">Năm</th>
-                    <th className="px-6 py-4 w-1/3">Thời gian (dd/MM/yyyy HH:mm)</th>
+                    <th className="px-6 py-4 w-1/3">Thời gian (dd/MM/yyyy HH:mm:ss)</th>
                     <th className="px-6 py-4">Mực nước hồ (m)</th>
                     <th className="px-6 py-4 text-right">Loại dữ liệu</th>
                   </tr>
@@ -421,7 +424,8 @@ export const WaterLevelView: React.FC = () => {
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-700 bg-white dark:bg-slate-800">
                   {processedData.map((row, index) => {
                     const d = new Date(row.time);
-                    const formattedDisplayTime = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+                    const pad = (n: number) => n.toString().padStart(2, '0');
+                    const formattedDisplayTime = `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
                     
                     return (
                     <tr key={`${row.id}-${index}`} className="hover:bg-blue-50/50 dark:hover:bg-slate-700/50 transition-colors group">
@@ -432,7 +436,7 @@ export const WaterLevelView: React.FC = () => {
                       </td>
                       <td className="px-6 py-2">
                          <div className="flex items-center justify-between">
-                            <span className="font-medium text-slate-600 dark:text-slate-400">{formattedDisplayTime}</span>
+                            <span className="font-medium text-slate-600 dark:text-slate-400 font-mono">{formattedDisplayTime}</span>
                             <input 
                               type="datetime-local"
                               value={formatForInput(d)}
