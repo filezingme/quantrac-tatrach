@@ -71,15 +71,7 @@ const MASTER_MENU_ITEMS = [
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isCollapsed, toggleCollapse }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  
-  // Initialize role directly from DB to avoid flash of wrong state
-  const [userRole, setUserRole] = useState<'admin' | 'user'>(() => {
-    try {
-        return db.user.get().role;
-    } catch {
-        return 'user';
-    }
-  });
+  const [userRole, setUserRole] = useState<'admin' | 'user'>('user');
   
   // Dynamic Menu State
   const [orderedItems, setOrderedItems] = useState(MASTER_MENU_ITEMS);
@@ -346,7 +338,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
                       ${isCollapsed ? 'justify-center w-12 h-12 p-0' : 'justify-start w-full px-4 py-3'} 
                       text-sm font-medium rounded-xl transition-all duration-200 
                       ${isActive
-                        ? 'bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-700 dark:text-blue-300 shadow-sm'
+                        ? 'bg-blue-50 dark:bg-blue-900/30 shadow-sm'
                         : 'hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-100 text-slate-500 dark:text-slate-400'
                       }
                     `}
@@ -354,15 +346,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
                   >
                     <item.icon 
                       size={20} 
-                      className={`shrink-0 transition-colors ${isActive ? 'text-blue-600 dark:text-blue-400' : item.color} ${isActive ? '' : 'opacity-70 group-hover:opacity-100'}`} 
+                      className={`shrink-0 transition-colors ${item.color} ${isActive ? '' : 'opacity-70 group-hover:opacity-100'}`} 
                     />
                     
                     {/* Text Label - Hidden when collapsed */}
-                    <span className={`ml-3 whitespace-nowrap transition-all duration-200 ${isActive ? 'font-bold' : ''} ${isCollapsed ? 'w-0 opacity-0 hidden' : 'w-auto opacity-100'}`}>
+                    <span className={`ml-3 whitespace-nowrap transition-all duration-200 ${isActive ? 'text-slate-800 dark:text-blue-100' : ''} ${isCollapsed ? 'w-0 opacity-0 hidden' : 'w-auto opacity-100'}`}>
                       {label}
                     </span>
 
-                    {/* Active Indicator Dot - Reduced intensity blue */}
+                    {/* Active Indicator Dot */}
                     {isActive && !isCollapsed && (
                       <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400" />
                     )}
