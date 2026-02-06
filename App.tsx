@@ -222,7 +222,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             <button onClick={toggleSidebar} className="md:hidden text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200">
               <Menu size={24} />
             </button>
-            <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-600 dark:from-blue-400 dark:to-indigo-300 hidden sm:block">
+            <h1 className="text-lg font-bold text-slate-800 dark:text-white hidden sm:block">
               {settings.appTitle || settings.appName}
             </h1>
           </div>
