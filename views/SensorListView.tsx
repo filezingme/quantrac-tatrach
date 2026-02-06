@@ -835,7 +835,7 @@ export const SensorListView: React.FC = () => {
                                         <table className="w-full text-sm text-left">
                                             <thead className="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 sticky top-0">
                                                 <tr>
-                                                    <th className="px-6 py-3">Thời gian (dd/mm/yyyy hh:mm:ss)</th>
+                                                    <th className="px-6 py-3">Thời gian</th>
                                                     <th className="px-6 py-3">{selectedSensor.name} ({selectedSensor.unit})</th>
                                                     {compareList.map(c => (
                                                         <th key={c.id} className="px-6 py-3">{c.name} ({c.unit})</th>
@@ -843,21 +843,15 @@ export const SensorListView: React.FC = () => {
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                                {chartData.map((row, i) => {
-                                                    // Convert time to full format for table
-                                                    const d = new Date(row.time);
-                                                    const pad = (n: number) => n.toString().padStart(2, '0');
-                                                    const fullTime = `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-                                                    
-                                                    return (
+                                                {chartData.map((row, i) => (
                                                     <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
-                                                        <td className="px-6 py-2 font-medium text-slate-700 dark:text-slate-300 font-mono text-xs">{fullTime}</td>
+                                                        <td className="px-6 py-2 font-medium text-slate-700 dark:text-slate-300 font-mono text-xs">{row.time.replace('T', ' ').slice(0, 16)}</td>
                                                         <td className="px-6 py-2 font-bold text-blue-600 dark:text-blue-400">{row[selectedSensor.id]}</td>
                                                         {compareList.map(c => (
                                                             <td key={c.id} className="px-6 py-2 text-slate-600 dark:text-slate-400">{row[c.id]}</td>
                                                         ))}
                                                     </tr>
-                                                );})}
+                                                ))}
                                             </tbody>
                                         </table>
                                     </div>

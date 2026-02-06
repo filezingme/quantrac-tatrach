@@ -190,9 +190,9 @@ export interface AlertLog {
   time: string; // Display time string
   timestamp: string; // ISO for sorting
   sensor: string;
-  type: string; // "Nguy hiểm", "Mất kết nối", "Hỏng" (display text)
+  type: string;
   station: string;
-  severity: 'critical' | 'disconnected' | 'faulty';
+  severity: 'critical' | 'warning' | 'info';
   message: string;
   status: 'new' | 'acknowledged' | 'resolved';
 }

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   AlertTriangle, Filter, Search, Download, CheckCircle, WifiOff, AlertCircle, 
-  MapPin, Clock, ArrowRight, Activity, BellRing, Eye, RotateCcw, MoreHorizontal, ChevronDown, Hammer
+  MapPin, Clock, ArrowRight, Activity, BellRing, Eye, RotateCcw, MoreHorizontal, ChevronDown
 } from 'lucide-react';
 import { db } from '../utils/db';
 import { AlertLog } from '../types';
@@ -11,7 +11,7 @@ import { useUI } from '../components/GlobalUI';
 
 export const AlertHistoryView: React.FC = () => {
   const [alerts, setAlerts] = useState<AlertLog[]>([]);
-  const [filterSeverity, setFilterSeverity] = useState<'all' | 'critical' | 'disconnected' | 'faulty'>('all');
+  const [filterSeverity, setFilterSeverity] = useState<'all' | 'critical' | 'warning' | 'info'>('all');
   const [filterStatus, setFilterStatus] = useState<'all' | 'new' | 'acknowledged' | 'resolved'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [visibleCount, setVisibleCount] = useState(20);
@@ -53,7 +53,7 @@ export const AlertHistoryView: React.FC = () => {
       'Thời gian': a.time,
       'Cảm biến': a.sensor,
       'Loại cảnh báo': a.type,
-      'Mức độ': a.severity === 'critical' ? 'Nguy hiểm' : a.severity === 'disconnected' ? 'Mất kết nối' : 'Hỏng',
+      'Mức độ': a.severity === 'critical' ? 'Nghiêm trọng' : a.severity === 'warning' ? 'Cảnh báo' : 'Thông tin',
       'Vị trí': a.station,
       'Nội dung': a.message,
       'Trạng thái': a.status === 'new' ? 'Mới' : a.status === 'acknowledged' ? 'Đã tiếp nhận' : 'Đã xử lý'
@@ -73,10 +73,9 @@ export const AlertHistoryView: React.FC = () => {
 
   const getSeverityBadge = (sev: string) => {
     switch (sev) {
-      case 'critical': return <span className="px-2 py-1 rounded text-xs font-bold bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900/50 whitespace-nowrap">Nguy hiểm</span>;
-      case 'disconnected': return <span className="px-2 py-1 rounded text-xs font-bold bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600 whitespace-nowrap">Mất kết nối</span>;
-      case 'faulty': return <span className="px-2 py-1 rounded text-xs font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50 whitespace-nowrap">Hỏng</span>;
-      default: return null;
+      case 'critical': return <span className="px-2 py-1 rounded text-xs font-bold bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900/50 whitespace-nowrap">Nghiêm trọng</span>;
+      case 'warning': return <span className="px-2 py-1 rounded text-xs font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50 whitespace-nowrap">Cảnh báo</span>;
+      default: return <span className="px-2 py-1 rounded text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50 whitespace-nowrap">Thông tin</span>;
     }
   };
 
@@ -166,18 +165,13 @@ export const AlertHistoryView: React.FC = () => {
 
               {/* Severity Filter */}
               <div className="flex bg-slate-200 dark:bg-slate-700 rounded-lg p-1 overflow-x-auto no-scrollbar max-w-full">
-                 {[
-                    { id: 'all', label: 'Tất cả' },
-                    { id: 'critical', label: 'Nguy hiểm' },
-                    { id: 'disconnected', label: 'Mất kết nối' },
-                    { id: 'faulty', label: 'Hỏng' }
-                 ].map((item) => (
+                 {['all', 'critical', 'warning', 'info'].map((sev) => (
                     <button
-                      key={item.id}
-                      onClick={() => setFilterSeverity(item.id as any)}
-                      className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all whitespace-nowrap ${filterSeverity === item.id ? 'bg-white dark:bg-slate-600 shadow text-slate-800 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
+                      key={sev}
+                      onClick={() => setFilterSeverity(sev as any)}
+                      className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all capitalize whitespace-nowrap ${filterSeverity === sev ? 'bg-white dark:bg-slate-600 shadow text-slate-800 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
                     >
-                      {item.label}
+                      {sev === 'all' ? 'Tất cả' : sev === 'critical' ? 'Nghiêm trọng' : sev === 'warning' ? 'Cảnh báo' : 'Thông tin'}
                     </button>
                  ))}
               </div>
@@ -242,10 +236,8 @@ export const AlertHistoryView: React.FC = () => {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-start gap-2">
-                                                <div className={`mt-0.5 shrink-0 ${alert.severity === 'critical' ? 'text-red-500' : alert.severity === 'disconnected' ? 'text-slate-400' : 'text-amber-500'}`}>
-                                                    {alert.severity === 'critical' ? <WifiOff size={16}/> : 
-                                                     alert.severity === 'disconnected' ? <WifiOff size={16}/> : 
-                                                     <Hammer size={16}/>}
+                                                <div className={`mt-0.5 shrink-0 ${alert.severity === 'critical' ? 'text-red-500' : 'text-slate-400'}`}>
+                                                    {alert.severity === 'critical' ? <WifiOff size={16}/> : <Activity size={16}/>}
                                                 </div>
                                                 <div>
                                                     <p className="font-semibold text-slate-700 dark:text-slate-300 text-xs mb-1 uppercase tracking-wide">{alert.type}</p>
@@ -286,9 +278,7 @@ export const AlertHistoryView: React.FC = () => {
 
                                 <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-100 dark:border-slate-700">
                                     <p className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1 flex items-center gap-1.5">
-                                        {alert.severity === 'critical' ? <WifiOff size={14} className="text-red-500"/> : 
-                                         alert.severity === 'disconnected' ? <WifiOff size={14} className="text-slate-500"/> :
-                                         <Hammer size={14} className="text-amber-500"/>}
+                                        {alert.severity === 'critical' ? <WifiOff size={14} className="text-red-500"/> : <Activity size={14} className="text-blue-500"/>}
                                         {alert.type}
                                     </p>
                                     <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{alert.message}</p>
