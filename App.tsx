@@ -189,6 +189,9 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
     }
   };
 
+  // Helper to determine if avatar is image or text
+  const isImageAvatar = user.avatar && user.avatar.length > 4;
+
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden font-sans transition-colors duration-200">
       
@@ -379,8 +382,12 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                       {user.role === 'admin' ? 'ADMIN' : 'USER'}
                     </span>
                   </div>
-                  <div className={`h-9 w-9 shrink-0 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-xs shadow-blue-200 shadow-md ring-2 ring-transparent group-hover:ring-blue-100 dark:group-hover:ring-blue-900 transition-all ${isUserMenuOpen ? 'ring-blue-200 dark:ring-blue-800' : ''}`}>
-                    {user.avatar}
+                  <div className={`h-9 w-9 shrink-0 rounded-full overflow-hidden bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-xs shadow-blue-200 shadow-md ring-2 ring-transparent group-hover:ring-blue-100 dark:group-hover:ring-blue-900 transition-all ${isUserMenuOpen ? 'ring-blue-200 dark:ring-blue-800' : ''}`}>
+                    {isImageAvatar ? (
+                        <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                    ) : (
+                        user.avatar
+                    )}
                   </div>
                 </button>
 
@@ -616,7 +623,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                                         {viewNotification.message}
                                      </p>
                                   </div>
-                               </div>
+                                </div>
                             </>
                          )}
                       </div>

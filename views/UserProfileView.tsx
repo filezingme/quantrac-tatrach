@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { User, Mail, Phone, MapPin, Briefcase, Save, Lock, Shield, CheckCircle, RefreshCw, Check, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { User, Mail, Phone, MapPin, Briefcase, Save, Lock, Shield, CheckCircle, RefreshCw, Check, AlertCircle, Camera } from 'lucide-react';
 import { db } from '../utils/db';
 import { UserProfile } from '../types';
 import { useUI } from '../components/GlobalUI';
@@ -9,6 +9,9 @@ export const UserProfileView: React.FC = () => {
   const [user, setUser] = useState<UserProfile>(db.user.get());
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const ui = useUI();
+  
+  // File Upload Ref
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Password state
   const [passwordForm, setPasswordForm] = useState({ current: '', new: '', confirm: '' });
@@ -52,6 +55,40 @@ export const UserProfileView: React.FC = () => {
     setPasswordError('');
   };
 
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type/size if needed
+      if (file.size > 5 * 1024 * 1024) {
+        ui.showToast('error', 'Kích thước ảnh quá lớn (Max 5MB)');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        
+        // Update local state
+        const updatedUser = { ...user, avatar: base64String };
+        setUser(updatedUser);
+        
+        // Save immediately to DB to reflect in header
+        db.user.set(updatedUser);
+        ui.showToast('success', 'Đã cập nhật ảnh đại diện');
+      };
+      reader.readAsDataURL(file);
+    }
+    // Reset input
+    e.target.value = '';
+  };
+
+  // Helper to determine if avatar is an image (Base64/URL) or Initials
+  const isImageAvatar = user.avatar.length > 4;
+
   return (
     <div className="max-w-5xl mx-auto pb-10 space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
@@ -63,9 +100,34 @@ export const UserProfileView: React.FC = () => {
         {/* Left Column: Avatar & Overview */}
         <div className="md:col-span-1 space-y-6">
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 flex flex-col items-center text-center">
-                <div className="w-32 h-32 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-4xl font-bold text-white shadow-lg mb-4">
-                    {user.avatar}
+                
+                {/* Avatar Circle */}
+                <div 
+                    className="relative group cursor-pointer mb-4"
+                    onClick={handleAvatarClick}
+                >
+                    <div className={`w-32 h-32 rounded-full overflow-hidden flex items-center justify-center text-4xl font-bold text-white shadow-lg ${!isImageAvatar ? 'bg-gradient-to-tr from-blue-500 to-indigo-600' : 'bg-slate-100'}`}>
+                        {isImageAvatar ? (
+                            <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                            user.avatar
+                        )}
+                    </div>
+                    
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <Camera className="text-white" size={32} />
+                    </div>
+
+                    <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        onChange={handleAvatarUpload} 
+                        className="hidden" 
+                        accept="image/*"
+                    />
                 </div>
+
                 <h3 className="text-xl font-bold text-slate-800 dark:text-white">{user.name}</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">{user.role}</p>
                 <div className="mt-4 flex gap-2">

@@ -229,13 +229,6 @@ export const SystemSettingsView: React.FC = () => {
                                     </div>
                                     <Switch checked={settings.features.enableFloodSimulation} onChange={() => toggleFeature('enableFloodSimulation')} />
                                 </div>
-                                <div className="flex items-center justify-between py-3">
-                                    <div>
-                                        <p className="font-medium text-slate-800 dark:text-white">Thư viện Biểu đồ Demo</p>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">Hiển thị các loại biểu đồ nâng cao để tham khảo.</p>
-                                    </div>
-                                    <Switch checked={settings.features.enableDemoCharts} onChange={() => toggleFeature('enableDemoCharts')} />
-                                </div>
                             </div>
                         </div>
                      </div>
