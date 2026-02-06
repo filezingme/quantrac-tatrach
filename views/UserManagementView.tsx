@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, Plus, Filter, MoreVertical, Edit, Trash2, Shield, User, 
-  CheckCircle, XCircle, Key, ChevronLeft, ChevronRight, Lock, AlertCircle, Ban
+  CheckCircle, XCircle, Key, ChevronLeft, ChevronRight, Lock, AlertCircle, Ban,
+  X // Added X icon for modal
 } from 'lucide-react';
 import { db } from '../utils/db';
 import { UserProfile } from '../types';
@@ -22,6 +23,9 @@ export const UserManagementView: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isPassModalOpen, setIsPassModalOpen] = useState(false);
   
+  // Avatar Zoom State
+  const [zoomAvatar, setZoomAvatar] = useState<{ url: string, name: string } | null>(null);
+  
   // Forms
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [newUserForm, setNewUserForm] = useState({ username: '', name: '', email: '', role: 'user', password: '' });
@@ -34,9 +38,17 @@ export const UserManagementView: React.FC = () => {
   const ui = useUI();
 
   useEffect(() => {
-    // Load users
+    // Load users initially
     setUsers(db.users.getAll());
     setCurrentUser(db.user.get());
+
+    // Listen for global DB changes (e.g. Profile updates avatar)
+    const handleDbChange = () => {
+        setUsers(db.users.getAll());
+        setCurrentUser(db.user.get());
+    };
+    window.addEventListener('db-change', handleDbChange);
+    return () => window.removeEventListener('db-change', handleDbChange);
   }, []);
 
   const filteredUsers = users.filter(u => {
@@ -152,6 +164,14 @@ export const UserManagementView: React.FC = () => {
       setIsAddModalOpen(true);
   }
 
+  // Handle Avatar Click for Zoom
+  const handleAvatarClick = (user: UserProfile) => {
+      // Only zoom if it's an image (base64 or URL)
+      if (user.avatar.length > 4) {
+          setZoomAvatar({ url: user.avatar, name: user.name });
+      }
+  };
+
   // Define Standard Input Style
   const inputStyle = "w-full border border-slate-300 dark:border-slate-600 rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-normal focus:text-slate-900 dark:focus:text-white transition-colors placeholder-slate-400";
 
@@ -223,8 +243,15 @@ export const UserManagementView: React.FC = () => {
                             <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                                 <td className="px-6 py-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 text-white flex items-center justify-center font-bold text-sm shadow-sm">
-                                            {user.avatar}
+                                        <div 
+                                            className={`w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 text-white flex items-center justify-center font-bold text-sm shadow-sm overflow-hidden ${user.avatar.length > 4 ? 'cursor-zoom-in hover:opacity-90 transition-opacity' : ''}`}
+                                            onClick={() => handleAvatarClick(user)}
+                                        >
+                                            {user.avatar.length > 4 ? (
+                                                <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                user.avatar
+                                            )}
                                         </div>
                                         <div>
                                             <p className="font-bold text-slate-800 dark:text-white">{user.name}</p>
@@ -333,7 +360,7 @@ export const UserManagementView: React.FC = () => {
         </div>
       </div>
 
-      {/* Add User Modal - MOVED OUTSIDE */}
+      {/* Add User Modal */}
       {isAddModalOpen && (
           <div className="fixed inset-0 z-[5000] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4" style={{ marginTop: 0 }}>
               <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
@@ -413,7 +440,7 @@ export const UserManagementView: React.FC = () => {
           </div>
       )}
 
-      {/* Change Password Modal - MOVED OUTSIDE */}
+      {/* Change Password Modal */}
       {isPassModalOpen && selectedUser && (
           <div className="fixed inset-0 z-[5000] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4" style={{ marginTop: 0 }}>
               <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
@@ -464,6 +491,36 @@ export const UserManagementView: React.FC = () => {
                   </div>
               </div>
           </div>
+      )}
+
+      {/* --- AVATAR LIGHTBOX MODAL --- */}
+      {zoomAvatar && (
+        <div 
+          className="fixed inset-0 z-[5000] bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300"
+          onClick={() => setZoomAvatar(null)}
+        >
+           <button 
+             onClick={() => setZoomAvatar(null)}
+             className="absolute top-4 right-4 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors z-50"
+           >
+             <X size={24} />
+           </button>
+
+           <div 
+             className="relative max-w-[90vw] max-h-[90vh] flex flex-col items-center"
+             onClick={(e) => e.stopPropagation()} 
+           >
+              <img 
+                src={zoomAvatar.url} 
+                alt={zoomAvatar.name} 
+                className="max-w-full max-h-[85vh] rounded-lg shadow-2xl object-contain animate-in zoom-in-95 duration-300"
+              />
+              <div className="mt-4 text-center">
+                 <h3 className="text-white font-bold text-xl drop-shadow-md">{zoomAvatar.name}</h3>
+                 <p className="text-white/60 text-sm mt-1">Ảnh đại diện</p>
+              </div>
+           </div>
+        </div>
       )}
     </>
   );
