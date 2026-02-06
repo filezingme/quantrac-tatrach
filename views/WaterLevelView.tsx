@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
   LineChart, 
@@ -413,7 +414,7 @@ export const WaterLevelView: React.FC = () => {
                 <thead className="bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-400 font-semibold sticky top-0 z-10 shadow-sm">
                   <tr>
                     <th className="px-6 py-4 w-24 text-center">Năm</th>
-                    <th className="px-6 py-4 w-1/3">Thời gian (dd/MM/yyyy HH:mm)</th>
+                    <th className="px-6 py-4 w-1/3">Thời gian</th>
                     <th className="px-6 py-4">Mực nước hồ (m)</th>
                     <th className="px-6 py-4 text-right">Loại dữ liệu</th>
                   </tr>
