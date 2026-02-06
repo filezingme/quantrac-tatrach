@@ -71,7 +71,15 @@ const MASTER_MENU_ITEMS = [
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isCollapsed, toggleCollapse }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [userRole, setUserRole] = useState<'admin' | 'user'>('user');
+  
+  // Initialize role directly from DB to avoid flash of wrong state
+  const [userRole, setUserRole] = useState<'admin' | 'user'>(() => {
+    try {
+        return db.user.get().role;
+    } catch {
+        return 'user';
+    }
+  });
   
   // Dynamic Menu State
   const [orderedItems, setOrderedItems] = useState(MASTER_MENU_ITEMS);
@@ -280,8 +288,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
       <div 
         className={`
           fixed inset-y-0 left-0 z-[1000] 
-          bg-white dark:bg-slate-800 
-          border-r border-slate-200 dark:border-slate-700 
+          bg-white/80 dark:bg-slate-900/80 backdrop-blur-md 
+          border-r border-slate-200/50 dark:border-slate-700/50 
           text-slate-600 dark:text-slate-300 
           transition-all duration-300 ease-in-out
           flex flex-col
@@ -301,9 +309,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
         </button>
 
         {/* Header - Strictly aligned */}
-        <div className={`flex items-center h-16 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 transition-all duration-300 overflow-hidden ${isCollapsed ? 'justify-center px-0' : 'justify-between px-5'}`}>
+        <div className={`flex items-center h-16 border-b border-slate-100 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 transition-all duration-300 overflow-hidden ${isCollapsed ? 'justify-center px-0' : 'justify-between px-5'}`}>
           <div className={`flex items-center ${isCollapsed ? 'justify-center w-full' : 'gap-3'}`}>
-            <div className="bg-blue-600 p-2 rounded-lg text-white shadow-blue-200 dark:shadow-none shadow-md shrink-0 flex items-center justify-center">
+            <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-2 rounded-lg text-white shadow-lg shadow-blue-500/30 shrink-0 flex items-center justify-center">
               <Waves size={20} />
             </div>
             {!isCollapsed && (
@@ -338,25 +346,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
                       ${isCollapsed ? 'justify-center w-12 h-12 p-0' : 'justify-start w-full px-4 py-3'} 
                       text-sm font-medium rounded-xl transition-all duration-200 
                       ${isActive
-                        ? 'bg-blue-50 dark:bg-blue-900/30 shadow-sm'
-                        : 'hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-100 text-slate-500 dark:text-slate-400'
+                        ? 'bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 text-blue-700 dark:text-blue-300 shadow-sm border border-blue-200/50 dark:border-blue-700/50'
+                        : 'hover:bg-white/60 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100 text-slate-500 dark:text-slate-400'
                       }
                     `}
                     title={isCollapsed ? label : undefined}
                   >
                     <item.icon 
                       size={20} 
-                      className={`shrink-0 transition-colors ${item.color} ${isActive ? '' : 'opacity-70 group-hover:opacity-100'}`} 
+                      className={`shrink-0 transition-colors ${isActive ? 'text-blue-600 dark:text-blue-400' : item.color} ${isActive ? '' : 'opacity-70 group-hover:opacity-100'}`} 
                     />
                     
                     {/* Text Label - Hidden when collapsed */}
-                    <span className={`ml-3 whitespace-nowrap transition-all duration-200 ${isActive ? 'text-slate-800 dark:text-blue-100' : ''} ${isCollapsed ? 'w-0 opacity-0 hidden' : 'w-auto opacity-100'}`}>
+                    <span className={`ml-3 whitespace-nowrap transition-all duration-200 ${isActive ? 'font-bold' : ''} ${isCollapsed ? 'w-0 opacity-0 hidden' : 'w-auto opacity-100'}`}>
                       {label}
                     </span>
 
-                    {/* Active Indicator Dot */}
+                    {/* Active Indicator Dot - Reduced intensity blue */}
                     {isActive && !isCollapsed && (
-                      <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400" />
+                      <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400 shadow-sm shadow-blue-400/50" />
                     )}
                   </button>
 
@@ -375,7 +383,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
 
         {/* Footer with Unified Settings Menu */}
         <div 
-          className={`relative p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/30 transition-all duration-300 flex items-center select-none ${isCollapsed ? 'justify-center flex-col gap-2' : 'justify-center'}`}
+          className={`relative p-4 border-t border-slate-100 dark:border-slate-700 bg-white/30 dark:bg-slate-900/30 transition-all duration-300 flex items-center select-none ${isCollapsed ? 'justify-center flex-col gap-2' : 'justify-center'}`}
           ref={settingsMenuRef}
         >
           {!isCollapsed && (
@@ -384,7 +392,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
           
           {/* Popover Menu */}
           {isSettingsMenuOpen && (
-            <div className={`absolute bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 w-56 overflow-hidden z-[1100] animate-in fade-in duration-200 ${
+            <div className={`absolute bg-white/90 dark:bg-slate-800/90 backdrop-blur-md rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 w-56 overflow-hidden z-[1100] animate-in fade-in duration-200 ${
               isCollapsed 
                 ? 'left-full ml-3 bottom-0 slide-in-from-left-2' 
                 : 'bottom-full mb-2 right-0 slide-in-from-bottom-2'
@@ -392,7 +400,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
                <div className="p-1 space-y-0.5">
                   <button 
                     onClick={handleOpenConfig}
-                    className="w-full text-left px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 rounded-lg flex items-center gap-3 transition-colors"
+                    className="w-full text-left px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg flex items-center gap-3 transition-colors"
                   >
                     <Sliders size={16} className="text-slate-400"/>
                     Tùy chỉnh Menu
@@ -401,7 +409,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
                   {userRole === 'admin' && (
                     <button 
                       onClick={handleGoToSystemSettings}
-                      className="w-full text-left px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 rounded-lg flex items-center gap-3 transition-colors"
+                      className="w-full text-left px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg flex items-center gap-3 transition-colors"
                     >
                       <Settings size={16} className="text-slate-400"/>
                       Cài đặt hệ thống

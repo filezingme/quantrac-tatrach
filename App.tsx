@@ -23,7 +23,7 @@ import { AISafetyView } from './views/AISafetyView';
 import { AlertHistoryView } from './views/AlertHistoryView'; 
 import { SensorListView } from './views/SensorListView'; 
 import { LoginView } from './views/LoginView';
-import { MaintenanceView } from './views/MaintenanceView'; // NEW IMPORT
+import { MaintenanceView } from './views/MaintenanceView'; 
 import { UIProvider, useUI } from './components/GlobalUI';
 import { AIAssistant } from './components/AIAssistant'; 
 import { GlobalSearch } from './components/GlobalSearch';
@@ -189,15 +189,19 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
     }
   };
 
-  // Helper to determine if avatar is image or text
   const isImageAvatar = user.avatar && user.avatar.length > 4;
 
   return (
-    <div className="flex h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden font-sans transition-colors duration-200">
+    <div className="flex h-screen bg-aurora overflow-hidden font-sans transition-colors duration-200 text-slate-800 dark:text-slate-100 relative">
       
+      {/* --- DECORATIVE BACKGROUND BLOBS --- */}
+      <div className="blob blob-1"></div>
+      <div className="blob blob-2"></div>
+      <div className="blob blob-3"></div>
+
       {/* MAINTENANCE BANNER FOR ADMINS */}
       {settings.maintenanceMode && user.role === 'admin' && (
-        <div className="absolute top-0 left-0 right-0 z-[600] bg-red-600 text-white text-xs font-bold py-1 px-4 text-center shadow-md flex items-center justify-center gap-2">
+        <div className="absolute top-0 left-0 right-0 z-[600] bg-red-600/90 backdrop-blur-sm text-white text-xs font-bold py-1 px-4 text-center shadow-md flex items-center justify-center gap-2">
            <Wrench size={12} className="animate-spin-slow"/>
            CHẾ ĐỘ BẢO TRÌ ĐANG BẬT - Người dùng thường không thể truy cập
         </div>
@@ -211,27 +215,27 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
       />
 
       <div className={`flex-1 flex flex-col min-w-0 relative ${settings.maintenanceMode && user.role === 'admin' ? 'pt-6' : ''}`}>
-        <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 h-16 flex items-center justify-between px-4 sm:px-6 z-[500] shadow-sm relative transition-colors duration-200">
+        
+        {/* HEADER: Added backdrop-blur and transparent bg */}
+        <header className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border-b border-white/20 dark:border-slate-700/50 h-16 flex items-center justify-between px-4 sm:px-6 z-[500] shadow-sm relative transition-colors duration-200">
           <div className="flex items-center gap-4">
             <button onClick={toggleSidebar} className="md:hidden text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200">
               <Menu size={24} />
             </button>
-            {/* CHANGED: Use settings.appTitle instead of settings.appName */}
-            <h1 className="text-lg font-semibold text-slate-800 dark:text-slate-100 hidden sm:block">
+            <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-600 dark:from-blue-400 dark:to-indigo-300 hidden sm:block">
               {settings.appTitle || settings.appName}
             </h1>
           </div>
           
           <div className="flex items-center gap-2 sm:gap-4">
-             {/* ... (Search, Notification, User Menu - keeping same structure) ... */}
              <button 
                 onClick={() => setIsSearchOpen(true)}
-                className="hidden md:flex items-center w-full max-w-[200px] lg:max-w-[320px] gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 text-sm transition-colors border border-transparent hover:border-slate-300 dark:hover:border-slate-600"
+                className="hidden md:flex items-center w-full max-w-[200px] lg:max-w-[320px] gap-2 px-3 py-2 bg-white/50 dark:bg-slate-800/50 hover:bg-white/80 dark:hover:bg-slate-700/80 rounded-xl text-slate-500 dark:text-slate-400 text-sm transition-all border border-slate-200/50 dark:border-slate-700/50 shadow-sm"
              >
                 <Search size={16} />
                 <span className="flex-1 text-left truncate">Tìm kiếm...</span>
                 <div className="flex items-center gap-0.5 ml-2">
-                   <kbd className="hidden lg:inline-flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded px-2 py-0.5 text-[10px] font-bold shadow-sm text-slate-500 dark:text-slate-400">
+                   <kbd className="hidden lg:inline-flex items-center gap-1 bg-white/50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded px-2 py-0.5 text-[10px] font-bold shadow-sm text-slate-500 dark:text-slate-400">
                       Ctrl + K
                    </kbd>
                 </div>
@@ -249,7 +253,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                     setIsNotifOpen(!isNotifOpen);
                     if (isNotifOpen) setViewNotification(null);
                 }}
-                className={`relative p-2 transition-colors ${isNotifOpen ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 rounded-lg' : 'text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400'}`}
+                className={`relative p-2 transition-all duration-200 ${isNotifOpen ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 rounded-xl shadow-inner' : 'text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-xl'}`}
                >
                  <Bell size={20} />
                  {unreadCount > 0 && (
@@ -261,17 +265,17 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                </button>
 
                {isNotifOpen && (
-                 <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                 <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white/90 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-slate-700 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right ring-1 ring-black/5">
                    <div className="relative overflow-hidden h-[450px]">
                        <div 
                           className="flex h-full transition-transform duration-300 ease-in-out"
                           style={{ transform: viewNotification ? 'translateX(-100%)' : 'translateX(0)' }}
                        >
                           <div className="w-full h-full shrink-0 flex flex-col">
-                             <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50 flex-none">
+                             <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/30 flex-none">
                                <h3 className="font-semibold text-slate-800 dark:text-slate-100">Thông báo</h3>
                                {unreadCount > 0 && (
-                                 <button onClick={handleMarkAllRead} className="text-xs text-blue-600 hover:underline flex items-center gap-1 dark:text-blue-400">
+                                 <button onClick={handleMarkAllRead} className="text-xs text-blue-600 hover:underline flex items-center gap-1 dark:text-blue-400 font-medium">
                                    <Check size={12} /> Đánh dấu đã đọc
                                  </button>
                                )}
@@ -288,7 +292,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                                    <div 
                                       key={notif.id} 
                                       onClick={() => openNotificationDetail(notif)}
-                                      className={`p-4 border-b border-slate-50 dark:border-slate-700 transition-colors cursor-pointer group ${getNotifBg(notif.type, notif.read)}`}
+                                      className={`p-4 border-b border-slate-50 dark:border-slate-700/50 transition-colors cursor-pointer group ${getNotifBg(notif.type, notif.read)}`}
                                    >
                                       <div className="flex justify-between items-start mb-1 gap-2">
                                         <div className="flex items-center gap-2">
@@ -305,10 +309,10 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                                )}
                              </div>
                              
-                             <div className="p-2 border-t border-slate-100 dark:border-slate-700 text-center bg-slate-50/50 dark:bg-slate-800/50 flex-none">
+                             <div className="p-2 border-t border-slate-100 dark:border-slate-700 text-center bg-slate-50/50 dark:bg-slate-900/30 flex-none">
                                <button 
                                   onClick={() => { setIsNotifOpen(false); setShowAllNotifications(true); }}
-                                  className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-bold w-full py-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
+                                  className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-bold w-full py-2 hover:bg-slate-100/50 dark:hover:bg-slate-700/50 rounded-lg transition-colors"
                                >
                                   Xem tất cả thông báo
                                </button>
@@ -318,7 +322,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                           <div className="w-full h-full shrink-0 flex flex-col bg-slate-50/30 dark:bg-slate-900/10">
                              {viewNotification && (
                                <>
-                                 <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2 bg-white dark:bg-slate-800 shadow-sm flex-none z-10">
+                                 <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2 bg-white/80 dark:bg-slate-800/80 shadow-sm flex-none z-10 backdrop-blur-md">
                                     <button 
                                       onClick={closeNotificationDetail}
                                       className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors text-slate-500 dark:text-slate-400"
@@ -339,11 +343,11 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                                     </button>
                                  </div>
                                  
-                                 <div className="p-5 overflow-y-auto flex-1 hover-scrollbar bg-white dark:bg-slate-800">
-                                    <div className={`mb-4 p-3 rounded-lg flex items-start gap-3 ${
-                                       viewNotification.type === 'alert' ? 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200' : 
-                                       viewNotification.type === 'warning' ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200' : 
-                                       'bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200'
+                                 <div className="p-5 overflow-y-auto flex-1 hover-scrollbar bg-white/50 dark:bg-slate-800/50">
+                                    <div className={`mb-4 p-3 rounded-xl flex items-start gap-3 shadow-sm border ${
+                                       viewNotification.type === 'alert' ? 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-900/30 text-red-800 dark:text-red-200' : 
+                                       viewNotification.type === 'warning' ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-900/30 text-amber-800 dark:text-amber-200' : 
+                                       'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-900/30 text-blue-800 dark:text-blue-200'
                                     }`}>
                                        <div className="mt-0.5 shrink-0">
                                           {getNotifIcon(viewNotification.type)}
@@ -382,7 +386,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                       {user.role === 'admin' ? 'ADMIN' : 'USER'}
                     </span>
                   </div>
-                  <div className={`h-9 w-9 shrink-0 rounded-full overflow-hidden bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-xs shadow-blue-200 shadow-md ring-2 ring-transparent group-hover:ring-blue-100 dark:group-hover:ring-blue-900 transition-all ${isUserMenuOpen ? 'ring-blue-200 dark:ring-blue-800' : ''}`}>
+                  <div className={`h-10 w-10 shrink-0 rounded-full overflow-hidden bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-blue-500/20 ring-2 ring-white dark:ring-slate-800 group-hover:ring-blue-100 dark:group-hover:ring-blue-900 transition-all ${isUserMenuOpen ? 'ring-blue-200 dark:ring-blue-800 scale-105' : ''}`}>
                     {isImageAvatar ? (
                         <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
                     ) : (
@@ -392,31 +396,31 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                 </button>
 
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
-                    <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
-                      <p className="font-semibold text-slate-800 dark:text-slate-100">{user.name}</p>
+                  <div className="absolute right-0 mt-2 w-60 bg-white/90 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-slate-700 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right ring-1 ring-black/5">
+                    <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
+                      <p className="font-bold text-slate-800 dark:text-slate-100">{user.name}</p>
                       <p className="text-xs text-slate-500 truncate">{user.email}</p>
                     </div>
-                    <div className="p-2">
+                    <div className="p-2 space-y-1">
                        <button 
                          onClick={() => { navigate('/profile'); setIsUserMenuOpen(false); }}
-                         className="w-full text-left px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg flex items-center gap-2 transition-colors"
+                         className="w-full text-left px-3 py-2.5 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/70 rounded-xl flex items-center gap-3 transition-colors font-medium"
                        >
-                         <User size={16} /> Hồ sơ cá nhân
+                         <User size={16} className="text-slate-400"/> Hồ sơ cá nhân
                        </button>
                        {user.role === 'admin' && (
                          <button 
                            onClick={() => { navigate('/settings'); setIsUserMenuOpen(false); }}
-                           className="w-full text-left px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg flex items-center gap-2 transition-colors"
+                           className="w-full text-left px-3 py-2.5 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/70 rounded-xl flex items-center gap-3 transition-colors font-medium"
                          >
-                           <SettingsIcon size={16} /> Cài đặt hệ thống
+                           <SettingsIcon size={16} className="text-slate-400"/> Cài đặt hệ thống
                          </button>
                        )}
                     </div>
                     <div className="p-2 border-t border-slate-100 dark:border-slate-700">
                       <button 
                         onClick={handleLogoutClick}
-                        className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg flex items-center gap-2 transition-colors font-medium"
+                        className="w-full text-left px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl flex items-center gap-3 transition-colors font-bold"
                       >
                         <LogOut size={16} /> Đăng xuất
                       </button>
@@ -429,7 +433,8 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
 
         <GlobalSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
 
-        <main ref={mainContentRef} className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50/50 dark:bg-slate-900 transition-colors duration-200">
+        {/* MAIN CONTENT: Transparent bg to let blobs show through */}
+        <main ref={mainContentRef} className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-transparent transition-colors duration-200">
           <Routes>
             <Route path="/" element={<DashboardView />} />
             <Route path="/dashboard" element={<DashboardView />} />
@@ -495,17 +500,17 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
 
         {settings.features.enableAIAssistant && <AIAssistant />}
 
-        {/* ... (Existing Notification Modal Logic) ... */}
+        {/* NOTIFICATION CENTER MODAL */}
         {showAllNotifications && (
-          <div className="fixed inset-0 z-[5000] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-             <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl h-[80vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-slate-700">
+          <div className="fixed inset-0 z-[5000] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+             <div className="bg-white/90 dark:bg-slate-800/90 rounded-3xl shadow-2xl w-full max-w-2xl h-[80vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-white/20 dark:border-slate-700/50 backdrop-blur-xl">
                 <div className="relative overflow-hidden flex-1 flex flex-col">
                    <div 
                       className="flex h-full w-full transition-transform duration-300 ease-in-out"
                       style={{ transform: viewNotification ? 'translateX(-100%)' : 'translateX(0)' }}
                    >
                       <div className="w-full h-full shrink-0 flex flex-col">
-                         <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 flex-none">
+                         <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50 flex-none">
                             <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
                                <Bell size={20} className="text-blue-600 dark:text-blue-400"/> Trung tâm thông báo
                             </h3>
@@ -527,7 +532,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                             </div>
                          </div>
                          
-                         <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50 dark:bg-slate-900/20 hover-scrollbar">
+                         <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/30 dark:bg-slate-900/20 hover-scrollbar">
                             {notifications.length === 0 ? (
                                <div className="h-full flex flex-col items-center justify-center text-slate-400">
                                   <Bell size={48} className="mb-4 opacity-20"/>
@@ -538,13 +543,13 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                                   <div 
                                      key={notif.id} 
                                      onClick={() => openNotificationDetail(notif)}
-                                     className={`p-4 rounded-xl border transition-all cursor-pointer hover:shadow-md flex gap-4 ${
+                                     className={`p-4 rounded-2xl border transition-all cursor-pointer hover:shadow-lg hover:-translate-y-0.5 flex gap-4 ${
                                         notif.read 
-                                           ? 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700' 
-                                           : 'bg-blue-50/30 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/30'
+                                           ? 'bg-white/60 dark:bg-slate-800/60 border-slate-200/60 dark:border-slate-700/60' 
+                                           : 'bg-blue-50/60 dark:bg-blue-900/20 border-blue-100 dark:border-blue-900/30'
                                      }`}
                                   >
-                                     <div className={`mt-1 p-2 rounded-full h-fit ${
+                                     <div className={`mt-1 p-2 rounded-full h-fit shadow-sm ${
                                         notif.type === 'alert' ? 'bg-red-100 dark:bg-red-900/30 text-red-600' : 
                                         notif.type === 'warning' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600' : 
                                         'bg-blue-100 dark:bg-blue-900/30 text-blue-600'
@@ -563,7 +568,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                                         </p>
                                      </div>
                                      {!notif.read && (
-                                        <div className="w-2 h-2 rounded-full bg-blue-500 mt-2"></div>
+                                        <div className="w-2.5 h-2.5 rounded-full bg-blue-500 mt-2 ring-2 ring-blue-200 dark:ring-blue-900"></div>
                                      )}
                                   </div>
                                ))
@@ -574,7 +579,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                       <div className="w-full h-full shrink-0 flex flex-col bg-slate-50/30 dark:bg-slate-900/10">
                          {viewNotification && (
                             <>
-                               <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 bg-white dark:bg-slate-800 shadow-sm flex-none z-10">
+                               <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 bg-white/80 dark:bg-slate-800/80 shadow-sm flex-none z-10 backdrop-blur-md">
                                   <button 
                                     onClick={closeNotificationDetail}
                                     className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors text-slate-500 dark:text-slate-400"
@@ -601,13 +606,13 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                                   </button>
                                 </div>
                                
-                               <div className="p-8 overflow-y-auto flex-1 hover-scrollbar bg-white dark:bg-slate-800">
-                                  <div className={`mb-6 p-4 rounded-xl flex items-start gap-4 ${
-                                     viewNotification.type === 'alert' ? 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200' : 
-                                     viewNotification.type === 'warning' ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200' : 
-                                     'bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200'
+                               <div className="p-8 overflow-y-auto flex-1 hover-scrollbar bg-white/50 dark:bg-slate-800/50">
+                                  <div className={`mb-6 p-5 rounded-2xl flex items-start gap-4 shadow-sm border ${
+                                     viewNotification.type === 'alert' ? 'bg-red-50/50 dark:bg-red-900/20 border-red-100 dark:border-red-900/30 text-red-800 dark:text-red-200' : 
+                                     viewNotification.type === 'warning' ? 'bg-amber-50/50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-900/30 text-amber-800 dark:text-amber-200' : 
+                                     'bg-blue-50/50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-900/30 text-blue-800 dark:text-blue-200'
                                   }`}>
-                                     <div className="mt-1 shrink-0 p-2 bg-white/50 dark:bg-black/10 rounded-full">
+                                     <div className="mt-1 shrink-0 p-2.5 bg-white/50 dark:bg-black/10 rounded-full shadow-sm">
                                         {getNotifIcon(viewNotification.type)}
                                      </div>
                                      <div className="flex-1">
@@ -619,7 +624,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                                   </div>
                                   
                                   <div className="prose dark:prose-invert max-w-none">
-                                     <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap text-base">
+                                     <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap text-base font-medium">
                                         {viewNotification.message}
                                      </p>
                                   </div>
@@ -645,7 +650,6 @@ export const App: React.FC = () => {
 
   const handleLogin = (user: UserProfile) => {
     sessionStorage.setItem('isAuthenticated', 'true');
-    // Ensure the logged in user is set in our DB store for the session
     db.user.set(user);
     setIsAuthenticated(true);
   };
