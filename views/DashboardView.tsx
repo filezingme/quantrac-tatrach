@@ -9,11 +9,11 @@ import {
   Table as TableIcon, Filter, Download, Check, ChevronDown, ChevronUp,
   Radio, BarChart3, AlertCircle, CloudRain, Clock, Zap, ShieldCheck,
   Wifi, WifiOff, AlertTriangle, ArrowRight, Settings, MapPin, Sliders,
-  ExternalLink // Added Import
+  ExternalLink, Thermometer, Gauge // Added Thermometer, Gauge
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend, BarChart, Bar, ComposedChart, Line
+  PieChart, Pie, Cell, Legend, BarChart, Bar, ComposedChart, Line, ReferenceLine // Added ReferenceLine
 } from 'recharts';
 import { useUI } from '../components/GlobalUI';
 import { useNavigate } from 'react-router-dom';
@@ -68,6 +68,44 @@ const generateSparklineHistory = (baseValue: number, variance: number) => {
   });
 };
 
+// Helper: Generate Mock History for Alert Chart
+const generateHistoryForAlert = (sensorType: string, isAnomaly: boolean = false) => {
+  const data = [];
+  const now = new Date();
+  
+  // Determine base characteristics
+  let baseValue = 0;
+  let volatility = 5;
+  
+  if (sensorType.toLowerCase().includes('áp lực')) { baseValue = 1300; volatility = 20; }
+  else if (sensorType.toLowerCase().includes('nhiệt độ')) { baseValue = 35; volatility = 2; }
+  else if (sensorType.toLowerCase().includes('mưa')) { baseValue = 0; volatility = 0; }
+  else { baseValue = 20; volatility = 5; }
+
+  // Generate 24 hours of data
+  for (let i = 24; i >= 0; i--) {
+    const date = new Date(now.getTime() - i * 60 * 60 * 1000);
+    const timeLabel = `${date.getHours()}:00`;
+    
+    let val = 0;
+    // Make the value "spike" or change drastically if it's near "now" (index 0 or 1) to simulate the alert cause
+    if (isAnomaly && i < 2) {
+        val = baseValue + (volatility * 3); // Spike
+    } else {
+        const trend = Math.sin(i / 5) * volatility;
+        const noise = (Math.random() - 0.5) * (volatility / 2);
+        val = baseValue + trend + noise;
+    }
+
+    data.push({
+      time: date.toISOString(),
+      label: timeLabel,
+      value: Math.max(0, parseFloat(val.toFixed(2)))
+    });
+  }
+  return data;
+};
+
 // Generate Mock Rainfall Data (Hourly Bars + Accumulation)
 const generateRainfallData = (isForecast: boolean) => {
   const data = [];
@@ -115,6 +153,11 @@ export const DashboardView: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showFilters, setShowFilters] = useState(true); // State to toggle filter visibility
   
+  // Alert Modal State
+  const [selectedAlert, setSelectedAlert] = useState<AlertLog | null>(null);
+  const [alertChartData, setAlertChartData] = useState<any[]>([]);
+  const [isAlertFullScreen, setIsAlertFullScreen] = useState(false);
+
   // Health Settings State
   const [showHealthSettings, setShowHealthSettings] = useState(false);
   const [healthScore, setHealthScore] = useState(92);
@@ -181,6 +224,15 @@ export const DashboardView: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [selectedMetric, modalTab, isFullscreen, showFilters]);
+
+  // Generate data when alert selected
+  useEffect(() => {
+    if (selectedAlert) {
+        const isAnomaly = selectedAlert.severity !== 'info';
+        const data = generateHistoryForAlert(selectedAlert.sensor, isAnomaly);
+        setAlertChartData(data);
+    }
+  }, [selectedAlert]);
 
   // Determine Health Color based on dynamic thresholds
   const healthColor = healthScore >= healthThresholds.warning 
@@ -845,7 +897,10 @@ export const DashboardView: React.FC = () => {
                        </div>
 
                        {/* Action */}
-                       <button className="self-center p-2 text-slate-300 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-all">
+                       <button 
+                          className="self-center p-2 text-slate-300 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+                          onClick={() => setSelectedAlert(row)}
+                       >
                           <ArrowRight size={18}/>
                        </button>
                     </div>
@@ -1335,6 +1390,100 @@ export const DashboardView: React.FC = () => {
           </div>
         </div>
       )}
+
+        {/* --- DETAIL ALERT MODAL --- */}
+        {selectedAlert && (
+            <div 
+                className="fixed inset-0 z-[2000] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-0 animate-in fade-in duration-200"
+                style={{ marginTop: 0 }}
+            >
+                <div className={`bg-white dark:bg-slate-800 shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ${isAlertFullScreen ? 'w-screen h-screen' : 'w-[90vw] h-[90vh] rounded-2xl border border-slate-200 dark:border-slate-700'}`}>
+                    
+                    {/* Header */}
+                    <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 flex justify-between items-center flex-none">
+                        <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-lg text-white shadow-md ${selectedAlert.severity === 'critical' ? 'bg-red-600' : selectedAlert.severity === 'warning' ? 'bg-amber-500' : 'bg-blue-500'}`}>
+                                {selectedAlert.sensor.toLowerCase().includes('mưa') ? <CloudRain size={24}/> : 
+                                 selectedAlert.sensor.toLowerCase().includes('nhiệt') ? <Thermometer size={24}/> :
+                                 <Gauge size={24}/>}
+                            </div>
+                            
+                            <div>
+                                <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                    {selectedAlert.sensor}
+                                </h3>
+                                <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                                    <span className="font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1"><MapPin size={12}/> {selectedAlert.station}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <button 
+                                onClick={() => setIsAlertFullScreen(!isAlertFullScreen)}
+                                className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-full transition-colors hidden md:block"
+                            >
+                                {isAlertFullScreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
+                            </button>
+                            <button 
+                                onClick={() => setSelectedAlert(null)}
+                                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-slate-700 rounded-full transition-colors"
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Context Banner */}
+                    <div className={`px-6 py-3 border-b flex items-start gap-3 ${selectedAlert.severity === 'critical' ? 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-900/50' : 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-900/50'}`}>
+                        <AlertCircle size={20} className={`shrink-0 mt-0.5 ${selectedAlert.severity === 'critical' ? 'text-red-600' : 'text-amber-600'}`} />
+                        <div>
+                            <p className={`text-sm font-bold ${selectedAlert.severity === 'critical' ? 'text-red-800 dark:text-red-200' : 'text-amber-800 dark:text-amber-200'}`}>
+                                {selectedAlert.type}: {selectedAlert.message}
+                            </p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
+                                {/* UPDATED: Format date */}
+                                <Clock size={10}/> Thời điểm ghi nhận: {selectedAlert.timestamp ? formatDateTime(selectedAlert.timestamp) : selectedAlert.time}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 flex flex-col overflow-hidden bg-slate-50 dark:bg-slate-900 p-6 space-y-4">
+                        <div className="h-full bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 flex flex-col">
+                            <div className="flex-1 w-full min-h-[300px]">
+                                <ResponsiveContainer width="99%" height="100%">
+                                    <AreaChart data={alertChartData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
+                                        <defs>
+                                            <linearGradient id="colorValueAlert" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor={selectedAlert.severity === 'critical' ? '#ef4444' : '#3b82f6'} stopOpacity={0.3}/>
+                                                <stop offset="95%" stopColor={selectedAlert.severity === 'critical' ? '#ef4444' : '#3b82f6'} stopOpacity={0}/>
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#e2e8f0" strokeOpacity={0.5} />
+                                        <XAxis dataKey="label" tick={{fontSize: 12, fill: '#64748b'}} interval={4} />
+                                        <YAxis label={{ value: 'Giá trị', angle: -90, position: 'insideLeft', fill: '#64748b' }} tick={{fontSize: 12, fill: '#64748b'}} />
+                                        <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                        
+                                        {/* Reference Line showing Alert Time (Simulated at recent points) */}
+                                        <ReferenceLine x={alertChartData[alertChartData.length - 2]?.label} stroke="red" strokeDasharray="3 3" label={{ value: 'Thời điểm cảnh báo', position: 'insideTopLeft', fill: 'red', fontSize: 12 }} />
+                                        
+                                        <Area 
+                                            type="monotone" 
+                                            dataKey="value" 
+                                            stroke={selectedAlert.severity === 'critical' ? '#ef4444' : '#3b82f6'} 
+                                            fill="url(#colorValueAlert)" 
+                                            strokeWidth={3}
+                                            name={selectedAlert.sensor}
+                                        />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )}
     </>
   );
 };
