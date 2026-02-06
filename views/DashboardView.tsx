@@ -39,6 +39,21 @@ const AVAILABLE_YEARS = [2024, 2023, 2022, 2021];
 // Colors for secondary comparison lines (when multiple years are selected)
 const COMPARE_COLORS = ['#94a3b8', '#ef4444', '#8b5cf6', '#f59e0b', '#ec4899']; // Slate, Red, Purple, Amber, Pink
 
+// Helper function for strict date formatting
+const formatDateTime = (dateInput: string | Date) => {
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+  if (isNaN(date.getTime())) return ''; // Invalid date
+  
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const d = pad(date.getDate());
+  const m = pad(date.getMonth() + 1);
+  const y = date.getFullYear();
+  const h = pad(date.getHours());
+  const min = pad(date.getMinutes());
+  const s = pad(date.getSeconds());
+  return `${d}/${m}/${y} ${h}:${min}:${s}`;
+};
+
 // Generate smoother mock history data
 const generateSparklineHistory = (baseValue: number, variance: number) => {
   const now = new Date();
@@ -806,7 +821,10 @@ export const DashboardView: React.FC = () => {
                        <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-start">
                              <h4 className="font-bold text-sm text-slate-800 dark:text-slate-200 truncate pr-2">{row.sensor}</h4>
-                             <span className="text-[10px] text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 whitespace-nowrap font-mono">{row.time}</span>
+                             {/* UPDATED: Format date using formatDateTime on timestamp if available, else rely on generated time */}
+                             <span className="text-[10px] text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 whitespace-nowrap font-mono">
+                               {row.timestamp ? formatDateTime(row.timestamp) : row.time}
+                             </span>
                           </div>
                           
                           {/* Main Message */}
@@ -851,6 +869,7 @@ export const DashboardView: React.FC = () => {
             </div>
           </div>
 
+          {/* ... (Rest of dashboard remains same) ... */}
           {/* Sensor Stats -> REIMAGINED as Health Chart */}
           <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 flex flex-col h-full relative">
              <div className="flex justify-between items-start mb-4">

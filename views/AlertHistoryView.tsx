@@ -13,6 +13,21 @@ import { AlertLog, SensorItem } from '../types';
 import { exportToExcel } from '../utils/excel';
 import { useUI } from '../components/GlobalUI';
 
+// Helper for strict date formatting
+const formatDateTime = (dateInput: string | Date) => {
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+  if (isNaN(date.getTime())) return ''; // Invalid date
+  
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const d = pad(date.getDate());
+  const m = pad(date.getMonth() + 1);
+  const y = date.getFullYear();
+  const h = pad(date.getHours());
+  const min = pad(date.getMinutes());
+  const s = pad(date.getSeconds());
+  return `${d}/${m}/${y} ${h}:${min}:${s}`;
+};
+
 // --- Helper: Generate Mock History for Chart (Local version) ---
 const generateSensorHistoryForAlert = (sensorType: string, isAnomaly: boolean = false) => {
   const data = [];
@@ -106,7 +121,7 @@ export const AlertHistoryView: React.FC = () => {
 
   const handleExport = () => {
     const exportData = filteredAlerts.map(a => ({
-      'Thời gian': a.time,
+      'Thời gian': a.timestamp ? formatDateTime(a.timestamp) : a.time,
       'Cảm biến': a.sensor,
       'Loại cảnh báo': a.type,
       'Mức độ': a.severity === 'critical' ? 'Nghiêm trọng' : a.severity === 'warning' ? 'Cảnh báo' : 'Thông tin',
@@ -284,7 +299,8 @@ export const AlertHistoryView: React.FC = () => {
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 font-mono text-xs">
                                                     <Clock size={14} className="text-slate-400"/>
-                                                    {alert.time}
+                                                    {/* UPDATED: Format date using timestamp if available */}
+                                                    {alert.timestamp ? formatDateTime(alert.timestamp) : alert.time}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
@@ -334,7 +350,10 @@ export const AlertHistoryView: React.FC = () => {
                                             {getSeverityBadge(alert.severity)}
                                             {getStatusBadge(alert.status)}
                                         </div>
-                                        <span className="text-[10px] text-slate-400 font-mono">{alert.time}</span>
+                                        {/* UPDATED: Format date using timestamp if available */}
+                                        <span className="text-[10px] text-slate-400 font-mono">
+                                            {alert.timestamp ? formatDateTime(alert.timestamp) : alert.time}
+                                        </span>
                                     </div>
                                     
                                     <div>
@@ -435,7 +454,8 @@ export const AlertHistoryView: React.FC = () => {
                                 {selectedAlert.type}: {selectedAlert.message}
                             </p>
                             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
-                                <Clock size={10}/> Thời điểm ghi nhận: {selectedAlert.time}
+                                {/* UPDATED: Format date */}
+                                <Clock size={10}/> Thời điểm ghi nhận: {selectedAlert.timestamp ? formatDateTime(selectedAlert.timestamp) : selectedAlert.time}
                             </p>
                         </div>
                     </div>

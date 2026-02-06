@@ -18,7 +18,7 @@ import {
   SidebarConfigItem
 } from '../types';
 
-// CHANGED: Version bump to v9 to apply new settings structure
+// CHANGED: Version bump to force data refresh with new time format
 const KEYS = {
   OBSERVATION: 'app_observation_v3',
   FORECAST: 'app_forecast_v3',
@@ -34,8 +34,8 @@ const KEYS = {
   WATER_LEVEL_RECORDS: 'app_water_level_records_v3',
   SETTINGS: 'app_settings_v9', 
   DOCUMENTS: 'app_documents_v3',
-  ALERTS: 'app_alerts_v4',
-  SENSORS: 'app_sensors_v2',
+  ALERTS: 'app_alerts_v5', // Bumped version
+  SENSORS: 'app_sensors_v3', // Bumped version
   SIDEBAR_CONFIG: 'app_sidebar_config_v2' 
 };
 
@@ -250,7 +250,6 @@ const defaultOpTables: OperationTable[] = [
   }
 ];
 
-// UPDATED IMAGES WITH RELIABLE UNSPLASH URLS & MORE ITEMS
 const defaultImages: ImageGroup[] = [
   { 
     id: 'g1', 
@@ -454,6 +453,12 @@ const defaultSettings: SystemSettings = {
   backupFrequency: 'daily'
 };
 
+// Helper: Strict date formatting
+const formatDateTime = (date: Date) => {
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+};
+
 // Generate Mock Alerts
 const generateMockAlerts = (): AlertLog[] => {
   const sensors = [
@@ -475,7 +480,7 @@ const generateMockAlerts = (): AlertLog[] => {
     
     alerts.push({
       id: `alert-${i}`,
-      time: t.toLocaleString('vi-VN'),
+      time: formatDateTime(t), // UPDATED: Use strict formatting
       timestamp: t.toISOString(),
       sensor: sensors[i % sensors.length],
       type: types[i % types.length],
@@ -505,11 +510,7 @@ const generateMockSensors = (): SensorItem[] => {
   const getRandomTime = () => {
       const date = new Date();
       date.setMinutes(date.getMinutes() - Math.floor(Math.random() * 60));
-      // Format: DD/MM/YYYY HH:mm:ss
-      return date.toLocaleString('vi-VN', {
-          day: '2-digit', month: '2-digit', year: 'numeric',
-          hour: '2-digit', minute: '2-digit', second: '2-digit'
-      });
+      return formatDateTime(date); // UPDATED: Use strict formatting
   }
 
   // Helper to get random value
