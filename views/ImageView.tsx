@@ -4,6 +4,7 @@ import { Folder, Plus, ExternalLink, Image as ImageIcon, ArrowLeft, Upload, Grid
 import { db } from '../utils/db';
 import { ImageGroup, ImageItem } from '../types';
 import { useUI } from '../components/GlobalUI';
+import { useLocation } from 'react-router-dom';
 
 export const ImageView: React.FC = () => {
   const [groups, setGroups] = useState<ImageGroup[]>(db.images.get());
@@ -14,6 +15,7 @@ export const ImageView: React.FC = () => {
   const [direction, setDirection] = useState<number>(0); // 0: none, 1: next (slide right), -1: prev (slide left)
 
   const ui = useUI();
+  const location = useLocation();
   
   // File Input Ref for uploading
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -22,6 +24,26 @@ export const ImageView: React.FC = () => {
   const touchStartRef = useRef<{x: number, y: number} | null>(null);
 
   const activeGroup = groups.find(g => g.id === activeGroupId);
+
+  // Deep Linking
+  useEffect(() => {
+    if (location.state) {
+        const state = location.state as any;
+        if (state.groupId && state.openImageId) {
+            const targetGroup = groups.find(g => g.id === state.groupId);
+            if (targetGroup) {
+                setActiveGroupId(state.groupId);
+                const imgIndex = targetGroup.images.findIndex(img => img.id === state.openImageId);
+                if (imgIndex !== -1) {
+                    // Small timeout to allow group render
+                    setTimeout(() => setSelectedIndex(imgIndex), 100);
+                }
+            }
+            // Clear state
+            window.history.replaceState({}, document.title);
+        }
+    }
+  }, [location, groups]);
 
   // --- Keyboard Navigation for Lightbox ---
   useEffect(() => {
@@ -42,6 +64,7 @@ export const ImageView: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedIndex, activeGroup]);
 
+  // ... (Rest of the file content remains exactly the same from here down)
   const navigateImage = (dir: number) => {
     if (!activeGroup || selectedIndex === null) return;
     const count = activeGroup.images.length;

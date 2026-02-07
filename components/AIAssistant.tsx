@@ -128,6 +128,20 @@ export const AIAssistant: React.FC = () => {
     }
   }, []);
 
+  // --- LISTEN FOR GLOBAL EVENTS (Search) ---
+  useEffect(() => {
+    const handleOpenEvent = (e: CustomEvent) => {
+        setIsOpen(true);
+        if (e.detail) {
+            setInput(e.detail);
+            // Optional: Auto submit after small delay if needed
+            // setTimeout(() => handleSend(e.detail), 500);
+        }
+    };
+    window.addEventListener('open-ai-assistant', handleOpenEvent as EventListener);
+    return () => window.removeEventListener('open-ai-assistant', handleOpenEvent as EventListener);
+  }, []);
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -213,10 +227,11 @@ export const AIAssistant: React.FC = () => {
   };
 
   // --- AI LOGIC ---
-  const handleSend = async () => {
-    if (!input.trim()) return;
+  const handleSend = async (overrideInput?: string) => {
+    const textToSend = overrideInput || input;
+    if (!textToSend.trim()) return;
 
-    const userMsg: Message = { id: Date.now().toString(), role: 'user', type: 'text', content: input };
+    const userMsg: Message = { id: Date.now().toString(), role: 'user', type: 'text', content: textToSend };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setIsLoading(true);
@@ -261,14 +276,14 @@ export const AIAssistant: React.FC = () => {
         const ai = new GoogleGenAI({ apiKey: apiKey });
         const result = await ai.models.generateContent({
           model: "gemini-3-flash-preview", 
-          contents: input,
+          contents: textToSend,
           config: { systemInstruction }
         });
         responseText = result.text || "";
       } else {
         await new Promise(r => setTimeout(r, 1500));
         
-        const lowerInput = input.toLowerCase();
+        const lowerInput = textToSend.toLowerCase();
         if (lowerInput.includes('biểu đồ') || lowerInput.includes('đồ thị') || lowerInput.includes('chart')) {
            const mockChartData = contextData.waterLevels.map(r => ({
              time: r.time.split('T')[1].slice(0,5),
@@ -513,7 +528,7 @@ export const AIAssistant: React.FC = () => {
                 {SAMPLE_PROMPTS.map((prompt, idx) => (
                 <button 
                     key={idx}
-                    onClick={() => { setInput(prompt); setShowGuide(false); }}
+                    onClick={() => { setInput(prompt); setShowGuide(false); handleSend(prompt); }}
                     className="text-left text-xs text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 p-2 rounded-lg transition-colors border border-slate-100 dark:border-slate-700 flex items-center justify-between group"
                 >
                     {prompt}
@@ -580,7 +595,7 @@ export const AIAssistant: React.FC = () => {
                 </button>
             </div>
             <button 
-                onClick={handleSend}
+                onClick={() => handleSend()}
                 disabled={!input.trim() || isLoading}
                 className="p-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-full transition-all shadow-md"
             >

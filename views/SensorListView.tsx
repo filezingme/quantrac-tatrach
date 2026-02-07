@@ -13,6 +13,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   BarChart, Bar, Legend, LineChart, Line
 } from 'recharts';
+import { useLocation } from 'react-router-dom';
 
 // --- MOCK HISTORY GENERATOR ---
 // Updated to accept a specific seed/offset for consistent random data when comparing
@@ -95,10 +96,23 @@ export const SensorListView: React.FC = () => {
   const itemsPerPage = 10;
 
   const ui = useUI();
+  const location = useLocation();
 
   useEffect(() => {
-    setSensors(db.sensors.get());
-  }, []);
+    const loadedSensors = db.sensors.get();
+    setSensors(loadedSensors);
+
+    // Deep Linking Handling
+    if (location.state && (location.state as any).openSensorId) {
+        const targetId = (location.state as any).openSensorId;
+        const targetSensor = loadedSensors.find(s => s.id === targetId);
+        if (targetSensor) {
+            handleOpenHistory(targetSensor);
+            // Clear state history to prevent reopening on refresh
+            window.history.replaceState({}, document.title);
+        }
+    }
+  }, [location]); // Depend on location to re-trigger if navigating back
 
   // Click outside to close dropdown
   useEffect(() => {
@@ -111,7 +125,8 @@ export const SensorListView: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // --- CHART DATA MERGING LOGIC ---
+  // ... (rest of the file content remains same, just ensure handleOpenHistory is available in scope)
+  // ... (Chart Data Merging Logic) ...
   useEffect(() => {
     if (!selectedSensor) return;
 

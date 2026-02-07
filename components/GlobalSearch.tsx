@@ -5,7 +5,7 @@ import {
   Droplets, Camera, Activity, CloudRain, User, Moon, Sun, LogOut, 
   History, Mic, CornerDownLeft, Trash2, MicOff, Radio, AlertOctagon,
   BrainCircuit, Map as MapIcon, AlertCircle, Zap, Command, ArrowRight,
-  Sparkles, Calculator, ChevronRight
+  Sparkles, Calculator, ChevronRight, Video, Gauge, Eye
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../utils/db';
@@ -18,12 +18,13 @@ interface GlobalSearchProps {
 
 interface SearchResult {
   id: string;
-  type: 'page' | 'sensor' | 'alert' | 'document' | 'action' | 'history' | 'ai';
+  type: 'page' | 'sensor' | 'alert' | 'document' | 'action' | 'history' | 'ai' | 'camera' | 'image';
   title: string;
   subtitle?: string;
   url?: string; 
   value?: string | number;
   status?: string;
+  meta?: any; // Store extra data like image URL
   action?: () => void;
   icon?: React.ReactNode;
   group?: string;
@@ -34,7 +35,7 @@ const QUICK_SUGGESTIONS = [
   { id: 'quick-wl', title: 'Mực nước hồ', url: '/water-level', icon: <Droplets size={20} className="text-blue-500" />, color: 'bg-blue-50 dark:bg-blue-900/20' },
   { id: 'quick-sensor', title: 'Cảm biến áp lực', url: '/sensors', icon: <Radio size={20} className="text-cyan-500" />, color: 'bg-cyan-50 dark:bg-cyan-900/20' },
   { id: 'quick-alert', title: 'Cảnh báo mới', url: '/alerts', icon: <AlertCircle size={20} className="text-red-500" />, color: 'bg-red-50 dark:bg-red-900/20' },
-  { id: 'quick-ai', title: 'Hỏi AI Assistant', url: '/ai-safety', icon: <Sparkles size={20} className="text-purple-500" />, color: 'bg-purple-50 dark:bg-purple-900/20' },
+  { id: 'quick-ai', title: 'Hỏi AI Assistant', url: '#ai', icon: <Sparkles size={20} className="text-purple-500" />, color: 'bg-purple-50 dark:bg-purple-900/20' },
   { id: 'quick-map', title: 'Bản đồ số GIS', url: '/map', icon: <MapIcon size={20} className="text-emerald-500" />, color: 'bg-emerald-50 dark:bg-emerald-900/20' },
   { id: 'quick-cam', title: 'Camera Live', url: '/camera', icon: <Camera size={20} className="text-orange-500" />, color: 'bg-orange-50 dark:bg-orange-900/20' },
 ];
@@ -141,7 +142,23 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
     const lowerQuery = removeAccents(query);
     const rawResults: SearchResult[] = [];
 
-    // 1. Pages Navigation
+    // 1. Ask AI (Priority if query starts with specific keywords)
+    if (['hoi', 'ask', 'ai', 'gpt', 'gemini'].some(k => lowerQuery.startsWith(k)) || query.endsWith('?')) {
+        rawResults.push({
+            id: 'ai-ask-prio',
+            type: 'ai',
+            group: 'Trí tuệ nhân tạo',
+            title: `Hỏi AI: "${query}"`,
+            subtitle: 'Phân tích dữ liệu & Trả lời câu hỏi',
+            icon: <Sparkles size={18} className="text-purple-500" />,
+            action: () => { 
+                // Dispatch event to open AI Assistant
+                window.dispatchEvent(new CustomEvent('open-ai-assistant', { detail: query }));
+            }
+        });
+    }
+
+    // 2. Pages Navigation
     const pages = [
       { path: '/dashboard', label: 'Dashboard / Tổng quan', icon: LayoutDashboard },
       { path: '/map', label: 'Bản đồ GIS', icon: MapIcon },
@@ -171,12 +188,11 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
       }
     });
 
-    // 2. System Actions (Smart Commands)
+    // 3. System Actions
     const actions = [
         { keywords: ['che do toi', 'dark', 'toi', 'dem'], title: 'Chuyển sang Chế độ Tối', icon: <Moon size={18}/>, action: () => { document.documentElement.classList.add('dark'); localStorage.setItem('theme', 'dark'); ui.showToast('success', 'Đã chuyển giao diện Tối'); } },
         { keywords: ['che do sang', 'light', 'sang', 'ngay'], title: 'Chuyển sang Chế độ Sáng', icon: <Sun size={18}/>, action: () => { document.documentElement.classList.remove('dark'); localStorage.setItem('theme', 'light'); ui.showToast('success', 'Đã chuyển giao diện Sáng'); } },
-        { keywords: ['dang xuat', 'logout', 'thoat', 'exit'], title: 'Đăng xuất hệ thống', icon: <LogOut size={18}/>, action: () => { sessionStorage.removeItem('isAuthenticated'); window.location.reload(); } },
-        { keywords: ['xoa thong bao', 'clear notif'], title: 'Đánh dấu đọc tất cả thông báo', icon: <Activity size={18}/>, action: () => { db.notifications.markAllRead(); ui.showToast('success', 'Đã đọc hết thông báo'); } }
+        { keywords: ['dang xuat', 'logout', 'thoat', 'exit'], title: 'Đăng xuất hệ thống', icon: <LogOut size={18}/>, action: () => { sessionStorage.removeItem('isAuthenticated'); window.location.reload(); } }
     ];
     actions.forEach(act => {
         if (act.keywords.some(k => removeAccents(k).includes(lowerQuery))) {
@@ -184,29 +200,78 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
         }
     });
 
-    // 3. Sensors Data (Rich Results)
+    // 4. Sensors Data (Deep Link to History)
     try {
         const sensors = db.sensors.get();
         sensors.filter(s => 
             removeAccents(s.name).includes(lowerQuery) || 
-            removeAccents(s.code).includes(lowerQuery) ||
-            removeAccents(s.type).includes(lowerQuery)
+            removeAccents(s.code).includes(lowerQuery)
         ).slice(0, 5).forEach(s => {
             rawResults.push({
                 id: `sensor-${s.id}`,
                 type: 'sensor',
-                group: 'Cảm biến & Dữ liệu',
+                group: 'Cảm biến (Mở biểu đồ)',
                 title: s.name,
                 subtitle: `${s.type} • ${s.station}`,
                 value: `${s.lastValue} ${s.unit}`,
                 status: s.status,
-                url: '/sensors',
-                icon: <Radio size={18} />
+                icon: <Radio size={18} />,
+                action: () => {
+                    navigate('/sensors', { state: { openSensorId: s.id } }); // Deep link state
+                }
             });
         });
     } catch(e) {}
 
-    // 4. Documents
+    // 5. Cameras (Deep Link to View)
+    try {
+        const cameras = db.cameras.get();
+        cameras.filter(c => 
+            removeAccents(c.name).includes(lowerQuery)
+        ).slice(0, 3).forEach(c => {
+            rawResults.push({
+                id: `cam-${c.id}`,
+                type: 'camera',
+                group: 'Camera (Xem trực tiếp)',
+                title: c.name,
+                subtitle: c.status === 'online' ? 'Đang hoạt động' : 'Mất tín hiệu',
+                status: c.status,
+                icon: <Video size={18} />,
+                action: () => {
+                    navigate('/camera', { state: { openCameraId: c.id } }); // Deep link state
+                }
+            });
+        });
+    } catch(e) {}
+
+    // 6. Images (Deep Link to Lightbox)
+    try {
+        const groups = db.images.get();
+        // Flatten images
+        let foundImages = 0;
+        for (const g of groups) {
+            for (const img of g.images) {
+                if (foundImages >= 3) break;
+                if (removeAccents(img.title).includes(lowerQuery) || removeAccents(g.title).includes(lowerQuery)) {
+                    rawResults.push({
+                        id: `img-${img.id}`,
+                        type: 'image',
+                        group: 'Hình ảnh (Mở zoom)',
+                        title: img.title,
+                        subtitle: `Album: ${g.title}`,
+                        icon: <ImageIcon size={18} />,
+                        meta: img.url, // Store URL for preview
+                        action: () => {
+                            navigate('/images', { state: { openImageId: img.id, groupId: g.id } }); // Deep link
+                        }
+                    });
+                    foundImages++;
+                }
+            }
+        }
+    } catch(e) {}
+
+    // 7. Documents
     try {
         const docs = db.documents.get();
         docs.filter(d => 
@@ -225,19 +290,17 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
         });
     } catch(e) {}
 
-    // 5. Ask AI (Always appearing if query is long enough or no results)
-    if (query.length > 3) {
+    // 8. Fallback AI (if not prioritized earlier)
+    if (!rawResults.some(r => r.type === 'ai')) {
         rawResults.push({
-            id: 'ai-ask',
+            id: 'ai-ask-fallback',
             type: 'ai',
             group: 'Trí tuệ nhân tạo',
             title: `Hỏi AI: "${query}"`,
             subtitle: 'Phân tích dữ liệu & Trả lời câu hỏi',
             icon: <Sparkles size={18} className="text-purple-500" />,
             action: () => { 
-                // In a real scenario, this would route to AI view with pre-filled query
-                navigate('/ai-safety');
-                ui.showToast('info', 'Đang chuyển câu hỏi đến AI Assistant...');
+                window.dispatchEvent(new CustomEvent('open-ai-assistant', { detail: query }));
             }
         });
     }
@@ -260,8 +323,6 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
         e.preventDefault();
         if (results.length > 0) {
           handleSelect(results[selectedIndex]);
-        } else if (query) {
-            // Default enter on empty results -> Search Google or AI
         }
       } else if (e.key === 'Escape') {
           e.preventDefault();
@@ -288,13 +349,24 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
     if (result.action) {
         result.action();
     } else if (result.url) {
-      navigate(result.url);
+      if (result.url.startsWith('#')) {
+          // Special handlers
+          if (result.url === '#ai') {
+             window.dispatchEvent(new CustomEvent('open-ai-assistant'));
+          }
+      } else {
+          navigate(result.url);
+      }
     }
     onClose();
   };
 
   const handleQuickSelect = (url: string) => {
-      navigate(url);
+      if (url === '#ai') {
+          window.dispatchEvent(new CustomEvent('open-ai-assistant'));
+      } else {
+          navigate(url);
+      }
       onClose();
   }
 
@@ -352,7 +424,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
                         return (
                             <React.Fragment key={idx}>
                                 {showHeader && (
-                                    <div className="px-4 py-2 mt-2 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider sticky top-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm z-10">
+                                    <div className="px-4 py-2 mt-2 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider sticky top-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm z-10 flex items-center gap-2">
                                         {result.group}
                                     </div>
                                 )}
@@ -367,12 +439,17 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
                                         }
                                     `}
                                 >
-                                    <div className={`p-2.5 rounded-lg backdrop-blur-sm ${
+                                    <div className={`p-2.5 rounded-lg shrink-0 backdrop-blur-sm ${
                                         idx === selectedIndex 
                                             ? 'bg-white/20 text-white' 
                                             : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-white group-hover:shadow-sm'
                                     }`}>
-                                        {result.icon}
+                                        {/* Show small image preview if available */}
+                                        {result.type === 'image' && result.meta ? (
+                                            <img src={result.meta} alt="" className="w-5 h-5 object-cover rounded-sm" />
+                                        ) : (
+                                            result.icon
+                                        )}
                                     </div>
                                     
                                     <div className="flex-1 min-w-0">
@@ -391,6 +468,18 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
                                                             : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
                                                 }`}>
                                                     {result.value}
+                                                </span>
+                                            )}
+                                            {/* Camera Live Badge */}
+                                            {result.type === 'camera' && (
+                                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${
+                                                    idx === selectedIndex 
+                                                        ? 'bg-white/20 text-white' 
+                                                        : result.status === 'online'
+                                                            ? 'text-red-500 bg-red-50 dark:bg-red-900/20'
+                                                            : 'text-slate-400'
+                                                }`}>
+                                                    {result.status === 'online' ? 'LIVE' : 'OFF'}
                                                 </span>
                                             )}
                                         </div>
@@ -421,7 +510,10 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
                         Hệ thống không tìm thấy dữ liệu khớp với từ khóa của bạn.
                     </p>
                     <button 
-                        onClick={() => { navigate('/ai-safety'); onClose(); }}
+                        onClick={() => { 
+                            window.dispatchEvent(new CustomEvent('open-ai-assistant', { detail: query }));
+                            onClose();
+                        }}
                         className="flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold shadow-lg shadow-purple-500/30 transition-all active:scale-95"
                     >
                         <Sparkles size={18}/> Hỏi AI Assistant về "{query}"

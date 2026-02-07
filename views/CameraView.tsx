@@ -4,12 +4,13 @@ import { Camera, Plus, Trash2, ExternalLink, X } from 'lucide-react';
 import { db } from '../utils/db';
 import { CameraInfo } from '../types';
 import { useUI } from '../components/GlobalUI';
+import { useLocation } from 'react-router-dom';
 
 // Custom Icons for grid visualization (Line style, no padding)
 
 // 2 Rows - 2 Columns
 const IconGrid2 = ({ size = 18, className = "" }: { size?: number, className?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" stroke-linecap="round" strokeLinejoin="round" className={className}>
     <rect x="3" y="3" width="18" height="18" rx="2" />
     <line x1="3" y1="12" x2="21" y2="12" />
     <line x1="12" y1="3" x2="12" y2="21" />
@@ -48,13 +49,30 @@ export const CameraView: React.FC = () => {
     return (parsed === 2 || parsed === 3 || parsed === 4) ? parsed : 2;
   });
 
+  const ui = useUI();
+  const location = useLocation();
+
   // Save preference whenever it changes
   useEffect(() => {
     localStorage.setItem('camera_grid_cols', gridCols.toString());
   }, [gridCols]);
-  
-  const ui = useUI();
 
+  useEffect(() => {
+    const loadedCameras = db.cameras.get();
+    setCameras(loadedCameras);
+
+    // Deep Linking Handling
+    if (location.state && (location.state as any).openCameraId) {
+        const targetId = (location.state as any).openCameraId;
+        const targetCam = loadedCameras.find(c => c.id === targetId);
+        if (targetCam) {
+            setSelectedCamera(targetCam);
+            // Clear state history
+            window.history.replaceState({}, document.title);
+        }
+    }
+  }, [location]);
+  
   const handleAddCamera = () => {
     ui.prompt({
       title: 'Thêm Camera mới',
