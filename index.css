@@ -5,84 +5,102 @@
 
 body {
   font-family: 'Inter', sans-serif;
-  /* Fallback color */
-  background-color: #f8fafc;
-  overflow: hidden; /* Prevent body scroll, handle inside app */
+  background-color: #f0f4f8; /* Darker fallback for contrast */
+  overflow: hidden;
 }
 
 /* --- GLOBAL ANIMATED BACKGROUND --- */
 @layer utilities {
   .bg-aurora {
     background: 
-      radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.15) 0px, transparent 50%),
-      radial-gradient(at 0% 100%, rgba(244, 63, 94, 0.1) 0px, transparent 50%);
+      radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.25) 0px, transparent 50%), /* Darker Blue */
+      radial-gradient(at 100% 0%, rgba(124, 58, 237, 0.25) 0px, transparent 50%), /* Darker Purple */
+      radial-gradient(at 100% 100%, rgba(8, 145, 178, 0.25) 0px, transparent 50%), /* Darker Cyan */
+      radial-gradient(at 0% 100%, rgba(225, 29, 72, 0.2) 0px, transparent 50%); /* Darker Rose */
     background-size: 200% 200%;
     animation: aurora 15s ease infinite;
+    background-attachment: fixed;
   }
   
   .dark .bg-aurora {
     background: 
-      radial-gradient(at 0% 0%, rgba(30, 64, 175, 0.2) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, rgba(109, 40, 217, 0.2) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(8, 145, 178, 0.2) 0px, transparent 50%),
-      radial-gradient(at 0% 100%, rgba(190, 18, 60, 0.15) 0px, transparent 50%);
-    background-color: #0f172a; /* Slate 900 base */
+      radial-gradient(at 0% 0%, rgba(30, 64, 175, 0.4) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(109, 40, 217, 0.4) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(8, 145, 178, 0.4) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, rgba(190, 18, 60, 0.3) 0px, transparent 50%);
+    background-color: #0f172a;
   }
 
   .glass {
-    @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border border-white/20 dark:border-white/10;
+    @apply bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-white/10;
   }
   
-  /* GLOSSY CARD EFFECT (Gương bóng) */
+  /* HIGH CONTRAST GLOSSY CARD EFFECT */
   .glossy-card {
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.5) 100%);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    border-top: 1px solid rgba(255, 255, 255, 0.9);
-    border-left: 1px solid rgba(255, 255, 255, 0.9);
+    /* Much more transparent: 0.65 -> 0.3 */
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0.3) 100%);
+    backdrop-filter: blur(20px); /* Increased blur */
+    -webkit-backdrop-filter: blur(20px);
+    
+    /* Stronger, glowing border */
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-top: 1px solid rgba(255, 255, 255, 0.95);
+    border-left: 1px solid rgba(255, 255, 255, 0.95);
+    
+    /* Deep shadow for pop */
     box-shadow: 
-      0 4px 6px -1px rgba(0, 0, 0, 0.05),
-      0 10px 15px -3px rgba(0, 0, 0, 0.05),
-      inset 0 0 20px rgba(255, 255, 255, 0.5);
+      0 8px 32px 0 rgba(31, 38, 135, 0.15),
+      inset 0 0 20px rgba(255, 255, 255, 0.6);
+      
     position: relative;
     overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+
+  .glossy-card:hover {
+    transform: translateY(-5px) scale(1.01);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.45) 100%);
+    box-shadow: 
+      0 20px 40px -5px rgba(31, 38, 135, 0.2),
+      0 0 15px rgba(255, 255, 255, 0.5); /* Outer glow */
+    border-color: #fff;
   }
 
   .dark .glossy-card {
-    background: linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.4) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-    border-left: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 
-      0 4px 6px -1px rgba(0, 0, 0, 0.3), 
-      inset 0 0 20px rgba(255, 255, 255, 0.05);
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.3) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    border-left: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
   }
 
-  /* Hiệu ứng phản chiếu ánh sáng chéo */
-  .glossy-card::before {
+  .dark .glossy-card:hover {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.5) 100%);
+    box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Shine Animation - More noticeable */
+  .glossy-card::after {
     content: '';
     position: absolute;
     top: 0;
-    left: -100%;
+    left: -150%;
     width: 100%;
     height: 100%;
     background: linear-gradient(
       90deg,
       transparent,
-      rgba(255, 255, 255, 0.4),
+      rgba(255, 255, 255, 0.6),
       transparent
     );
-    transform: skewX(-25deg);
-    transition: 0.5s;
+    transform: skewX(-20deg);
+    transition: 0.6s;
     pointer-events: none;
   }
 
-  .glossy-card:hover::before {
-    left: 100%;
-    transition: 0.7s;
+  .glossy-card:hover::after {
+    left: 150%;
+    transition: 0.8s ease-in-out;
   }
 }
 
@@ -92,12 +110,12 @@ body {
   100% { background-position: 0% 50%; }
 }
 
-/* --- FLOATING BLOBS ANIMATION --- */
+/* --- FLOATING BLOBS - More Vibrant --- */
 .blob {
   position: absolute;
-  filter: blur(80px);
+  filter: blur(70px); /* Reduced blur slightly to define shapes better */
   z-index: -1;
-  opacity: 0.6;
+  opacity: 0.7; /* Increased opacity */
   animation: float 20s infinite ease-in-out;
   border-radius: 50%;
 }
@@ -107,7 +125,7 @@ body {
   left: -10%;
   width: 50vw;
   height: 50vw;
-  background-color: rgba(59, 130, 246, 0.2); /* Blue */
+  background-color: rgba(37, 99, 235, 0.25); /* Stronger Blue */
   animation-delay: 0s;
 }
 
@@ -116,7 +134,7 @@ body {
   right: -10%;
   width: 40vw;
   height: 40vw;
-  background-color: rgba(139, 92, 246, 0.2); /* Purple */
+  background-color: rgba(139, 92, 246, 0.25); /* Stronger Purple */
   animation-delay: -5s;
 }
 
@@ -125,7 +143,7 @@ body {
   left: 20%;
   width: 30vw;
   height: 30vw;
-  background-color: rgba(6, 182, 212, 0.2); /* Cyan */
+  background-color: rgba(6, 182, 212, 0.25); /* Stronger Cyan */
   animation-delay: -10s;
 }
 
@@ -152,7 +170,6 @@ body {
   background: rgba(100, 116, 139, 0.8); 
 }
 
-/* Sidebar Specific Scrollbar Styles */
 .sidebar-scrollbar {
   overflow-y: auto;
   overflow-x: hidden !important;
@@ -164,19 +181,17 @@ body {
   scrollbar-color: rgba(148, 163, 184, 0.3) transparent; 
 }
 
-/* Hover-Only Scrollbar */
 .hover-scrollbar {
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: transparent transparent; /* Firefox: Thumb Track */
+  scrollbar-color: transparent transparent; 
   transition: scrollbar-color 0.3s ease;
 }
 
 .hover-scrollbar:hover {
-  scrollbar-color: rgba(148, 163, 184, 0.5) transparent; /* Firefox Hover */
+  scrollbar-color: rgba(148, 163, 184, 0.5) transparent; 
 }
 
-/* Webkit (Chrome/Safari/Edge) */
 .hover-scrollbar::-webkit-scrollbar {
   width: 6px;
 }

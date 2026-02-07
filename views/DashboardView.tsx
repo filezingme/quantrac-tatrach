@@ -9,11 +9,11 @@ import {
   Table as TableIcon, Filter, Download, Check, ChevronDown, ChevronUp,
   Radio, BarChart3, AlertCircle, CloudRain, Clock, Zap, ShieldCheck,
   Wifi, WifiOff, AlertTriangle, ArrowRight, Settings, MapPin, Sliders,
-  ExternalLink, Thermometer, Gauge // Added Thermometer, Gauge
+  ExternalLink, Thermometer, Gauge
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend, BarChart, Bar, ComposedChart, Line, ReferenceLine // Added ReferenceLine
+  PieChart, Pie, Cell, Legend, BarChart, Bar, ComposedChart, Line, ReferenceLine
 } from 'recharts';
 import { useUI } from '../components/GlobalUI';
 import { useNavigate } from 'react-router-dom';
@@ -30,7 +30,7 @@ interface MetricDetail {
   max: number;
   color: string;
   subLabel?: string;
-  chartType?: 'area' | 'bar_line'; // New property to distinguish chart types
+  chartType?: 'area' | 'bar_line'; 
   historyData?: any[]; 
 } 
 
@@ -57,7 +57,7 @@ const formatDateTime = (dateInput: string | Date) => {
 // Generate smoother mock history data
 const generateSparklineHistory = (baseValue: number, variance: number) => {
   const now = new Date();
-  const safeBase = baseValue || 0; // Prevent NaN
+  const safeBase = baseValue || 0; 
   return Array.from({ length: 24 }, (_, i) => {
     const t = new Date(now.getTime() - (23 - i) * 60 * 60 * 1000);
     const noise = Math.sin(i / 3) * variance + Math.cos(i / 5) * (variance / 2);
@@ -567,10 +567,10 @@ export const DashboardView: React.FC = () => {
           >
                <div className="flex justify-between items-start mb-2 relative z-10">
                   <div className="flex items-center gap-2">
-                      <div className="p-1.5 bg-blue-100/50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg backdrop-blur-sm">
+                      <div className="p-1.5 bg-blue-100/80 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 rounded-lg backdrop-blur-sm">
                           <Droplets size={18} />
                       </div>
-                      <span className="font-semibold text-sm uppercase opacity-90">Mực nước</span>
+                      <span className="font-bold text-sm uppercase opacity-90 tracking-wide text-slate-700 dark:text-slate-200">Mực nước</span>
                   </div>
                   <Maximize2 size={16} className="text-slate-400 group-hover:text-blue-500 transition-colors"/>
                </div>
@@ -578,11 +578,11 @@ export const DashboardView: React.FC = () => {
                <div className="flex-1 flex gap-4 items-end relative z-10">
                   <div className="flex-1 flex flex-col justify-end pb-2">
                       <div className="flex items-baseline gap-1">
-                           <span className="text-4xl font-bold tracking-tight">{metrics.waterLevel.value.toFixed(2)}</span>
-                           <span className="text-sm font-medium opacity-80">m</span>
+                           <span className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">{metrics.waterLevel.value.toFixed(2)}</span>
+                           <span className="text-sm font-semibold opacity-70">m</span>
                       </div>
                       <div className="mt-2 space-y-1">
-                          <div className="flex items-center gap-2 text-[10px] opacity-80">
+                          <div className="flex items-center gap-2 text-[10px] opacity-80 font-medium">
                              <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div> 
                              <span>MNDBT: <b>{NORMAL_LEVEL}m</b></span>
                           </div>
@@ -594,7 +594,7 @@ export const DashboardView: React.FC = () => {
                       <div className="absolute right-0 top-0 bottom-0 w-full z-20 pointer-events-none flex flex-col justify-between py-2 px-1">
                           {[...Array(6)].map((_, i) => (
                               <div key={i} className="flex items-center justify-end w-full gap-1 opacity-40">
-                                  <span className="text-[8px] font-mono">{60 - i*10}</span>
+                                  <span className="text-[8px] font-mono font-bold text-slate-600 dark:text-slate-300">{60 - i*10}</span>
                                   <div className="w-2 h-[1px] bg-slate-500"></div>
                               </div>
                           ))}
@@ -622,10 +622,10 @@ export const DashboardView: React.FC = () => {
           >
                <div className="flex justify-between items-start mb-2 relative z-10">
                   <div className="flex items-center gap-2">
-                      <div className="p-1.5 bg-cyan-100/50 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 rounded-lg backdrop-blur-sm">
+                      <div className="p-1.5 bg-cyan-100/80 dark:bg-cyan-900/60 text-cyan-700 dark:text-cyan-300 rounded-lg backdrop-blur-sm">
                           <Activity size={18} />
                       </div>
-                      <span className="font-semibold text-sm uppercase opacity-90">Dung tích</span>
+                      <span className="font-bold text-sm uppercase opacity-90 tracking-wide text-slate-700 dark:text-slate-200">Dung tích</span>
                   </div>
                   <Maximize2 size={16} className="text-slate-400 group-hover:text-blue-500 transition-colors"/>
                </div>
@@ -633,12 +633,12 @@ export const DashboardView: React.FC = () => {
                <div className="flex-1 flex items-center justify-between gap-2 relative z-10">
                    <div className="flex flex-col justify-center">
                       <div className="flex items-baseline gap-1">
-                          <span className="text-3xl font-bold">{metrics.capacity.value.toFixed(0)}</span>
+                          <span className="text-3xl font-extrabold text-slate-900 dark:text-white">{metrics.capacity.value.toFixed(0)}</span>
                       </div>
-                      <span className="text-xs opacity-70 font-medium">triệu m³</span>
+                      <span className="text-xs opacity-80 font-semibold text-slate-500 dark:text-slate-400">triệu m³</span>
                       <div className="mt-4 text-xs space-y-1">
-                          <div className="opacity-60">Còn trống</div>
-                          <div className="font-bold text-cyan-600 dark:text-cyan-400 text-lg">{(646 - metrics.capacity.value).toFixed(0)}</div>
+                          <div className="opacity-70 font-medium">Còn trống</div>
+                          <div className="font-bold text-cyan-700 dark:text-cyan-400 text-lg">{(646 - metrics.capacity.value).toFixed(0)}</div>
                       </div>
                    </div>
                    <div className="w-32 h-32 relative flex-none">
@@ -654,7 +654,7 @@ export const DashboardView: React.FC = () => {
                               paddingAngle={2}
                             >
                               <Cell fill="#06b6d4" />
-                              <Cell fill="#cbd5e1" className="dark:fill-slate-600"/>
+                              <Cell fill="#94a3b8" className="dark:fill-slate-600"/>
                             </Pie>
                           </PieChart>
                        </ResponsiveContainer>
@@ -674,20 +674,20 @@ export const DashboardView: React.FC = () => {
           >
                <div className="flex justify-between items-start mb-2 relative z-10">
                   <div className="flex items-center gap-2">
-                      <div className="p-1.5 bg-emerald-100/50 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-lg backdrop-blur-sm">
+                      <div className="p-1.5 bg-emerald-100/80 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 rounded-lg backdrop-blur-sm">
                           <TrendingUp size={18} />
                       </div>
-                      <span className="font-semibold text-sm uppercase opacity-90">Lưu lượng đến</span>
+                      <span className="font-bold text-sm uppercase opacity-90 tracking-wide text-slate-700 dark:text-slate-200">Lưu lượng đến</span>
                   </div>
                   <Maximize2 size={16} className="text-slate-400 group-hover:text-blue-500 transition-colors"/>
                </div>
                
                <div className="flex-1 flex flex-col relative z-10">
                   <div className="flex items-baseline gap-1 mt-2">
-                      <span className="text-4xl font-bold text-emerald-700 dark:text-emerald-400">{metrics.inflow.value}</span>
-                      <span className="text-sm font-medium opacity-80">m³/s</span>
+                      <span className="text-4xl font-extrabold text-emerald-700 dark:text-emerald-400">{metrics.inflow.value}</span>
+                      <span className="text-sm font-semibold opacity-70">m³/s</span>
                   </div>
-                  <span className="text-[10px] bg-emerald-50/50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-bold w-fit mt-1 backdrop-blur-sm">Trung bình 1h</span>
+                  <span className="text-[10px] bg-emerald-100/60 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full font-bold w-fit mt-1 backdrop-blur-sm border border-emerald-200/50">Trung bình 1h</span>
                </div>
 
                <div className="h-24 w-[calc(100%+2.5rem)] -ml-5 -mb-5 mt-auto opacity-80">
@@ -712,20 +712,20 @@ export const DashboardView: React.FC = () => {
           >
                <div className="flex justify-between items-start mb-2 relative z-10">
                   <div className="flex items-center gap-2">
-                      <div className="p-1.5 bg-amber-100/50 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 rounded-lg backdrop-blur-sm">
+                      <div className="p-1.5 bg-amber-100/80 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 rounded-lg backdrop-blur-sm">
                           <TrendingDown size={18} />
                       </div>
-                      <span className="font-semibold text-sm uppercase opacity-90">Tổng xả</span>
+                      <span className="font-bold text-sm uppercase opacity-90 tracking-wide text-slate-700 dark:text-slate-200">Tổng xả</span>
                   </div>
                   <Maximize2 size={16} className="text-slate-400 group-hover:text-blue-500 transition-colors"/>
                </div>
                
                <div className="flex-1 flex flex-col relative z-10">
                   <div className="flex items-baseline gap-1 mt-2">
-                      <span className="text-4xl font-bold text-amber-700 dark:text-amber-400">{metrics.outflow.value}</span>
-                      <span className="text-sm font-medium opacity-80">m³/s</span>
+                      <span className="text-4xl font-extrabold text-amber-700 dark:text-amber-400">{metrics.outflow.value}</span>
+                      <span className="text-sm font-semibold opacity-70">m³/s</span>
                   </div>
-                  <span className="text-[10px] bg-amber-50/50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full font-bold w-fit mt-1 backdrop-blur-sm">Qua 2 tổ máy</span>
+                  <span className="text-[10px] bg-amber-100/60 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded-full font-bold w-fit mt-1 backdrop-blur-sm border border-amber-200/50">Qua 2 tổ máy</span>
                </div>
 
                <div className="h-24 w-[calc(100%+2.5rem)] -ml-5 -mb-5 mt-auto opacity-80">
@@ -744,6 +744,7 @@ export const DashboardView: React.FC = () => {
           </div>
         </div>
 
+        {/* ... Rest of the file remains unchanged ... */}
         {/* --- NEW SECTION: RAINFALL ANALYSIS --- */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
            
