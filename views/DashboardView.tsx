@@ -557,32 +557,32 @@ export const DashboardView: React.FC = () => {
           </div>
         </div>
 
-        {/* Main Metric Cards Grid */}
+        {/* Main Metric Cards Grid - GLOSSY EFFECT APPLIED */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
           
           {/* 1. Water Level */}
           <div 
             onClick={() => handleOpenModal(metrics.waterLevel)}
-            className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden group h-56 flex flex-col p-5"
+            className="glossy-card rounded-2xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer relative overflow-hidden group h-56 flex flex-col p-5 text-slate-800 dark:text-white"
           >
-               <div className="flex justify-between items-start mb-2">
+               <div className="flex justify-between items-start mb-2 relative z-10">
                   <div className="flex items-center gap-2">
-                      <div className="p-1.5 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg">
+                      <div className="p-1.5 bg-blue-100/50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg backdrop-blur-sm">
                           <Droplets size={18} />
                       </div>
-                      <span className="font-semibold text-slate-600 dark:text-slate-300 text-sm uppercase">Mực nước</span>
+                      <span className="font-semibold text-sm uppercase opacity-90">Mực nước</span>
                   </div>
-                  <Maximize2 size={16} className="text-slate-300 dark:text-slate-500 group-hover:text-blue-500 transition-colors"/>
+                  <Maximize2 size={16} className="text-slate-400 group-hover:text-blue-500 transition-colors"/>
                </div>
 
-               <div className="flex-1 flex gap-4 items-end">
+               <div className="flex-1 flex gap-4 items-end relative z-10">
                   <div className="flex-1 flex flex-col justify-end pb-2">
                       <div className="flex items-baseline gap-1">
-                           <span className="text-4xl font-bold text-slate-800 dark:text-white tracking-tight">{metrics.waterLevel.value.toFixed(2)}</span>
-                           <span className="text-sm font-medium text-slate-500 dark:text-slate-400">m</span>
+                           <span className="text-4xl font-bold tracking-tight">{metrics.waterLevel.value.toFixed(2)}</span>
+                           <span className="text-sm font-medium opacity-80">m</span>
                       </div>
                       <div className="mt-2 space-y-1">
-                          <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400">
+                          <div className="flex items-center gap-2 text-[10px] opacity-80">
                              <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div> 
                              <span>MNDBT: <b>{NORMAL_LEVEL}m</b></span>
                           </div>
@@ -590,7 +590,7 @@ export const DashboardView: React.FC = () => {
                   </div>
 
                   {/* Water Tank Visualizer */}
-                  <div className="relative h-full w-24 bg-slate-100 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-600 overflow-hidden shadow-inner flex-none ml-2">
+                  <div className="relative h-full w-24 bg-white/40 dark:bg-slate-700/40 rounded-lg border border-white/50 dark:border-white/10 overflow-hidden shadow-inner flex-none ml-2 backdrop-blur-sm">
                       <div className="absolute right-0 top-0 bottom-0 w-full z-20 pointer-events-none flex flex-col justify-between py-2 px-1">
                           {[...Array(6)].map((_, i) => (
                               <div key={i} className="flex items-center justify-end w-full gap-1 opacity-40">
@@ -618,26 +618,26 @@ export const DashboardView: React.FC = () => {
           {/* 2. Capacity */}
           <div 
             onClick={() => handleOpenModal(metrics.capacity)}
-            className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden group h-56 flex flex-col p-5"
+            className="glossy-card rounded-2xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer relative overflow-hidden group h-56 flex flex-col p-5 text-slate-800 dark:text-white"
           >
-               <div className="flex justify-between items-start mb-2">
+               <div className="flex justify-between items-start mb-2 relative z-10">
                   <div className="flex items-center gap-2">
-                      <div className="p-1.5 bg-cyan-100 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 rounded-lg">
+                      <div className="p-1.5 bg-cyan-100/50 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 rounded-lg backdrop-blur-sm">
                           <Activity size={18} />
                       </div>
-                      <span className="font-semibold text-slate-600 dark:text-slate-300 text-sm uppercase">Dung tích</span>
+                      <span className="font-semibold text-sm uppercase opacity-90">Dung tích</span>
                   </div>
-                  <Maximize2 size={16} className="text-slate-300 dark:text-slate-500 group-hover:text-blue-500 transition-colors"/>
+                  <Maximize2 size={16} className="text-slate-400 group-hover:text-blue-500 transition-colors"/>
                </div>
 
-               <div className="flex-1 flex items-center justify-between gap-2">
+               <div className="flex-1 flex items-center justify-between gap-2 relative z-10">
                    <div className="flex flex-col justify-center">
                       <div className="flex items-baseline gap-1">
-                          <span className="text-3xl font-bold text-slate-800 dark:text-white">{metrics.capacity.value.toFixed(0)}</span>
+                          <span className="text-3xl font-bold">{metrics.capacity.value.toFixed(0)}</span>
                       </div>
-                      <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">triệu m³</span>
+                      <span className="text-xs opacity-70 font-medium">triệu m³</span>
                       <div className="mt-4 text-xs space-y-1">
-                          <div className="text-slate-400 dark:text-slate-500">Còn trống</div>
+                          <div className="opacity-60">Còn trống</div>
                           <div className="font-bold text-cyan-600 dark:text-cyan-400 text-lg">{(646 - metrics.capacity.value).toFixed(0)}</div>
                       </div>
                    </div>
@@ -654,7 +654,7 @@ export const DashboardView: React.FC = () => {
                               paddingAngle={2}
                             >
                               <Cell fill="#06b6d4" />
-                              <Cell fill="#e2e8f0" className="dark:fill-slate-700"/>
+                              <Cell fill="#cbd5e1" className="dark:fill-slate-600"/>
                             </Pie>
                           </PieChart>
                        </ResponsiveContainer>
@@ -670,32 +670,32 @@ export const DashboardView: React.FC = () => {
           {/* 3. Inflow */}
           <div 
             onClick={() => handleOpenModal(metrics.inflow)}
-            className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden group h-56 flex flex-col p-5"
+            className="glossy-card rounded-2xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer relative overflow-hidden group h-56 flex flex-col p-5 text-slate-800 dark:text-white"
           >
                <div className="flex justify-between items-start mb-2 relative z-10">
                   <div className="flex items-center gap-2">
-                      <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-lg">
+                      <div className="p-1.5 bg-emerald-100/50 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-lg backdrop-blur-sm">
                           <TrendingUp size={18} />
                       </div>
-                      <span className="font-semibold text-slate-600 dark:text-slate-300 text-sm uppercase">Lưu lượng đến</span>
+                      <span className="font-semibold text-sm uppercase opacity-90">Lưu lượng đến</span>
                   </div>
-                  <Maximize2 size={16} className="text-slate-300 dark:text-slate-500 group-hover:text-blue-500 transition-colors"/>
+                  <Maximize2 size={16} className="text-slate-400 group-hover:text-blue-500 transition-colors"/>
                </div>
                
                <div className="flex-1 flex flex-col relative z-10">
                   <div className="flex items-baseline gap-1 mt-2">
                       <span className="text-4xl font-bold text-emerald-700 dark:text-emerald-400">{metrics.inflow.value}</span>
-                      <span className="text-sm font-medium text-slate-500 dark:text-slate-400">m³/s</span>
+                      <span className="text-sm font-medium opacity-80">m³/s</span>
                   </div>
-                  <span className="text-[10px] bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-bold w-fit mt-1">Trung bình 1h</span>
+                  <span className="text-[10px] bg-emerald-50/50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-bold w-fit mt-1 backdrop-blur-sm">Trung bình 1h</span>
                </div>
 
-               <div className="h-24 w-[calc(100%+2.5rem)] -ml-5 -mb-5 mt-auto">
+               <div className="h-24 w-[calc(100%+2.5rem)] -ml-5 -mb-5 mt-auto opacity-80">
                   <ResponsiveContainer width="99%" height="100%">
                       <AreaChart data={metrics.inflow.historyData}>
                           <defs>
                               <linearGradient id="colorInflow" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
+                                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
                                   <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                               </linearGradient>
                           </defs>
@@ -708,32 +708,32 @@ export const DashboardView: React.FC = () => {
           {/* 4. Outflow */}
           <div 
             onClick={() => handleOpenModal(metrics.outflow)}
-            className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer relative overflow-hidden group h-56 flex flex-col p-5"
+            className="glossy-card rounded-2xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer relative overflow-hidden group h-56 flex flex-col p-5 text-slate-800 dark:text-white"
           >
                <div className="flex justify-between items-start mb-2 relative z-10">
                   <div className="flex items-center gap-2">
-                      <div className="p-1.5 bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 rounded-lg">
+                      <div className="p-1.5 bg-amber-100/50 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 rounded-lg backdrop-blur-sm">
                           <TrendingDown size={18} />
                       </div>
-                      <span className="font-semibold text-slate-600 dark:text-slate-300 text-sm uppercase">Tổng xả</span>
+                      <span className="font-semibold text-sm uppercase opacity-90">Tổng xả</span>
                   </div>
-                  <Maximize2 size={16} className="text-slate-300 dark:text-slate-500 group-hover:text-blue-500 transition-colors"/>
+                  <Maximize2 size={16} className="text-slate-400 group-hover:text-blue-500 transition-colors"/>
                </div>
                
                <div className="flex-1 flex flex-col relative z-10">
                   <div className="flex items-baseline gap-1 mt-2">
                       <span className="text-4xl font-bold text-amber-700 dark:text-amber-400">{metrics.outflow.value}</span>
-                      <span className="text-sm font-medium text-slate-500 dark:text-slate-400">m³/s</span>
+                      <span className="text-sm font-medium opacity-80">m³/s</span>
                   </div>
-                  <span className="text-[10px] bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full font-bold w-fit mt-1">Qua 2 tổ máy</span>
+                  <span className="text-[10px] bg-amber-50/50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full font-bold w-fit mt-1 backdrop-blur-sm">Qua 2 tổ máy</span>
                </div>
 
-               <div className="h-24 w-[calc(100%+2.5rem)] -ml-5 -mb-5 mt-auto">
+               <div className="h-24 w-[calc(100%+2.5rem)] -ml-5 -mb-5 mt-auto opacity-80">
                   <ResponsiveContainer width="99%" height="100%">
                       <AreaChart data={metrics.outflow.historyData}>
                           <defs>
                               <linearGradient id="colorOutflow" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.2}/>
+                                  <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4}/>
                                   <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
                               </linearGradient>
                           </defs>

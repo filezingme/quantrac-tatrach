@@ -125,7 +125,6 @@ export const SensorListView: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // ... (rest of the file content remains same, just ensure handleOpenHistory is available in scope)
   // ... (Chart Data Merging Logic) ...
   useEffect(() => {
     if (!selectedSensor) return;
@@ -344,32 +343,32 @@ export const SensorListView: React.FC = () => {
            </div>
         </div>
 
-        {/* KPI CARDS */}
+        {/* KPI CARDS - GLOSSY STYLE */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
-                <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+            <div className="glossy-card p-5 rounded-xl text-slate-800 dark:text-white flex items-center gap-4">
+                <div className="p-3 rounded-full bg-blue-100/50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 backdrop-blur-sm">
                     <Activity size={24}/>
                 </div>
                 <div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Tổng thiết bị</p>
-                    <p className="text-2xl font-bold text-slate-800 dark:text-white">{totalSensors}</p>
+                    <p className="text-sm font-medium opacity-80">Tổng thiết bị</p>
+                    <p className="text-2xl font-bold">{totalSensors}</p>
                 </div>
             </div>
-            <div className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
-                <div className="p-3 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
+            <div className="glossy-card p-5 rounded-xl text-slate-800 dark:text-white flex items-center gap-4">
+                <div className="p-3 rounded-full bg-green-100/50 dark:bg-green-900/40 text-green-600 dark:text-green-400 backdrop-blur-sm">
                     <Wifi size={24}/>
                 </div>
                 <div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Hoạt động tốt</p>
+                    <p className="text-sm font-medium opacity-80">Hoạt động tốt</p>
                     <p className="text-2xl font-bold text-green-600 dark:text-green-400">{onlineSensors}</p>
                 </div>
             </div>
-            <div className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
-                <div className="p-3 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
+            <div className="glossy-card p-5 rounded-xl text-slate-800 dark:text-white flex items-center gap-4">
+                <div className="p-3 rounded-full bg-amber-100/50 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 backdrop-blur-sm">
                     <AlertTriangle size={24}/>
                 </div>
                 <div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Cần kiểm tra</p>
+                    <p className="text-sm font-medium opacity-80">Cần kiểm tra</p>
                     <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{warningSensors}</p>
                 </div>
             </div>
@@ -574,7 +573,7 @@ export const SensorListView: React.FC = () => {
 
         </div>
 
-        {/* --- SENSOR HISTORY MODAL --- */}
+        {/* ... (Existing modal code remains unchanged) ... */}
         {selectedSensor && (
             <div 
                 className="fixed inset-0 z-[2000] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-0 animate-in fade-in duration-200"

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { db } from '../utils/db';
 import { ForecastData } from '../types';
@@ -82,15 +83,15 @@ export const ForecastView: React.FC = () => {
                Kết quả dự báo (72h tới)
              </h3>
              <div className="grid grid-cols-3 gap-4 text-center">
-               <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-900/30">
+               <div className="glossy-card p-3 rounded-lg text-slate-800 dark:text-white">
                  <div className="text-xs text-red-600 dark:text-red-400 uppercase font-semibold">Mực nước Max</div>
                  <div className="text-xl font-bold text-red-700 dark:text-red-400">{data.results72h.maxLevel} m</div>
                </div>
-               <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-900/30">
+               <div className="glossy-card p-3 rounded-lg text-slate-800 dark:text-white">
                  <div className="text-xs text-blue-600 dark:text-blue-400 uppercase font-semibold">Dung tích Max</div>
                  <div className="text-xl font-bold text-blue-700 dark:text-blue-400">{data.results72h.maxCapacity} tr.m³</div>
                </div>
-               <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-100 dark:border-amber-900/30">
+               <div className="glossy-card p-3 rounded-lg text-slate-800 dark:text-white">
                  <div className="text-xs text-amber-600 dark:text-amber-400 uppercase font-semibold">Q đến Max</div>
                  <div className="text-xl font-bold text-amber-700 dark:text-amber-400">{data.results72h.maxInflow} m³/s</div>
                </div>
