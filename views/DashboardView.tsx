@@ -32,7 +32,7 @@ interface MetricDetail {
   subLabel?: string;
   chartType?: 'area' | 'bar_line'; // New property to distinguish chart types
   historyData?: any[]; 
-}
+} 
 
 // Years available for comparison
 const AVAILABLE_YEARS = [2024, 2023, 2022, 2021];
