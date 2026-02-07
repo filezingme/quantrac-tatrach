@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
@@ -30,7 +31,7 @@ import { AppNotification, UserProfile, SystemSettings } from './types';
 import { Menu, Bell, Check, LogOut, User, Settings as SettingsIcon, X, AlertTriangle, AlertCircle, Info, Clock, ChevronLeft, Mail, Search, Command, Wrench } from 'lucide-react';
 import { db } from './utils/db';
 
-const ProtectedRoute = ({ children, role }: { children?: React.ReactNode; role?: 'admin' | 'user' }) => {
+const ProtectedRoute = ({ children, role }: { children: React.ReactNode; role?: 'admin' | 'user' }) => {
   const user = db.user.get();
   if (role && user.role !== role) {
     return <Navigate to="/" replace />;
@@ -251,7 +252,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                     setIsNotifOpen(!isNotifOpen);
                     if (isNotifOpen) setViewNotification(null);
                 }}
-                className={`relative p-2 transition-all duration-200 ${isNotifOpen ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 rounded-xl shadow-inner' : 'text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-xl'}`}
+                className={`relative p-2 transition-all duration-200 ${isNotifOpen ? 'text-blue-600 bg-blue-100 dark:bg-blue-900/30 rounded-xl shadow-inner' : 'text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-xl'}`}
                >
                  <Bell size={20} />
                  {unreadCount > 0 && (
