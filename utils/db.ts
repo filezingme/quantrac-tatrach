@@ -28,14 +28,14 @@ const KEYS = {
   GENERAL_INFO: 'app_general_info_v3',
   CAMERAS: 'app_cameras_v4', 
   SCENARIOS: 'app_scenarios_v3',
-  NOTIFICATIONS: 'app_notifications_v3',
+  NOTIFICATIONS: 'app_notifications_v4', // Bumped version for new data
   CURRENT_USER: 'app_current_user_v3',
   USERS_LIST: 'app_users_list_v3',
   WATER_LEVEL_RECORDS: 'app_water_level_records_v3',
   SETTINGS: 'app_settings_v9', 
   DOCUMENTS: 'app_documents_v3',
-  ALERTS: 'app_alerts_v5', // Bumped version
-  SENSORS: 'app_sensors_v3', // Bumped version
+  ALERTS: 'app_alerts_v5', 
+  SENSORS: 'app_sensors_v3', 
   SIDEBAR_CONFIG: 'app_sidebar_config_v2' 
 };
 
@@ -315,6 +315,15 @@ const defaultNotifications: AppNotification[] = [
   { id: 'n4', title: 'Đăng nhập lạ', message: 'Phát hiện đăng nhập từ IP lạ (113.161.x.x) vào lúc 08:30 sáng nay.', time: '5 giờ trước', read: true, type: 'warning' },
   { id: 'n5', title: 'Kế hoạch bảo trì', message: 'Hệ thống sẽ bảo trì định kỳ vào 00:00 ngày 25/01/2026.', time: '1 ngày trước', read: true, type: 'info' },
   { id: 'n6', title: 'Dự báo mưa lớn', message: 'Đài KTTV cảnh báo mưa lớn diện rộng trong 24h tới tại lưu vực sông Hương.', time: '1 ngày trước', read: true, type: 'alert' },
+  { id: 'n7', title: 'Thay đổi quy trình', message: 'Quy trình vận hành liên hồ chứa vừa được cập nhật phiên bản mới.', time: '2 ngày trước', read: true, type: 'info' },
+  { id: 'n8', title: 'Kiểm tra định kỳ', message: 'Nhắc nhở: Kiểm tra hệ thống camera an ninh khu vực đập tràn.', time: '2 ngày trước', read: true, type: 'info' },
+  { id: 'n9', title: 'Cảnh báo nhiệt độ', message: 'Nhiệt độ máy biến áp T1 tăng cao bất thường (58°C).', time: '3 ngày trước', read: true, type: 'warning' },
+  { id: 'n10', title: 'Sự cố mạng', message: 'Mất kết nối server trung tâm trong 5 phút. Đã khôi phục.', time: '3 ngày trước', read: true, type: 'warning' },
+  { id: 'n11', title: 'Hoàn thành bảo trì', message: 'Tổ máy H2 đã hoàn thành bảo trì và hòa lưới điện quốc gia.', time: '4 ngày trước', read: true, type: 'success' as any }, // Using 'success' visually maps to info/check
+  { id: 'n12', title: 'Họp giao ban', message: 'Lịch họp giao ban tuần vào 8:00 sáng thứ Hai.', time: '5 ngày trước', read: true, type: 'info' },
+  { id: 'n13', title: 'Cập nhật phần mềm', message: 'Hệ thống SCADA đã được nâng cấp lên phiên bản 2.4.1.', time: '1 tuần trước', read: true, type: 'info' },
+  { id: 'n14', title: 'Cảnh báo xâm nhập', message: 'Phát hiện chuyển động tại khu vực hàng rào bảo vệ phía Nam.', time: '1 tuần trước', read: true, type: 'alert' },
+  { id: 'n15', title: 'Báo cáo tháng', message: 'Báo cáo vận hành tháng trước đã được phê duyệt.', time: '2 tuần trước', read: true, type: 'info' }
 ];
 
 const defaultDocuments: DocumentItem[] = [

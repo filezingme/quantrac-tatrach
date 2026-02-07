@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
@@ -59,7 +58,6 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
 
   const navigate = useNavigate();
   const location = useLocation();
-
   const ui = useUI();
 
   const notifRef = useRef<HTMLDivElement>(null);
@@ -94,12 +92,12 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
     document.title = settings.appTitle || 'Hệ thống Quản lý Hồ Tả Trạch';
   }, [settings.appTitle]);
 
-  // Scroll to top on route change
+  // Scroll to top on route change using location hook
   useEffect(() => {
     if (mainContentRef.current) {
       mainContentRef.current.scrollTop = 0;
     }
-  }, [location.pathname]);
+  }, [location]);
 
   // --- MAINTENANCE MODE CHECK ---
   if (settings.maintenanceMode && user.role !== 'admin') {
@@ -288,7 +286,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                                     Không có thông báo mới
                                  </div>
                                ) : (
-                                 notifications.slice(0, 5).map(notif => (
+                                 notifications.map(notif => (
                                    <div 
                                       key={notif.id} 
                                       onClick={() => openNotificationDetail(notif)}
@@ -453,46 +451,31 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             <Route path="/alerts" element={<AlertHistoryView />} />
             <Route path="/sensors" element={<SensorListView />} />
             
-            <Route 
-              path="/users" 
-              element={
-                <ProtectedRoute role="admin">
-                  <UserManagementView />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/settings" 
-              element={
-                <ProtectedRoute role="admin">
-                  <SystemSettingsView />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/manual-entry" 
-              element={
-                <ProtectedRoute role="admin">
-                  <ManualEntryView />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/specs" 
-              element={
-                <ProtectedRoute role="admin">
-                  <TechnicalSpecsView />
-                </ProtectedRoute>
-              } 
-            />
-             <Route 
-              path="/operation" 
-              element={
-                <ProtectedRoute role="admin">
-                  <OperationView />
-                </ProtectedRoute>
-              } 
-            />
+            <Route path="/users" element={
+              <ProtectedRoute role="admin">
+                <UserManagementView />
+              </ProtectedRoute>
+            } />
+            <Route path="/settings" element={
+              <ProtectedRoute role="admin">
+                <SystemSettingsView />
+              </ProtectedRoute>
+            } />
+            <Route path="/manual-entry" element={
+              <ProtectedRoute role="admin">
+                <ManualEntryView />
+              </ProtectedRoute>
+            } />
+            <Route path="/specs" element={
+              <ProtectedRoute role="admin">
+                <TechnicalSpecsView />
+              </ProtectedRoute>
+            } />
+             <Route path="/operation" element={
+              <ProtectedRoute role="admin">
+                <OperationView />
+              </ProtectedRoute>
+            } />
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

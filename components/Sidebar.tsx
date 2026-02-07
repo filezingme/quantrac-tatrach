@@ -71,6 +71,7 @@ const MASTER_MENU_ITEMS = [
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isCollapsed, toggleCollapse }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const currentPath = location.pathname;
   
   // Initialize role directly from DB to avoid flash of wrong state
   const [userRole, setUserRole] = useState<'admin' | 'user'>(() => {
@@ -330,7 +331,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
         <nav className={`flex-1 py-6 sidebar-scrollbar ${isCollapsed ? 'px-0' : ''}`}>
           <ul className={`space-y-1.5 ${isCollapsed ? 'px-0 flex flex-col items-center ml-[4px]' : 'px-3'}`}>
             {visibleItems.map((item) => {
-              const isActive = location.pathname === item.path || (item.path === '/dashboard' && location.pathname === '/');
+              const isActive = currentPath === item.path || (item.path === '/dashboard' && currentPath === '/');
               const conf = config.find(c => c.path === item.path);
               const label = conf?.customLabel || item.label;
 

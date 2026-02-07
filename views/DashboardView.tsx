@@ -1455,7 +1455,7 @@ export const DashboardView: React.FC = () => {
                                 <ResponsiveContainer width="99%" height="100%">
                                     <AreaChart data={alertChartData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
                                         <defs>
-                                            <linearGradient id="colorValueAlert" x1="0" y1="0" x2="0" y2="1">
+                                            <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                                                 <stop offset="5%" stopColor={selectedAlert.severity === 'critical' ? '#ef4444' : '#3b82f6'} stopOpacity={0.3}/>
                                                 <stop offset="95%" stopColor={selectedAlert.severity === 'critical' ? '#ef4444' : '#3b82f6'} stopOpacity={0}/>
                                             </linearGradient>
@@ -1472,7 +1472,7 @@ export const DashboardView: React.FC = () => {
                                             type="monotone" 
                                             dataKey="value" 
                                             stroke={selectedAlert.severity === 'critical' ? '#ef4444' : '#3b82f6'} 
-                                            fill="url(#colorValueAlert)" 
+                                            fill="url(#colorValue)" 
                                             strokeWidth={3}
                                             name={selectedAlert.sensor}
                                         />

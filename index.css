@@ -118,6 +118,33 @@ body {
   scrollbar-color: rgba(148, 163, 184, 0.3) transparent; 
 }
 
+/* Hover-Only Scrollbar */
+.hover-scrollbar {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent; /* Firefox: Thumb Track */
+  transition: scrollbar-color 0.3s ease;
+}
+
+.hover-scrollbar:hover {
+  scrollbar-color: rgba(148, 163, 184, 0.5) transparent; /* Firefox Hover */
+}
+
+/* Webkit (Chrome/Safari/Edge) */
+.hover-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.hover-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.hover-scrollbar::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 20px;
+}
+.hover-scrollbar:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.5);
+}
+
 /* --- LEAFLET CUSTOM POPUP STYLES --- */
 .custom-popup-clean .leaflet-popup-content-wrapper {
   padding: 0;
