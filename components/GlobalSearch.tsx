@@ -395,6 +395,17 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
             onChange={(e) => { setQuery(e.target.value); setSelectedIndex(0); }}
             autoComplete="off"
           />
+          
+          {query && (
+            <button 
+                onClick={() => { setQuery(''); setSelectedIndex(0); inputRef.current?.focus(); }}
+                className="p-1.5 text-slate-300 hover:text-slate-500 dark:text-slate-600 dark:hover:text-slate-400 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-all animate-in fade-in zoom-in duration-200"
+                title="Xóa nội dung"
+            >
+                <X size={18} />
+            </button>
+          )}
+
           <div className="flex items-center gap-3">
              <button 
                 onClick={toggleListening}
