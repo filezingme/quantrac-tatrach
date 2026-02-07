@@ -23,7 +23,7 @@ const complexHydroData = Array.from({ length: 24 }, (_, i) => ({
   outflow: 40 + Math.sin((i - 2) / 4) * 80, 
   level: 35 + i * 0.1 + Math.sin(i / 6) * 0.5,
   spillway: i > 12 ? (i - 12) * 10 : 0
-}));
+})); 
 
 // 2. Sensor Multi-line
 const sensorData = Array.from({ length: 20 }, (_, i) => ({
