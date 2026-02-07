@@ -231,7 +231,7 @@ export const AISafetyView: React.FC = () => {
            </div>
         </div>
 
-        {/* 4. KPI Cards - GLOSSY */}
+        {/* 4. KPI Cards */}
         <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
            <KPICard title="Chỉ số An toàn đập" value="98.5%" status="good" icon={<ShieldCheck size={18}/>} sub="Theo QC 04-05" />
            <KPICard title="Nhiệt độ Bê tông đập" value="28.4°C" status="normal" icon={<Thermometer size={18}/>} sub="Ổn định" />
@@ -272,25 +272,19 @@ export const AISafetyView: React.FC = () => {
 
 const KPICard = ({ title, value, status, icon, sub }: { title: string, value: string, status: 'good' | 'normal' | 'warning', icon: any, sub: string }) => {
   const colors = {
-    good: 'text-green-600 dark:text-green-400',
-    normal: 'text-blue-600 dark:text-blue-400',
-    warning: 'text-amber-600 dark:text-amber-400'
+    good: 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-green-200 dark:border-green-800',
+    normal: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800',
+    warning: 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800'
   };
 
-  const bgColors = {
-    good: 'bg-green-100/50 dark:bg-green-900/40',
-    normal: 'bg-blue-100/50 dark:bg-blue-900/40',
-    warning: 'bg-amber-100/50 dark:bg-amber-900/40'
-  }
-
   return (
-    <div className={`glossy-card p-4 rounded-xl shadow-sm flex items-center justify-between text-slate-800 dark:text-white`}>
+    <div className={`p-4 rounded-xl border ${colors[status]} shadow-sm flex items-center justify-between`}>
        <div>
           <p className="text-xs font-bold opacity-80 uppercase mb-1">{title}</p>
-          <p className={`text-xl font-bold ${colors[status]}`}>{value}</p>
+          <p className="text-xl font-bold">{value}</p>
           <p className="text-[10px] opacity-70 mt-1">{sub}</p>
        </div>
-       <div className={`p-2 rounded-full ${bgColors[status]} backdrop-blur-sm`}>
+       <div className={`p-2 rounded-full bg-white/50 dark:bg-black/20 backdrop-blur-sm`}>
           {icon}
        </div>
     </div>
