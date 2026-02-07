@@ -406,8 +406,12 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
              
              <div className="h-6 w-[1px] bg-slate-200 dark:bg-slate-700 mx-1"></div>
 
-             <button onClick={onClose} className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-md text-slate-500 dark:text-slate-400 text-xs font-bold px-2.5 border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-200 transition-colors">
-                ESC
+             <button 
+                onClick={onClose} 
+                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+                title="Đóng (ESC)"
+             >
+                <X size={22} />
              </button>
           </div>
         </div>
