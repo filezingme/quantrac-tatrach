@@ -18,7 +18,7 @@ import {
   SidebarConfigItem
 } from '../types';
 
-// CHANGED: Version bump to force data refresh with new time format
+// CHANGED: Version bump to force data refresh with new time format and logo field
 const KEYS = {
   OBSERVATION: 'app_observation_v3',
   FORECAST: 'app_forecast_v3',
@@ -32,7 +32,7 @@ const KEYS = {
   CURRENT_USER: 'app_current_user_v3',
   USERS_LIST: 'app_users_list_v3',
   WATER_LEVEL_RECORDS: 'app_water_level_records_v3',
-  SETTINGS: 'app_settings_v11', // Version bump for logo
+  SETTINGS: 'app_settings_v12', // Version bump for logo persistence
   DOCUMENTS: 'app_documents_v3',
   ALERTS: 'app_alerts_v5', 
   SENSORS: 'app_sensors_v3', 

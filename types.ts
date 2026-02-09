@@ -232,7 +232,7 @@ export interface SystemSettings {
   appTitle: string; // Full Title (Browser Tab)
   appFooter: string; // Footer/Copyright text
   favicon?: string; // Base64 or URL
-  logo?: string; // Base64 or URL for App Logo
+  logo?: string; // Base64 or URL for App Logo (Header & Login)
   maintenanceMode: boolean;
   language: 'vi' | 'en';
   dateFormat: 'DD/MM/YYYY' | 'MM/DD/YYYY';
