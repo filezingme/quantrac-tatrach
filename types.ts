@@ -231,6 +231,7 @@ export interface SystemSettings {
   appSubtitle: string; // Subtitle
   appTitle: string; // Full Title (Browser Tab)
   appFooter: string; // Footer/Copyright text
+  favicon?: string; // Base64 or URL
   maintenanceMode: boolean;
   language: 'vi' | 'en';
   dateFormat: 'DD/MM/YYYY' | 'MM/DD/YYYY';

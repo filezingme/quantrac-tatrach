@@ -92,6 +92,19 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
     document.title = settings.appTitle || 'Hệ thống Quản lý Hồ Tả Trạch';
   }, [settings.appTitle]);
 
+  // Update Favicon based on settings
+  useEffect(() => {
+    if (settings.favicon) {
+      let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.getElementsByTagName('head')[0].appendChild(link);
+      }
+      link.href = settings.favicon;
+    }
+  }, [settings.favicon]);
+
   // Scroll to top on route change using location hook
   useEffect(() => {
     if (mainContentRef.current) {
@@ -251,7 +264,7 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                     setIsNotifOpen(!isNotifOpen);
                     if (isNotifOpen) setViewNotification(null);
                 }}
-                className={`relative p-2 transition-all duration-200 ${isNotifOpen ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/30 rounded-xl shadow-inner' : 'text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-xl'}`}
+                className={`relative p-2 transition-all duration-200 ${isNotifOpen ? 'text-blue-600 bg-blue-100 dark:bg-blue-900/30 rounded-xl shadow-inner' : 'text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-xl'}`}
                >
                  <Bell size={20} />
                  {unreadCount > 0 && (
@@ -343,9 +356,9 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
                                  
                                  <div className="p-5 overflow-y-auto flex-1 hover-scrollbar bg-white/50 dark:bg-slate-800/50">
                                     <div className={`mb-4 p-3 rounded-xl flex items-start gap-3 shadow-sm border ${
-                                       viewNotification.type === 'alert' ? 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-900/30 text-red-800 dark:text-red-200' : 
-                                       viewNotification.type === 'warning' ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-900/30 text-amber-800 dark:text-amber-200' : 
-                                       'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-900/30 text-blue-800 dark:text-blue-200'
+                                       viewNotification.type === 'alert' ? 'bg-red-50/50 dark:bg-red-900/20 border-red-100 dark:border-red-900/30 text-red-800 dark:text-red-200' : 
+                                       viewNotification.type === 'warning' ? 'bg-amber-50/50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-900/30 text-amber-800 dark:text-amber-200' : 
+                                       'bg-blue-50/50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-900/30 text-blue-800 dark:text-blue-200'
                                     }`}>
                                        <div className="mt-0.5 shrink-0">
                                           {getNotifIcon(viewNotification.type)}
@@ -627,19 +640,19 @@ const MainLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
 };
 
 export const App: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return sessionStorage.getItem('isAuthenticated') === 'true';
   });
 
   const handleLogin = (user: UserProfile) => {
-    sessionStorage.setItem('isAuthenticated', 'true');
-    db.user.set(user);
     setIsAuthenticated(true);
+    db.user.set(user);
+    sessionStorage.setItem('isAuthenticated', 'true');
   };
 
   const handleLogout = () => {
-    sessionStorage.removeItem('isAuthenticated');
     setIsAuthenticated(false);
+    sessionStorage.removeItem('isAuthenticated');
   };
 
   return (
