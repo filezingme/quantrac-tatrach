@@ -32,7 +32,7 @@ const KEYS = {
   CURRENT_USER: 'app_current_user_v3',
   USERS_LIST: 'app_users_list_v3',
   WATER_LEVEL_RECORDS: 'app_water_level_records_v3',
-  SETTINGS: 'app_settings_v10', // Version bump for favicon
+  SETTINGS: 'app_settings_v11', // Version bump for logo
   DOCUMENTS: 'app_documents_v3',
   ALERTS: 'app_alerts_v5', 
   SENSORS: 'app_sensors_v3', 
@@ -446,6 +446,8 @@ const defaultSettings: SystemSettings = {
   appFooter: 'Version 3.0.1 © 2026',
   // SVG Favicon as default
   favicon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1'/%3E%3Cpath d='M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 1.3 0 1.9.5 2.5 1'/%3E%3Cpath d='M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 1.3 0 1.9.5 2.5 1'/%3E%3C/svg%3E",
+  // Logo default is empty to use the Waves icon fallback
+  logo: "",
   maintenanceMode: false,
   language: 'vi',
   dateFormat: 'DD/MM/YYYY',

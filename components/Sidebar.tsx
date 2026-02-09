@@ -312,9 +312,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar, isColla
         {/* Header - Strictly aligned */}
         <div className={`flex items-center h-16 border-b border-slate-100 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 transition-all duration-300 overflow-hidden ${isCollapsed ? 'justify-center px-0' : 'justify-between px-5'}`}>
           <div className={`flex items-center ${isCollapsed ? 'justify-center w-full' : 'gap-3'}`}>
-            <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-2 rounded-lg text-white shadow-lg shadow-blue-500/30 shrink-0 flex items-center justify-center">
-              <Waves size={20} />
-            </div>
+            {appSettings.logo ? (
+                <img src={appSettings.logo} alt="Logo" className="w-8 h-8 object-contain rounded-lg" />
+            ) : (
+                <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-2 rounded-lg text-white shadow-lg shadow-blue-500/30 shrink-0 flex items-center justify-center">
+                  <Waves size={20} />
+                </div>
+            )}
             {!isCollapsed && (
               <div className="transition-opacity duration-200 opacity-100 w-auto min-w-0">
                 <h1 className="font-bold text-lg text-slate-800 dark:text-white leading-tight truncate max-w-[180px]">{appSettings.appName}</h1>

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Settings, Bell, Database, Shield, Globe, Monitor, Save, RefreshCw, Check, Zap, Layout, AlertTriangle, MessageSquare, User, Upload, Image as ImageIcon } from 'lucide-react';
+import { Settings, Bell, Database, Shield, Globe, Monitor, Save, RefreshCw, Check, Zap, Layout, AlertTriangle, MessageSquare, User, Upload, Image as ImageIcon, Aperture } from 'lucide-react';
 import { useUI } from '../components/GlobalUI';
 import { db } from '../utils/db';
 import { SystemSettings } from '../types';
@@ -17,6 +17,7 @@ export const SystemSettingsView: React.FC = () => {
   const ui = useUI();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     // Sync theme state with local storage on mount
@@ -92,7 +93,26 @@ export const SystemSettingsView: React.FC = () => {
       reader.onloadend = () => {
         const base64String = reader.result as string;
         handleChange('favicon', base64String);
-        ui.showToast('info', 'Đã tải ảnh lên. Nhấn Lưu để áp dụng.');
+        ui.showToast('info', 'Đã tải Favicon lên. Nhấn Lưu để áp dụng.');
+      };
+      reader.readAsDataURL(file);
+    }
+    e.target.value = ''; // Reset input
+  };
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) { // 2MB limit for Logo
+        ui.showToast('error', 'Kích thước file quá lớn (Max 2MB)');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        handleChange('logo', base64String);
+        ui.showToast('info', 'Đã tải Logo lên. Nhấn Lưu để áp dụng.');
       };
       reader.readAsDataURL(file);
     }
@@ -214,20 +234,63 @@ export const SystemSettingsView: React.FC = () => {
                              
                              <div className="mt-6 space-y-6">
                                 {/* Theme Selector */}
-                                <div className="grid grid-cols-3 gap-4 max-w-md">
-                                    <div 
-                                      onClick={() => handleThemeChange('light')}
-                                      className={`border-2 rounded-lg p-3 text-center cursor-pointer transition-all ${theme === 'light' ? 'border-blue-500 bg-blue-50 dark:bg-slate-700' : 'border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
-                                    >
-                                        <div className="h-10 bg-white rounded mb-2 border border-blue-200 dark:border-slate-500"></div>
-                                        <span className={`text-xs font-bold ${theme === 'light' ? 'text-blue-700 dark:text-blue-300' : 'text-slate-600 dark:text-slate-400'}`}>Sáng</span>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Chế độ màu sắc</label>
+                                    <div className="grid grid-cols-3 gap-4 max-w-md">
+                                        <div 
+                                        onClick={() => handleThemeChange('light')}
+                                        className={`border-2 rounded-lg p-3 text-center cursor-pointer transition-all ${theme === 'light' ? 'border-blue-500 bg-blue-50 dark:bg-slate-700' : 'border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+                                        >
+                                            <div className="h-10 bg-white rounded mb-2 border border-blue-200 dark:border-slate-500"></div>
+                                            <span className={`text-xs font-bold ${theme === 'light' ? 'text-blue-700 dark:text-blue-300' : 'text-slate-600 dark:text-slate-400'}`}>Sáng</span>
+                                        </div>
+                                        <div 
+                                        onClick={() => handleThemeChange('dark')}
+                                        className={`border-2 rounded-lg p-3 text-center cursor-pointer transition-all ${theme === 'dark' ? 'border-blue-500 bg-blue-50 dark:bg-slate-700' : 'border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+                                        >
+                                            <div className="h-10 bg-slate-800 rounded mb-2 border border-slate-600"></div>
+                                            <span className={`text-xs font-bold ${theme === 'dark' ? 'text-blue-700 dark:text-blue-300' : 'text-slate-600 dark:text-slate-400'}`}>Tối</span>
+                                        </div>
                                     </div>
-                                    <div 
-                                      onClick={() => handleThemeChange('dark')}
-                                      className={`border-2 rounded-lg p-3 text-center cursor-pointer transition-all ${theme === 'dark' ? 'border-blue-500 bg-blue-50 dark:bg-slate-700' : 'border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
-                                    >
-                                        <div className="h-10 bg-slate-800 rounded mb-2 border border-slate-600"></div>
-                                        <span className={`text-xs font-bold ${theme === 'dark' ? 'text-blue-700 dark:text-blue-300' : 'text-slate-600 dark:text-slate-400'}`}>Tối</span>
+                                </div>
+
+                                {/* Logo Upload */}
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Logo hệ thống (Header & Login)</label>
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-16 h-16 rounded-lg border border-slate-200 dark:border-slate-600 flex items-center justify-center bg-slate-50 dark:bg-slate-700 overflow-hidden shadow-sm">
+                                            {settings.logo ? (
+                                                <img src={settings.logo} alt="Logo" className="w-full h-full object-contain p-1" />
+                                            ) : (
+                                                <Aperture size={32} className="text-slate-400" />
+                                            )}
+                                        </div>
+                                        <div className="flex flex-col gap-1">
+                                            <input 
+                                                type="file" 
+                                                ref={logoInputRef}
+                                                onChange={handleLogoUpload}
+                                                accept=".png,.jpg,.jpeg,.svg"
+                                                className="hidden"
+                                            />
+                                            <div className="flex gap-2">
+                                                <button 
+                                                    onClick={() => logoInputRef.current?.click()}
+                                                    className="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors flex items-center gap-2"
+                                                >
+                                                    <Upload size={12}/> Tải Logo
+                                                </button>
+                                                {settings.logo && (
+                                                    <button 
+                                                        onClick={() => handleChange('logo', "")}
+                                                        className="px-3 py-1.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                                                    >
+                                                        Xóa
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <span className="text-[10px] text-slate-400">Hỗ trợ PNG, SVG, JPG (Max 2MB). Khuyên dùng ảnh nền trong suốt.</span>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -254,7 +317,7 @@ export const SystemSettingsView: React.FC = () => {
                                                 onClick={() => fileInputRef.current?.click()}
                                                 className="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors flex items-center gap-2"
                                             >
-                                                <Upload size={12}/> Tải ảnh lên
+                                                <Upload size={12}/> Tải Favicon
                                             </button>
                                             <span className="text-[10px] text-slate-400">Hỗ trợ ICO, PNG, SVG (Max 500KB)</span>
                                         </div>
